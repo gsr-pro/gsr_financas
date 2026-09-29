@@ -62,9 +62,9 @@ export const App: React.FC = () => {
   // Carregamento inicial da sessão
   if (authChecking) {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-        <Loader2 className="w-8 h-8 text-emerald-700 animate-spin mb-3" />
-        <p className="text-xs font-semibold text-slate-600">
+      <div className="min-h-screen bg-[#070D1E] flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
+        <p className="text-xs font-semibold text-slate-400 font-mono tracking-wider">
           Carregando dados da obra...
         </p>
       </div>
@@ -77,9 +77,9 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex justify-center selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[var(--bg-viewport)] flex justify-center selection:bg-emerald-500 selection:text-white transition-colors duration-300">
       {/* Container Mobile-First otimizado para celulares e centrado em telas desktop */}
-      <div className="w-full max-w-md min-h-screen bg-slate-50 flex flex-col shadow-2xl relative">
+      <div className="w-full max-w-md min-h-screen bg-[var(--bg-container)] text-[var(--text-primary)] flex flex-col shadow-2xl relative border-x border-[var(--border-color)] transition-colors duration-300">
         {/* Header Superior */}
         <Header
           userEmail={sessionUser}
@@ -105,6 +105,7 @@ export const App: React.FC = () => {
             <ExpenseListView
               onNavigateToForm={() => setCurrentTab('novo')}
               refreshTrigger={refreshTrigger}
+              onExpenseUpdated={() => setRefreshTrigger((prev) => prev + 1)}
             />
           )}
         </main>

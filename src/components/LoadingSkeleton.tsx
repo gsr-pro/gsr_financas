@@ -4,16 +4,16 @@ export const DashboardSkeleton: React.FC = () => {
   return (
     <div className="space-y-4 animate-pulse">
       {/* Card Destaque Terreno */}
-      <div className="h-28 bg-slate-200/80 rounded-2xl" />
+      <div className="h-32 bg-slate-800/80 rounded-3xl border border-slate-700/30" />
       {/* Métricas em grid */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
+        <div className="h-24 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
+        <div className="h-24 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
+        <div className="h-24 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
+        <div className="h-24 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
       </div>
       {/* Progresso */}
-      <div className="h-44 bg-slate-200/80 rounded-2xl" />
+      <div className="h-44 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
     </div>
   );
 };
@@ -21,16 +21,16 @@ export const DashboardSkeleton: React.FC = () => {
 export const ListSkeleton: React.FC = () => {
   return (
     <div className="space-y-3 animate-pulse">
-      <div className="h-10 bg-slate-200/80 rounded-xl" />
+      <div className="h-10 bg-slate-800/80 rounded-xl border border-slate-700/30" />
       <div className="flex space-x-2">
-        <div className="h-8 w-20 bg-slate-200/80 rounded-full" />
-        <div className="h-8 w-24 bg-slate-200/80 rounded-full" />
-        <div className="h-8 w-20 bg-slate-200/80 rounded-full" />
+        <div className="h-8 w-20 bg-slate-800/80 rounded-full" />
+        <div className="h-8 w-24 bg-slate-800/80 rounded-full" />
+        <div className="h-8 w-20 bg-slate-800/80 rounded-full" />
       </div>
       <div className="space-y-2.5 pt-2">
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
-        <div className="h-20 bg-slate-200/80 rounded-xl" />
+        <div className="h-20 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
+        <div className="h-20 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
+        <div className="h-20 bg-slate-800/80 rounded-2xl border border-slate-700/30" />
       </div>
     </div>
   );

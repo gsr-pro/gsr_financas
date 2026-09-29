@@ -5,11 +5,13 @@ import { formatCurrency, formatDate, getCategoryBadgeStyle } from '../lib/format
 import { ComprovanteModal } from '../components/ComprovanteModal';
 import { ListSkeleton } from '../components/LoadingSkeleton';
 import { EmptyState } from '../components/EmptyState';
-import { Search, FileImage, Trash2, AlertCircle, CheckCircle2, Clock, X } from 'lucide-react';
+import { Search, FileImage, Trash2, AlertCircle, CheckCircle2, Clock, X, Pencil } from 'lucide-react';
+import { EditExpenseModal } from '../components/EditExpenseModal';
 
 interface ExpenseListViewProps {
   onNavigateToForm: () => void;
   refreshTrigger?: number;
+  onExpenseUpdated?: () => void;
 }
 
 const CATEGORIAS_FILTRO: (CategoriaDespesa | 'Todas')[] = [
@@ -24,6 +26,7 @@ const CATEGORIAS_FILTRO: (CategoriaDespesa | 'Todas')[] = [
 export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
   onNavigateToForm,
   refreshTrigger,
+  onExpenseUpdated,
 }) => {
   const [despesas, setDespesas] = useState<DespesaRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,8 +36,9 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
   const [selectedCategoria, setSelectedCategoria] = useState<CategoriaDespesa | 'Todas'>('Todas');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Modal de Comprovante
+  // Modal de Comprovante e Modal de Edição
   const [activeComprovante, setActiveComprovante] = useState<{ url: string; descricao: string } | null>(null);
+  const [editingExpense, setEditingExpense] = useState<DespesaRow | null>(null);
 
   // Exclusão
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -80,6 +84,9 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
 
       // Remove da lista local
       setDespesas((prev) => prev.filter((d) => d.id !== id));
+      if (onExpenseUpdated) {
+        onExpenseUpdated();
+      }
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Erro ao excluir despesa.');
     } finally {
@@ -130,12 +137,12 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
           placeholder="Buscar por descrição..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+          className="w-full pl-9 pr-9 py-2.5 bg-slate-900/90 border border-slate-800 rounded-xl text-xs font-medium text-white placeholder:text-slate-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm('')}
-            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+            className="absolute right-3 top-2.5 text-slate-400 hover:text-white p-0.5"
           >
             <X className="w-4 h-4" />
           </button>
@@ -150,8 +157,8 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
             onClick={() => setSelectedCategoria(cat)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
               selectedCategoria === cat
-                ? 'bg-emerald-800 text-white shadow-sm ring-2 ring-emerald-700/20'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold shadow-sm ring-2 ring-emerald-400/30'
+                : 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200'
             }`}
           >
             {cat}
@@ -160,12 +167,12 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
       </div>
 
       {/* 3. Indicador de Quantidade e Total Filtrado */}
-      <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-1">
+      <div className="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
         <span>
           {filteredDespesas.length} {filteredDespesas.length === 1 ? 'lançamento' : 'lançamentos'}
         </span>
-        <span className="font-semibold text-slate-700">
-          Total: {formatCurrency(filteredDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0))}
+        <span className="font-semibold text-white">
+          Total: <span className="text-emerald-400">{formatCurrency(filteredDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0))}</span>
         </span>
       </div>
 
@@ -197,9 +204,9 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between space-y-2"
+                className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800/90 hover:border-slate-700/90 shadow-md transition-all flex flex-col justify-between space-y-2.5 text-slate-100"
               >
-                {/* Linha 1: Categoria, Data e Botão de Excluir */}
+                {/* Linha 1: Categoria, Data e Ações */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span
@@ -207,7 +214,7 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                     >
                       {item.categoria}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <span className="text-[11px] font-mono text-slate-400 font-medium">
                       {formatDate(item.data_gasto)}
                     </span>
                   </div>
@@ -222,17 +229,25 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                           })
                         }
                         title="Ver comprovante"
-                        className="p-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                        className="p-1.5 rounded-lg text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition-colors"
                       >
                         <FileImage className="w-4 h-4" />
                       </button>
                     )}
 
                     <button
+                      onClick={() => setEditingExpense(item)}
+                      title="Editar lançamento"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
                       onClick={() => handleDelete(item.id, item.descricao)}
                       disabled={deletingId === item.id}
                       title="Excluir despesa"
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors disabled:opacity-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -240,33 +255,33 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                 </div>
 
                 {/* Linha 2: Descrição */}
-                <p className="text-xs font-semibold text-slate-900 leading-tight">
+                <p className="text-xs font-semibold text-white leading-tight">
                   {item.descricao}
                 </p>
 
                 {item.observacoes && (
-                  <p className="text-[11px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                  <p className="text-[11px] text-slate-400 italic bg-slate-950/70 p-2 rounded-xl border border-slate-800/80">
                     {item.observacoes}
                   </p>
                 )}
 
                 {/* Linha 3: Valor e Status */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
                   <div className="flex items-center space-x-1.5">
                     {isPago ? (
-                      <span className="inline-flex items-center text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                        <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
+                      <span className="inline-flex items-center text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-md">
+                        <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-400" />
                         Pago
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md">
-                        <Clock className="w-3 h-3 mr-1 text-amber-600" />
+                      <span className="inline-flex items-center text-[10px] font-semibold text-amber-400 bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 rounded-md">
+                        <Clock className="w-3 h-3 mr-1 text-amber-400" />
                         Pendente
                       </span>
                     )}
                   </div>
 
-                  <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                  <span className="text-sm font-extrabold text-white tracking-tight">
                     {formatCurrency(item.valor)}
                   </span>
                 </div>
@@ -282,6 +297,23 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
           url={activeComprovante.url}
           descricao={activeComprovante.descricao}
           onClose={() => setActiveComprovante(null)}
+        />
+      )}
+
+      {/* Modal de Edição de Lançamento */}
+      {editingExpense && (
+        <EditExpenseModal
+          expense={editingExpense}
+          isOpen={!!editingExpense}
+          onClose={() => setEditingExpense(null)}
+          onSuccess={(updated) => {
+            setDespesas((prev) =>
+              prev.map((d) => (d.id === updated.id ? updated : d))
+            );
+            if (onExpenseUpdated) {
+              onExpenseUpdated();
+            }
+          }}
         />
       )}
     </div>

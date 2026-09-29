@@ -17,14 +17,14 @@ export const CategoryProgress: React.FC<CategoryProgressProps> = ({
   totalExpenses,
 }) => {
   return (
-    <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3.5">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+    <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md space-y-3.5">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
         Distribuição por Categoria
       </h3>
 
       {/* Barra segmentada consolidada */}
       {totalExpenses > 0 ? (
-        <div className="w-full h-3 bg-slate-100 rounded-full flex overflow-hidden shadow-inner">
+        <div className="w-full h-3 bg-slate-950 rounded-full flex overflow-hidden shadow-inner border border-slate-800">
           {categories.map((cat) => {
             const percentage = (cat.amount / totalExpenses) * 100;
             if (percentage <= 0) return null;
@@ -39,7 +39,7 @@ export const CategoryProgress: React.FC<CategoryProgressProps> = ({
           })}
         </div>
       ) : (
-        <div className="w-full h-2.5 bg-slate-100 rounded-full" />
+        <div className="w-full h-2.5 bg-slate-950 rounded-full border border-slate-800" />
       )}
 
       {/* Lista detalhada das categorias */}
@@ -50,13 +50,13 @@ export const CategoryProgress: React.FC<CategoryProgressProps> = ({
             <div key={cat.name} className="flex items-center justify-between text-xs">
               <div className="flex items-center space-x-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${cat.color}`} />
-                <span className="text-slate-600 font-medium">{cat.name}</span>
+                <span className="text-slate-300 font-medium">{cat.name}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-white">
                   {formatCurrency(cat.amount)}
                 </span>
-                <span className="text-[11px] text-slate-400 w-11 text-right">
+                <span className="text-[11px] font-mono text-slate-500 w-11 text-right">
                   {percentage.toFixed(0)}%
                 </span>
               </div>

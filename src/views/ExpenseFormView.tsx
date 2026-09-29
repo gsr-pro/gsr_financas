@@ -78,7 +78,6 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
     setLoading(true);
 
     try {
-      // 1. Obtém o usuário autenticado atual
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         throw new Error('Usuário não autenticado. Faça login para registrar despesas.');
@@ -86,7 +85,6 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
       let fotoUrl: string | null = null;
 
-      // 2. Upload de comprovante para o Storage se houver arquivo
       if (file) {
         const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
         const fileName = `${Date.now()}_${crypto.randomUUID()}.${fileExt}`;
@@ -103,7 +101,6 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
           throw new Error(`Falha no upload do comprovante: ${uploadError.message}`);
         }
 
-        // Obtém a URL pública do comprovante
         const { data: publicData } = supabase.storage
           .from('comprovantes')
           .getPublicUrl(filePath);
@@ -111,7 +108,6 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         fotoUrl = publicData.publicUrl;
       }
 
-      // 3. Gravação da despesa no banco de dados
       const { error: insertError } = await supabase.from('despesas').insert({
         user_id: user.id,
         data_gasto: dataGasto,
@@ -127,19 +123,16 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         throw insertError;
       }
 
-      // Sucesso!
       setSuccess(true);
-      // Limpa os campos
       setDescricao('');
       setValor('');
       setObservacoes('');
       setFile(null);
       setPreviewUrl(null);
 
-      // Notifica o componente pai para atualizar contadores e listas
       setTimeout(() => {
         onSuccess();
-      }, 1200);
+      }, 1100);
 
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro inesperado ao salvar despesa.';
@@ -150,29 +143,29 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
   };
 
   return (
-    <div className="space-y-4 pb-24 animate-fade-in">
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-        <div className="border-b border-slate-100 pb-3 mb-4">
-          <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Novo Lançamento
+    <div className="space-y-4 pb-24 animate-fade-in text-slate-100">
+      <div className="bg-slate-900/90 rounded-3xl p-5 border border-slate-800 shadow-xl">
+        <div className="border-b border-slate-800 pb-3 mb-4">
+          <h2 className="text-base font-bold text-white tracking-tight flex items-center space-x-2">
+            <span>Novo Lançamento</span>
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400 mt-0.5">
             Cadastre os gastos de materiais, mão de obra e serviços da chácara.
           </p>
         </div>
 
         {/* Feedback de Sucesso */}
         {success && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center my-3 flex items-center justify-center space-x-2 text-emerald-800 text-xs font-semibold animate-fade-in">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <div className="bg-emerald-500/15 border border-emerald-500/40 rounded-xl p-3.5 text-center my-3 flex items-center justify-center space-x-2 text-emerald-300 text-xs font-semibold animate-fade-in">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>Lançamento registrado com sucesso!</span>
           </div>
         )}
 
         {/* Feedback de Erro */}
         {errorMessage && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 my-3 flex items-start space-x-2 text-rose-800 text-xs animate-fade-in">
-            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-rose-500/15 border border-rose-500/40 rounded-xl p-3.5 my-3 flex items-start space-x-2 text-rose-300 text-xs animate-fade-in">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
         )}
@@ -180,8 +173,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Data do Gasto */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1.5">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <Calendar className="w-3.5 h-3.5 text-sky-400" />
               <span>Data do Gasto</span>
             </label>
             <input
@@ -189,14 +182,14 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               required
               value={dataGasto}
               onChange={(e) => setDataGasto(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
             />
           </div>
 
           {/* Categoria */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1.5">
-              <Tag className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <Tag className="w-3.5 h-3.5 text-sky-400" />
               <span>Categoria</span>
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -207,8 +200,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                   onClick={() => setCategoria(cat)}
                   className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${
                     categoria === cat
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-semibold ring-1 ring-emerald-400'
-                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-semibold ring-1 ring-emerald-400/40 shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
                   }`}
                 >
                   {cat}
@@ -219,8 +212,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
           {/* Descrição */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1.5">
-              <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-sky-400" />
               <span>Descrição da Despesa</span>
             </label>
             <input
@@ -229,14 +222,14 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               placeholder="Ex: 50 sacos de areia média, diária pedreiro..."
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
             />
           </div>
 
           {/* Valor */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-sky-400" />
               <span>Valor (R$)</span>
             </label>
             <div className="relative">
@@ -250,14 +243,14 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 placeholder="0,00"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
               />
             </div>
           </div>
 
           {/* Status do Pagamento */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Status do Pagamento
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -266,8 +259,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 onClick={() => setStatusPagamento('Pago')}
                 className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center space-x-1.5 transition-all ${
                   statusPagamento === 'Pago'
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:bg-slate-800/60'
                 }`}
               >
                 <span>Pago</span>
@@ -277,8 +270,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 onClick={() => setStatusPagamento('Pendente')}
                 className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center space-x-1.5 transition-all ${
                   statusPagamento === 'Pendente'
-                    ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-amber-600 text-white border-amber-500 shadow-sm ring-2 ring-amber-500/20'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:bg-slate-800/60'
                 }`}
               >
                 <span>Pendente</span>
@@ -288,18 +281,18 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
           {/* Upload de Comprovante (Foto ou PDF) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
               <span>Foto do Comprovante ou Nota (Opcional)</span>
             </label>
 
             {!file ? (
-              <label className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/20 transition-all">
+              <label className="border-2 border-dashed border-slate-700 hover:border-emerald-400 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-950/50 hover:bg-emerald-500/5 transition-all">
                 <Upload className="w-6 h-6 text-slate-400 mb-1.5" />
-                <span className="text-xs font-semibold text-slate-700">
+                <span className="text-xs font-semibold text-slate-200">
                   Tirar foto ou anexar recibo
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">
+                <span className="text-[10px] text-slate-500 mt-0.5">
                   PNG, JPG ou PDF (máx. 5MB)
                 </span>
                 <input
@@ -310,24 +303,24 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 />
               </label>
             ) : (
-              <div className="relative rounded-xl border border-slate-200 bg-slate-50 p-2.5 flex items-center justify-between">
+              <div className="relative rounded-xl border border-slate-700 bg-slate-950/80 p-2.5 flex items-center justify-between">
                 <div className="flex items-center space-x-3 overflow-hidden">
                   {previewUrl ? (
                     <img
                       src={previewUrl}
                       alt="Prévia"
-                      className="w-12 h-12 object-cover rounded-lg border border-slate-200"
+                      className="w-12 h-12 object-cover rounded-lg border border-slate-700"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
                       <FileText className="w-6 h-6" />
                     </div>
                   )}
                   <div className="overflow-hidden">
-                    <p className="text-xs font-semibold text-slate-800 truncate">
+                    <p className="text-xs font-semibold text-white truncate">
                       {file.name}
                     </p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] font-mono text-slate-400">
                       {(file.size / 1024).toFixed(0)} KB
                     </p>
                   </div>
@@ -336,7 +329,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 <button
                   type="button"
                   onClick={removeFile}
-                  className="p-1 rounded-full text-slate-400 hover:text-rose-600 hover:bg-slate-200 transition-colors"
+                  className="p-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -346,7 +339,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
           {/* Observações Adicionais */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Observações (Opcional)
             </label>
             <textarea
@@ -354,7 +347,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               placeholder="Ex: Pagamento feito via PIX, parcelado em 3x..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
             />
           </div>
 
@@ -362,11 +355,11 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-900/10 flex items-center justify-center space-x-2 transition-all disabled:opacity-60"
+            className="w-full py-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98] text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950/60 flex items-center justify-center space-x-2 transition-all disabled:opacity-60 cursor-pointer"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
                 <span>Registrando Despesa...</span>
               </>
             ) : (

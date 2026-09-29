@@ -8,17 +8,757 @@
   }
 
   body {
-    @apply bg-slate-100 text-slate-800 antialiased;
+    @apply antialiased;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Animações suaves */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ========================================================================= */
+/* TEMAS: ESCURO (PADRÃO), LEITURA E CLARO                                   */
+/* ========================================================================= */
+
+/* 1. MODO ESCURO (PADRÃO): Obsidian CAD Navy de Alta Tecnologia */
+.theme-escuro, :root {
+  --bg-viewport: #050914;
+  --bg-container: #070D1E;
+  --bg-header: #0B132B;
+  --bg-card: #0F172A;
+  --bg-card-subtle: #0B132B;
+  --bg-input: #030712;
+  --border-color: #1E293B;
+  --border-subtle: #1E293B80;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-emerald: #10B981;
+  --accent-emerald-subtle: rgba(16, 185, 129, 0.15);
+  --accent-cyan: #38BDF8;
+  --accent-amber: #F59E0B;
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.theme-escuro .theme-toggle-btn,
+:root .theme-toggle-btn {
+  background-color: #0F172A;
+  border-color: #1E293B;
+  color: #F8FAFC;
+}
+.theme-escuro .theme-dropdown-menu,
+:root .theme-dropdown-menu {
+  background-color: #0F172A;
+  border-color: #1E293B;
+  color: #F8FAFC;
+}
+.theme-escuro .theme-dropdown-item-active,
+:root .theme-dropdown-item-active {
+  background-color: #10B981;
+  color: #050914;
+}
+.theme-escuro .theme-dropdown-item-hover:hover,
+:root .theme-dropdown-item-hover:hover {
+  background-color: #1E293B;
+}
+
+/* 2. MODO LEITURA: Prancheta Arquitetônica & Vellum de Engenharia */
+.theme-leitura {
+  --bg-viewport: #EAE5DC;
+  --bg-container: #F7F3EB;
+  --bg-header: #EDE7DC;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #EDE5D8;
+  --bg-input: #FFFFFF;
+  --border-color: #D8CEBD;
+  --border-subtle: #E8E0D2;
+  --text-primary: #1C1917;
+  --text-secondary: #44403C;
+  --text-muted: #78716C;
+  --accent-emerald: #059669;
+  --accent-emerald-subtle: rgba(5, 150, 105, 0.12);
+  --accent-cyan: #0284C7;
+  --accent-amber: #B45309;
+  --shadow-card: 0 4px 16px rgba(41, 37, 36, 0.05);
+}
+
+.theme-leitura .theme-toggle-btn {
+  background-color: #FFFFFF;
+  border-color: #D8CEBD;
+  color: #1C1917;
+}
+.theme-leitura .theme-dropdown-menu {
+  background-color: #FFFFFF;
+  border-color: #D8CEBD;
+  color: #1C1917;
+}
+.theme-leitura .theme-dropdown-item-active {
+  background-color: #059669;
+  color: #FFFFFF;
+}
+.theme-leitura .theme-dropdown-item-hover:hover {
+  background-color: #F7F3EB;
+}
+
+/* 3. MODO CLARO: Studio Clean Executivo */
+.theme-claro {
+  --bg-viewport: #F1F5F9;
+  --bg-container: #FFFFFF;
+  --bg-header: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #F8FAFC;
+  --bg-input: #FFFFFF;
+  --border-color: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --accent-emerald: #059669;
+  --accent-emerald-subtle: rgba(5, 150, 105, 0.10);
+  --accent-cyan: #0284C7;
+  --accent-amber: #D97706;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.theme-claro .theme-toggle-btn {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #0F172A;
+}
+.theme-claro .theme-dropdown-menu {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #0F172A;
+}
+.theme-claro .theme-dropdown-item-active {
+  background-color: #059669;
+  color: #FFFFFF;
+}
+.theme-claro .theme-dropdown-item-hover:hover {
+  background-color: #F1F5F9;
+}
+
+/* ========================================================================= */
+/* ADAPTAÇÕES DE CORES AUTOMÁTICAS E HARMONIOSAS (LEITURA E CLARO)           */
+/* ========================================================================= */
+
+/* ------------------------------------------------------------------------- */
+/* A. ESTILOS REFINADOS DO MODO LEITURA (PRANCHETA ARQUITETÔNICA)            */
+/* ------------------------------------------------------------------------- */
+
+.theme-leitura {
+  background-color: var(--bg-viewport) !important;
+  color: var(--text-primary);
+}
+
+.theme-leitura .bg-\[\#050914\] {
+  background-color: var(--bg-viewport) !important;
+}
+
+.theme-leitura .bg-\[\#070D1E\] {
+  background-color: var(--bg-container) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura header {
+  background-color: var(--bg-header) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura nav {
+  background-color: var(--bg-header) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Cartões Gerais */
+.theme-leitura .bg-slate-900\/90,
+.theme-leitura .bg-slate-900\/95,
+.theme-leitura .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 2px 10px rgba(41, 37, 36, 0.05);
+}
+
+.theme-leitura .bg-slate-950\/50,
+.theme-leitura .bg-slate-950\/60,
+.theme-leitura .bg-slate-950\/70,
+.theme-leitura .bg-slate-950\/80,
+.theme-leitura .bg-slate-950 {
+  background-color: #F7F3EB !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura .bg-slate-800,
+.theme-leitura .bg-slate-800\/80 {
+  background-color: #EDE5D8 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura .border-slate-800,
+.theme-leitura .border-slate-800\/80,
+.theme-leitura .border-slate-800\/90,
+.theme-leitura .border-slate-700,
+.theme-leitura .border-slate-700\/80 {
+  border-color: var(--border-color) !important;
+}
+
+/* Card Destaque (Custo Total): Mantém o gradiente escuro nobre floresta */
+.theme-leitura .theme-metric-highlight {
+  background: linear-gradient(135deg, #072B1A 0%, #0F3B25 50%, #154D32 100%) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 10px 25px -5px rgba(7, 43, 26, 0.5) !important;
+}
+.theme-leitura .theme-metric-highlight * {
+  color: inherit;
+}
+.theme-leitura .theme-metric-highlight .text-white {
+  color: #FFFFFF !important;
+}
+.theme-leitura .theme-metric-highlight .text-emerald-400 {
+  color: #34D399 !important;
+}
+.theme-leitura .theme-metric-highlight .text-emerald-200\/80 {
+  color: rgba(167, 243, 208, 0.85) !important;
+}
+
+/* Card Terreno Fixo */
+.theme-leitura .theme-card-terreno {
+  background-color: #EEF8F1 !important;
+  border-color: #A3D9B1 !important;
+}
+.theme-leitura .theme-terreno-label {
+  color: #15803D !important;
+}
+.theme-leitura .theme-terreno-badge {
+  background-color: #DCF4E4 !important;
+  border-color: #8FD8A1 !important;
+  color: #14532D !important;
+}
+.theme-leitura .theme-terreno-val {
+  color: #1C1917 !important;
+}
+.theme-leitura .theme-terreno-sub {
+  color: #43694E !important;
+}
+
+/* Card Despesas Obra */
+.theme-leitura .theme-despesas-badge {
+  background-color: #EDE5D8 !important;
+  color: #44403C !important;
+  border-color: #D8CEBD !important;
+}
+
+/* Status de Pagamento */
+.theme-leitura .theme-status-icon-pago {
+  background-color: #DCFCE7 !important;
+  border-color: #86EFAC !important;
+  color: #15803D !important;
+}
+.theme-leitura .theme-status-val-pago {
+  color: #15803D !important;
+}
+.theme-leitura .theme-status-icon-pendente {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+  color: #B45309 !important;
+}
+.theme-leitura .theme-status-val-pendente {
+  color: #B45309 !important;
+}
+
+/* Ícones de Categoria */
+.theme-leitura .theme-cat-icon-mat {
+  background-color: #E0F2FE !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+.theme-leitura .theme-cat-icon-mao {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+  color: #D97706 !important;
+}
+.theme-leitura .theme-cat-icon-out {
+  background-color: #F3E8FF !important;
+  border-color: #E9D5FF !important;
+  color: #9333EA !important;
+}
+
+/* Action Banner */
+.theme-leitura .theme-action-banner {
+  background: linear-gradient(135deg, #092819 0%, #113E28 100%) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+.theme-leitura .theme-action-banner h4 {
+  color: #FFFFFF !important;
+}
+.theme-leitura .theme-action-banner p {
+  color: #6EE7B7 !important;
+}
+
+/* Tipografia Geral */
+.theme-leitura h1:not([class*="text-emerald"]):not([class*="text-sky"]),
+.theme-leitura h2:not([class*="text-emerald"]):not([class*="text-sky"]),
+.theme-leitura h3:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]),
+.theme-leitura h4:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]) {
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura p:not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-white"]):not([class*="theme-"]),
+.theme-leitura span:not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-sky"]):not([class*="text-amber"]):not([class*="text-purple"]):not([class*="text-orange"]):not([class*="theme-"]) {
+  color: inherit;
+}
+
+.theme-leitura .text-white:not(button):not(.theme-metric-highlight *):not(.theme-action-banner *):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-rose"]) {
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura .text-slate-100,
+.theme-leitura .text-slate-200 {
+  color: #383431 !important;
+}
+
+.theme-leitura .text-slate-300 {
+  color: #57534E !important;
+}
+
+.theme-leitura .text-slate-400 {
+  color: #78716C !important;
+}
+
+.theme-leitura .text-slate-500 {
+  color: #A8A29E !important;
+}
+
+/* Inputs e Formulários */
+.theme-leitura input,
+.theme-leitura textarea,
+.theme-leitura select {
+  background-color: #FFFFFF !important;
+  border-color: #D8CEBD !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-leitura input::placeholder,
+.theme-leitura textarea::placeholder {
+  color: #A8A29E !important;
+}
+
+.theme-leitura .hover\:bg-slate-800:hover,
+.theme-leitura .hover\:bg-slate-800\/60:hover {
+  background-color: #EDE5D8 !important;
+}
+
+.theme-leitura .theme-icon-btn {
+  color: var(--text-secondary);
+}
+.theme-leitura .theme-icon-btn:hover {
+  color: var(--text-primary);
+  background-color: #EDE5D8;
+}
+
+.theme-leitura .theme-user-section {
+  border-color: var(--border-color) !important;
+}
+
+/* Badges de Categoria na Lista de Despesas */
+.theme-leitura .border-sky-500\/30 {
+  background-color: #E0F2FE !important;
+  border-color: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+.theme-leitura .border-amber-500\/30 {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+  color: #B45309 !important;
+}
+.theme-leitura .border-purple-500\/30 {
+  background-color: #F3E8FF !important;
+  border-color: #E9D5FF !important;
+  color: #7E22CE !important;
+}
+.theme-leitura .border-orange-500\/30 {
+  background-color: #FFEDD5 !important;
+  border-color: #FED7AA !important;
+  color: #C2410C !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* B. ESTILOS REFINADOS DO MODO CLARO (STUDIO CLEAN EXECUTIVO)               */
+/* ------------------------------------------------------------------------- */
+
+.theme-claro {
+  background-color: #F1F5F9 !important;
+  color: #0F172A;
+}
+
+.theme-claro .bg-\[\#050914\] {
+  background-color: #F1F5F9 !important;
+}
+
+.theme-claro .bg-\[\#070D1E\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.theme-claro header {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.theme-claro nav {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+/* Cartões Gerais */
+.theme-claro .bg-slate-900\/90,
+.theme-claro .bg-slate-900\/95,
+.theme-claro .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.theme-claro .bg-slate-950\/50,
+.theme-claro .bg-slate-950\/60,
+.theme-claro .bg-slate-950\/70,
+.theme-claro .bg-slate-950\/80,
+.theme-claro .bg-slate-950 {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.theme-claro .bg-slate-800,
+.theme-claro .bg-slate-800\/80 {
+  background-color: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.theme-claro .border-slate-800,
+.theme-claro .border-slate-800\/80,
+.theme-claro .border-slate-800\/90,
+.theme-claro .border-slate-700,
+.theme-claro .border-slate-700\/80 {
+  border-color: #E2E8F0 !important;
+}
+
+/* Card Destaque (Custo Total): Executive Navy */
+.theme-claro .theme-metric-highlight {
+  background: linear-gradient(135deg, #0B132B 0%, #112042 50%, #092B1C 100%) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 10px 25px -5px rgba(11, 19, 43, 0.4) !important;
+}
+.theme-claro .theme-metric-highlight * {
+  color: inherit;
+}
+.theme-claro .theme-metric-highlight .text-white {
+  color: #FFFFFF !important;
+}
+.theme-claro .theme-metric-highlight .text-emerald-400 {
+  color: #34D399 !important;
+}
+.theme-claro .theme-metric-highlight .text-emerald-200\/80 {
+  color: rgba(167, 243, 208, 0.85) !important;
+}
+
+/* Card Terreno Fixo */
+.theme-claro .theme-card-terreno {
+  background-color: #ECFDF5 !important;
+  border-color: #6EE7B7 !important;
+}
+.theme-claro .theme-terreno-label {
+  color: #047857 !important;
+}
+.theme-claro .theme-terreno-badge {
+  background-color: #D1FAE5 !important;
+  border-color: #6EE7B7 !important;
+  color: #065F46 !important;
+}
+.theme-claro .theme-terreno-val {
+  color: #0F172A !important;
+}
+.theme-claro .theme-terreno-sub {
+  color: #059669 !important;
+}
+
+/* Card Despesas Obra */
+.theme-claro .theme-despesas-badge {
+  background-color: #F1F5F9 !important;
+  color: #334155 !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Status de Pagamento */
+.theme-claro .theme-status-icon-pago {
+  background-color: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #059669 !important;
+}
+.theme-claro .theme-status-val-pago {
+  color: #059669 !important;
+}
+.theme-claro .theme-status-icon-pendente {
+  background-color: #FFFBEB !important;
+  border-color: #FDE68A !important;
+  color: #D97706 !important;
+}
+.theme-claro .theme-status-val-pendente {
+  color: #D97706 !important;
+}
+
+/* Ícones de Categoria */
+.theme-claro .theme-cat-icon-mat {
+  background-color: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+.theme-claro .theme-cat-icon-mao {
+  background-color: #FFFBEB !important;
+  border-color: #FDE68A !important;
+  color: #D97706 !important;
+}
+.theme-claro .theme-cat-icon-out {
+  background-color: #FAF5FF !important;
+  border-color: #E9D5FF !important;
+  color: #9333EA !important;
+}
+
+/* Action Banner */
+.theme-claro .theme-action-banner {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
+  border-color: #334155 !important;
+}
+.theme-claro .theme-action-banner h4 {
+  color: #FFFFFF !important;
+}
+.theme-claro .theme-action-banner p {
+  color: #6EE7B7 !important;
+}
+
+/* Tipografia Geral */
+.theme-claro h1:not([class*="text-emerald"]):not([class*="text-sky"]),
+.theme-claro h2:not([class*="text-emerald"]):not([class*="text-sky"]),
+.theme-claro h3:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]),
+.theme-claro h4:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]) {
+  color: #0F172A !important;
+}
+
+.theme-claro .text-white:not(button):not(.theme-metric-highlight *):not(.theme-action-banner *):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-rose"]) {
+  color: #0F172A !important;
+}
+
+.theme-claro .text-slate-100,
+.theme-claro .text-slate-200 {
+  color: #1E293B !important;
+}
+
+.theme-claro .text-slate-300 {
+  color: #334155 !important;
+}
+
+.theme-claro .text-slate-400 {
+  color: #64748B !important;
+}
+
+.theme-claro .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* Inputs e Formulários */
+.theme-claro input,
+.theme-claro textarea,
+.theme-claro select {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+.theme-claro input::placeholder,
+.theme-claro textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+.theme-claro .hover\:bg-slate-800:hover,
+.theme-claro .hover\:bg-slate-800\/60:hover {
+  background-color: #F1F5F9 !important;
+}
+
+.theme-claro .theme-icon-btn {
+  color: #64748B;
+}
+.theme-claro .theme-icon-btn:hover {
+  color: #0F172A;
+  background-color: #F1F5F9;
+}
+
+.theme-claro .theme-user-section {
+  border-color: #E2E8F0 !important;
+}
+
+/* Badges de Categoria na Lista de Despesas */
+.theme-claro .border-sky-500\/30 {
+  background-color: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+.theme-claro .border-amber-500\/30 {
+  background-color: #FFFBEB !important;
+  border-color: #FDE68A !important;
+  color: #D97706 !important;
+}
+.theme-claro .border-purple-500\/30 {
+  background-color: #FAF5FF !important;
+  border-color: #E9D5FF !important;
+  color: #9333EA !important;
+}
+.theme-claro .border-orange-500\/30 {
+  background-color: #FFF7ED !important;
+  border-color: #FED7AA !important;
+  color: #EA580C !important;
+}
+
+/* ========================================================================= */
+/* GRID TÉCNICO CAD & BLUEPRINT DE ENGENHARIA CIVIL                          */
+/* ========================================================================= */
+.bg-blueprint-grid {
+  background-color: #070D1E;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px, 160px 160px, 160px 160px;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+}
+
+/* ========================================================================= */
+/* MOTION DESIGN & ANIMAÇÕES VETORIAIS DE ALTA PERFORMANCE                   */
+/* ========================================================================= */
+
+@keyframes drawPolygon {
+  0% {
+    stroke-dashoffset: 450;
+    opacity: 0.2;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes drawRoof {
+  0% {
+    stroke-dashoffset: 450;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes drawAxis {
+  0% {
+    stroke-dashoffset: 55;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes pillarRise {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scaleY(1.08);
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes apexPop {
+  0% {
+    transform: scale(0) translateY(15px);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2) translateY(-2px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes ambientPulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes shimmerGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(16, 185, 129, 0.75)) drop-shadow(0 0 28px rgba(245, 158, 11, 0.4));
+  }
+}
+
+.animate-draw-polygon {
+  animation: drawPolygon 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-draw-roof {
+  animation: drawRoof 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+.animate-draw-axis {
+  animation: drawAxis 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+}
+
+.animate-pillar-rise-1 {
+  animation: pillarRise 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+}
+
+.animate-pillar-rise-2 {
+  animation: pillarRise 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s backwards;
+}
+
+.animate-pillar-rise-3 {
+  animation: pillarRise 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+}
+
+.animate-apex-pop {
+  animation: apexPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s backwards;
+}
+
+.animate-ambient-pulse {
+  animation: ambientPulse 4s ease-in-out infinite;
+}
+
+.animate-shimmer-glow {
+  animation: shimmerGlow 3.5s ease-in-out infinite;
 }

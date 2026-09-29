@@ -10,7 +10,6 @@ export const formatCurrency = (val: number | null | undefined): string => {
 
 export const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return '-';
-  // Lida com datas no formato YYYY-MM-DD sem distorção de fuso horário
   const parts = dateString.split('T')[0].split('-');
   if (parts.length === 3) {
     const [year, month, day] = parts;
@@ -22,15 +21,15 @@ export const formatDate = (dateString: string | null | undefined): string => {
 export const getCategoryBadgeStyle = (category: string): { bg: string; text: string; border: string } => {
   switch (category) {
     case 'Materiais':
-      return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' };
+      return { bg: 'bg-sky-500/15', text: 'text-sky-400', border: 'border-sky-500/30' };
     case 'Mão de Obra':
-      return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
+      return { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' };
     case 'Documentação':
-      return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' };
+      return { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' };
     case 'Ferramentas':
-      return { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' };
+      return { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/30' };
     case 'Outros':
     default:
-      return { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
+      return { bg: 'bg-slate-800', text: 'text-slate-300', border: 'border-slate-700' };
   }
 };

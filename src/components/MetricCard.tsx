@@ -20,27 +20,29 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
 }) => {
   const badgeClasses = {
-    emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    amber: 'bg-amber-100 text-amber-800 border-amber-200',
-    blue: 'bg-blue-100 text-blue-800 border-blue-200',
-    slate: 'bg-slate-100 text-slate-700 border-slate-200',
+    emerald: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    amber: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    blue: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+    slate: 'bg-slate-800 text-slate-300 border-slate-700',
   }[badgeColor];
 
   if (variant === 'highlight') {
     return (
-      <div className="bg-gradient-to-br from-emerald-800 to-teal-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-        <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-emerald-700/30 rounded-full blur-xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-[#0B132B] via-slate-900 to-[#043d26] text-white rounded-3xl p-5 border border-emerald-500/40 shadow-xl relative overflow-hidden theme-metric-highlight">
+        {/* Glow de fundo */}
+        <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
         <div className="flex items-center justify-between relative z-10">
-          <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
-            {title}
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{title}</span>
           </span>
-          {icon && <div className="text-emerald-200">{icon}</div>}
+          {icon && <div className="text-emerald-400">{icon}</div>}
         </div>
-        <div className="mt-2 text-2xl font-extrabold tracking-tight relative z-10">
+        <div className="mt-2 text-2xl font-extrabold tracking-tight text-white relative z-10">
           {value}
         </div>
         {subtitle && (
-          <p className="mt-1 text-xs text-emerald-200/90 relative z-10">
+          <p className="mt-1.5 text-xs text-emerald-200/80 relative z-10">
             {subtitle}
           </p>
         )}
@@ -49,17 +51,17 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm hover:border-slate-300 transition-all">
+    <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-slate-700/90 shadow-md text-slate-100 transition-all theme-metric-card">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-slate-500">{title}</span>
-        {icon && <div className="text-slate-400">{icon}</div>}
+        <span className="text-xs font-semibold text-slate-400">{title}</span>
+        {icon && <div className="text-slate-500">{icon}</div>}
       </div>
-      <div className="mt-1.5 flex items-baseline justify-between">
-        <span className="text-lg font-bold text-slate-900 tracking-tight">
+      <div className="mt-2 flex items-baseline justify-between">
+        <span className="text-lg font-bold text-white tracking-tight">
           {value}
         </span>
         {badge && (
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeClasses}`}>
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${badgeClasses}`}>
             {badge}
           </span>
         )}
