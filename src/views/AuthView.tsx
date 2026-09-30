@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { BrandLogo } from '../components/brand/BrandLogo';
 import { RemotionLogoShowcase } from '../components/remotion/RemotionLogoShowcase';
 import { RegisterModal } from '../components/auth/RegisterModal';
+import { PaywallView } from '../components/subscription/PaywallView';
 import {
   Lock,
   Mail,
@@ -33,6 +34,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mobileLoginOpen, setMobileLoginOpen] = useState<boolean>(false);
   const [registerModalOpen, setRegisterModalOpen] = useState<boolean>(false);
+  const [plansModalOpen, setPlansModalOpen] = useState<boolean>(false);
 
   const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -307,12 +309,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                   <ArrowRight className="w-4 h-4 text-slate-950" />
                 </button>
 
-                <a
-                  href="#planos"
-                  className="w-full sm:w-auto px-6 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all"
+                <button
+                  type="button"
+                  onClick={() => setPlansModalOpen(true)}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer"
                 >
                   <span>Ver Planos & Recursos</span>
-                </a>
+                </button>
               </div>
 
               {/* Selos de Confiança Técnica */}
@@ -449,122 +452,25 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         </section>
 
         {/* =================================================================== */}
+        {/* =================================================================== */}
         {/* 4. PLANOS E MODELO 7-DAY FREE TRIAL                                */}
         {/* =================================================================== */}
         <section id="planos" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-              Plano Único Completo • Sem Pegadinhas
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
-              Um valor acessível. Todos os recursos liberados.
-            </h2>
-            <p className="text-sm text-slate-400 mt-2">
-              Comece com 7 dias grátis. Tenha controle simultâneo de obras, reformas e finanças pessoais.
-            </p>
-          </div>
+          <PaywallView
+            reason="landing_page"
+            isInline={true}
+            onSelectPlan={() => setRegisterModalOpen(true)}
+          />
 
-          <div className="max-w-xl mx-auto pt-4">
-            {/* Card do Plano Único Gestão Completa Pro */}
-            <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-emerald-500/70 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_-10px_rgba(16,185,129,0.3)] relative">
-              <div className="absolute -top-3.5 right-6 z-20 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg shadow-emerald-950/60 flex items-center space-x-1 border border-emerald-300/40">
-                <Zap className="w-3 h-3 fill-slate-950" />
-                <span>Tudo Incluso • Sem Limites</span>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl sm:text-2xl font-black text-white">Gestão Completa Pro</h3>
-                  <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 rounded-full font-bold">
-                    Multi-Ambiente
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400">
-                  Ideal para quem constrói, reforma ou quer manter as contas pessoais e investimentos em ordem no mesmo app.
-                </p>
-              </div>
-
-              {/* Preço de R$ 14,90 com 50% OFF nos 2 primeiros meses */}
-              <div className="mb-6 p-4 rounded-2xl bg-slate-950/60 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold tracking-wide uppercase border border-emerald-500/40 mb-2">
-                    <Sparkles className="w-3 h-3 text-emerald-400" />
-                    <span>50% OFF nos 2 primeiros meses</span>
-                  </div>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="text-3xl sm:text-4xl font-black text-emerald-400">R$ 7,45</span>
-                    <span className="text-xs text-slate-400">/mês</span>
-                    <span className="text-xs text-slate-500 line-through">R$ 14,90</span>
-                  </div>
-                  <span className="text-[11px] text-slate-400 font-mono block mt-1">
-                    A partir do 3º mês: R$ 14,90/mês • Cancele quando quiser
-                  </span>
-                </div>
-                <div className="text-left sm:text-right">
-                  <span className="text-[10px] font-mono uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full font-bold inline-block">
-                    7 Dias Grátis
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-1">Acesso completo imediato</span>
-                </div>
-              </div>
-
-              {/* Lista Completa de Recursos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8 text-xs text-slate-300">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Ambientes de <strong>Custo de Obra</strong></span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Ambientes de <strong>Finanças Pessoais</strong></span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Crie <strong>múltiplos projetos</strong></span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span><strong>Categorias na hora</strong> no lançamento</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Upload de <strong>recibos e fotos</strong></span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Custo por m² e evolução física</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Dashboard e relatórios em tempo real</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Segurança PostgreSQL RLS</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setRegisterModalOpen(true)}
-                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center space-x-2 text-sm transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 fill-slate-950" />
-                <span>Começar 7 Dias Grátis Agora</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
-              </button>
-
-              <div className="mt-4 text-center">
-                <span className="text-xs text-slate-400">Já possui uma conta ativa? </span>
-                <button
-                  type="button"
-                  onClick={focusLoginInput}
-                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors cursor-pointer"
-                >
-                  Fazer Login
-                </button>
-              </div>
-            </div>
+          <div className="mt-8 text-center">
+            <span className="text-xs text-slate-400">Já possui uma conta ativa? </span>
+            <button
+              type="button"
+              onClick={focusLoginInput}
+              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              Fazer Login
+            </button>
           </div>
         </section>
       </main>
@@ -596,6 +502,20 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         onClose={() => setRegisterModalOpen(false)}
         onSuccess={onAuthSuccess}
       />
+
+      {/* Modal de Planos idêntico ao de Configurações */}
+      {plansModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fade-in">
+          <PaywallView
+            reason="landing_page"
+            onClose={() => setPlansModalOpen(false)}
+            onSelectPlan={() => {
+              setPlansModalOpen(false);
+              setRegisterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

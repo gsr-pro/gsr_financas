@@ -6,15 +6,19 @@ import { Check, Zap, CreditCard, Lock, LogOut, X, Sparkles, ShieldCheck } from '
 import { supabase } from '../../lib/supabaseClient';
 
 interface PaywallViewProps {
-  reason?: 'trial_expired' | 'feature_locked';
+  reason?: 'trial_expired' | 'feature_locked' | 'landing_page';
   lockedFeatureName?: string;
   onClose?: () => void;
+  onSelectPlan?: (interval: BillingInterval) => void;
+  isInline?: boolean;
 }
 
 export const PaywallView: React.FC<PaywallViewProps> = ({
   reason = 'trial_expired',
   lockedFeatureName,
   onClose,
+  onSelectPlan,
+  isInline = false,
 }) => {
   const { startCheckout } = useSubscription();
   const [submittingInterval, setSubmittingInterval] = useState<BillingInterval | null>(null);
@@ -22,6 +26,11 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   const plan = PLANS.obra; // Plano Gestão Completa Pro
 
   const handleCheckout = async (selectedInterval: BillingInterval) => {
+    if (onSelectPlan) {
+      onSelectPlan(selectedInterval);
+      return;
+    }
+
     const priceId = selectedInterval === 'year' ? plan.yearlyPriceId : plan.monthlyPriceId;
     setSubmittingInterval(selectedInterval);
     try {
@@ -36,10 +45,10 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300 relative">
+    <div className={isInline ? 'w-full text-[var(--text-primary)] transition-colors duration-300 relative py-2' : 'min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300 relative'}>
       
       {/* Container Principal Centralizado */}
-      <div className="max-w-4xl w-full mx-auto space-y-6 animate-fade-in my-auto relative">
+      <div className={`max-w-4xl w-full mx-auto space-y-6 animate-fade-in relative ${isInline ? '' : 'my-auto'}`}>
         
         {/* Botão de Fechar Modal (se onClose for fornecido) */}
         {onClose && (
@@ -61,10 +70,16 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
               ? 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
               : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
           }`}>
-            <Lock className="w-3.5 h-3.5" />
+            {reason === 'trial_expired' ? (
+              <Lock className="w-3.5 h-3.5" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
             <span>
               {reason === 'trial_expired'
                 ? 'Módulos Bloqueados • Teste Encerrado'
+                : reason === 'landing_page'
+                ? 'Planos & Recursos • 7 Dias Grátis'
                 : `Recurso Exclusivo: ${lockedFeatureName || 'Plano Pro'}`}
             </span>
           </div>
@@ -72,12 +87,16 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             {reason === 'trial_expired'
               ? 'Escolha seu Plano para Liberar os Módulos'
+              : reason === 'landing_page'
+              ? 'Escolha seu Plano Ideal'
               : 'Desbloqueie todo o poder da sua gestão'}
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
             {reason === 'trial_expired'
               ? 'Seu período de teste de 7 dias expirou. Todos os seus dados, notas e lançamentos continuam 100% preservados. Escolha entre o plano Mensal com 50% OFF ou o plano Anual com 2 meses grátis.'
+              : reason === 'landing_page'
+              ? 'Comece hoje mesmo com 7 dias grátis. Acesso ilimitado e completo a Custo de Obras e Finanças Pessoais, com segurança total e sem fidelidade.'
               : 'Seus dados, notas e ambientes continuam 100% seguros. Assine o plano único completo com acesso ilimitado a Custo de Obras e Finanças Pessoais.'}
           </p>
         </div>
@@ -145,6 +164,8 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
               <span>
                 {submittingInterval === 'month'
                   ? 'Iniciando checkout...'
+                  : onSelectPlan
+                  ? 'Começar 7 Dias Grátis • Mensal'
                   : 'Assinar Mensal (R$ 7,45/mês)'}
               </span>
             </button>
@@ -209,6 +230,8 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
               <span>
                 {submittingInterval === 'year'
                   ? 'Iniciando checkout...'
+                  : onSelectPlan
+                  ? 'Começar 7 Dias Grátis • Anual'
                   : 'Assinar Anual (R$ 149,00/ano)'}
               </span>
             </button>
@@ -236,17 +259,19 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
                 onClick={onClose}
                 className="hover:underline text-slate-400 hover:text-white cursor-pointer"
               >
-                Continuar no teste
+                {reason === 'trial_expired' ? 'Continuar no teste' : 'Fechar'}
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center space-x-1 text-rose-400 hover:underline cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sair da conta</span>
-            </button>
+            {reason !== 'landing_page' && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center space-x-1 text-rose-400 hover:underline cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sair da conta</span>
+              </button>
+            )}
           </div>
         </div>
 
