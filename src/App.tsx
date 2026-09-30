@@ -6,7 +6,9 @@ import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './views/DashboardView';
 import { ExpenseFormView } from './views/ExpenseFormView';
 import { ExpenseListView } from './views/ExpenseListView';
+import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
+import { SubscriptionGate } from './components/subscription/SubscriptionGate';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -20,7 +22,9 @@ export const App: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setSessionUser(session?.user?.email || null);
       } finally {
         setAuthChecking(false);
@@ -29,7 +33,9 @@ export const App: React.FC = () => {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSessionUser(session?.user?.email || null);
       setAuthChecking(false);
     });
@@ -53,9 +59,7 @@ export const App: React.FC = () => {
   }, []);
 
   const handleExpenseCreated = () => {
-    // Incrementa trigger para que Dashboard e Histórico busquem dados novos
     setRefreshTrigger((prev) => prev + 1);
-    // Redireciona para o Histórico de lançamentos
     setCurrentTab('historico');
   };
 
@@ -65,34 +69,37 @@ export const App: React.FC = () => {
       <div className="min-h-screen bg-[#070D1E] flex flex-col items-center justify-center p-4">
         <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
         <p className="text-xs font-semibold text-slate-400 font-mono tracking-wider">
-          Carregando dados da obra...
+          Sincronizando ecossistema SaaS...
         </p>
       </div>
     );
   }
 
-  // Se não autenticado, renderiza a tela de login/cadastro
+  // Se não autenticado, renderiza a Landing Page SaaS com Login Superior integrado
   if (!sessionUser) {
     return <AuthView onAuthSuccess={() => setRefreshTrigger((prev) => prev + 1)} />;
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-viewport)] flex justify-center selection:bg-emerald-500 selection:text-white transition-colors duration-300">
-      {/* Container Mobile-First otimizado para celulares e centrado em telas desktop */}
-      <div className="w-full max-w-md min-h-screen bg-[var(--bg-container)] text-[var(--text-primary)] flex flex-col shadow-2xl relative border-x border-[var(--border-color)] transition-colors duration-300">
-        {/* Header Superior */}
+    <SubscriptionGate>
+      <div className="min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-300">
+        
+        {/* Header Superior Responsivo Largo (Desktop + Mobile) com Seletor de Ambiente */}
         <Header
           userEmail={sessionUser}
           onLogout={handleLogout}
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
+          currentTab={currentTab}
+          onChangeTab={setCurrentTab}
         />
 
-        {/* Conteúdo Dinâmico por Aba */}
-        <main className="flex-1 p-4 overflow-y-auto">
+        {/* Área de Conteúdo Adaptativo: Mobile-First + Expansão Fluida Desktop */}
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigateToForm={() => setCurrentTab('novo')}
+              onNavigateToHistory={() => setCurrentTab('historico')}
               refreshTrigger={refreshTrigger}
             />
           )}
@@ -108,12 +115,14 @@ export const App: React.FC = () => {
               onExpenseUpdated={() => setRefreshTrigger((prev) => prev + 1)}
             />
           )}
+
+          {currentTab === 'configuracoes' && <SettingsView />}
         </main>
 
-        {/* Barra de Navegação Inferior Fixa */}
+        {/* Barra de Navegação Inferior (Fixa para Dispositivos Móveis) */}
         <BottomNav currentTab={currentTab} onChangeTab={setCurrentTab} />
       </div>
-    </div>
+    </SubscriptionGate>
   );
 };
 

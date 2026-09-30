@@ -14,7 +14,7 @@ export type Database = {
     Tables: {
       despesas: {
         Row: {
-          categoria: Database["public"]["Enums"]["categoria_despesa"]
+          categoria: string
           created_at: string
           data_gasto: string
           descricao: string
@@ -22,12 +22,14 @@ export type Database = {
           id: string
           observacoes: string | null
           status_pagamento: Database["public"]["Enums"]["status_pagamento"]
+          tipo_ambiente: 'obra' | 'pessoal'
           updated_at: string
           user_id: string
           valor: number
+          workspace_id: string | null
         }
         Insert: {
-          categoria: Database["public"]["Enums"]["categoria_despesa"]
+          categoria: string
           created_at?: string
           data_gasto?: string
           descricao: string
@@ -35,12 +37,14 @@ export type Database = {
           id?: string
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
+          tipo_ambiente?: 'obra' | 'pessoal'
           updated_at?: string
           user_id: string
           valor: number
+          workspace_id?: string | null
         }
         Update: {
-          categoria?: Database["public"]["Enums"]["categoria_despesa"]
+          categoria?: string
           created_at?: string
           data_gasto?: string
           descricao?: string
@@ -48,9 +52,11 @@ export type Database = {
           id?: string
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
+          tipo_ambiente?: 'obra' | 'pessoal'
           updated_at?: string
           user_id?: string
           valor?: number
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -60,7 +66,92 @@ export type Database = {
             referencedRelation: "perfis"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "despesas_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      workspaces: {
+        Row: {
+          configuracoes: Json | null
+          created_at: string
+          data_aquisicao: string | null
+          dimensoes_terreno: string | null
+          id: string
+          is_default: boolean
+          localizacao: string | null
+          nome: string
+          tipo: 'obra' | 'pessoal'
+          tipo_imovel: string | null
+          updated_at: string
+          user_id: string
+          valor_aquisicao: number
+        }
+        Insert: {
+          configuracoes?: Json | null
+          created_at?: string
+          data_aquisicao?: string | null
+          dimensoes_terreno?: string | null
+          id?: string
+          is_default?: boolean
+          localizacao?: string | null
+          nome: string
+          tipo: 'obra' | 'pessoal'
+          tipo_imovel?: string | null
+          updated_at?: string
+          user_id: string
+          valor_aquisicao?: number
+        }
+        Update: {
+          configuracoes?: Json | null
+          created_at?: string
+          data_aquisicao?: string | null
+          dimensoes_terreno?: string | null
+          id?: string
+          is_default?: boolean
+          localizacao?: string | null
+          nome?: string
+          tipo?: 'obra' | 'pessoal'
+          tipo_imovel?: string | null
+          updated_at?: string
+          user_id?: string
+          valor_aquisicao?: number
+        }
+        Relationships: []
+      }
+      categorias: {
+        Row: {
+          cor: string | null
+          created_at: string
+          icone: string | null
+          id: string
+          nome: string
+          tipo_ambiente: 'obra' | 'pessoal' | 'geral'
+          user_id: string | null
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome: string
+          tipo_ambiente: 'obra' | 'pessoal' | 'geral'
+          user_id?: string | null
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome?: string
+          tipo_ambiente?: 'obra' | 'pessoal' | 'geral'
+          user_id?: string | null
+        }
+        Relationships: []
       }
       perfis: {
         Row: {
@@ -75,7 +166,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
-          id: string
+          id?: string
           nome: string
           role?: string
           tema_preferido?: 'leitura' | 'escuro' | 'claro'
@@ -89,6 +180,51 @@ export type Database = {
           role?: string
           tema_preferido?: 'leitura' | 'escuro' | 'claro'
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan_tier: 'pessoal' | 'obra'
+          status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_tier?: 'pessoal' | 'obra'
+          status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_tier?: 'pessoal' | 'obra'
+          status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

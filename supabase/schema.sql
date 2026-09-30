@@ -253,3 +253,86 @@ create policy "Membros autenticados podem deletar comprovantes"
             where p.id = auth.uid()
         )
     );
+
+-- ===================================================================
+-- 10. ASSINATURAS & TRIAL DE 7 DIAS (INTEGRAÇÃO STRIPE)
+-- ===================================================================
+
+create table if not exists public.subscriptions (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade unique,
+    plan_tier text not null default 'obra' check (plan_tier in ('pessoal', 'obra')),
+    status text not null default 'trialing' check (status in ('trialing', 'active', 'past_due', 'canceled', 'unpaid')),
+    stripe_customer_id text,
+    stripe_subscription_id text,
+    stripe_price_id text,
+    trial_ends_at timestamptz not null default (now() + interval '7 days'),
+    current_period_end timestamptz,
+    cancel_at_period_end boolean not null default false,
+    created_at timestamptz not null default timezone('utc'::text, now()),
+    updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+comment on table public.subscriptions is 'Assinaturas de usuários, controle de trial de 7 dias e integração Stripe';
+
+create index if not exists idx_subscriptions_user_id on public.subscriptions(user_id);
+create index if not exists idx_subscriptions_status on public.subscriptions(status);
+create index if not exists idx_subscriptions_stripe_customer on public.subscriptions(stripe_customer_id);
+
+-- Gatilho de updated_at para subscriptions
+create trigger trigger_subscriptions_updated_at
+    before update on public.subscriptions
+    for each row execute function public.set_updated_at();
+
+-- Habilitar RLS
+alter table public.subscriptions enable row level security;
+
+-- Políticas de RLS para subscriptions
+create policy "Usuários podem visualizar sua própria assinatura"
+    on public.subscriptions
+    for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "Usuários podem inserir trial inicial próprio"
+    on public.subscriptions
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+-- Service role pode gerenciar todas as assinaturas (Edge Functions / Webhooks)
+create policy "Service role pode gerenciar todas as assinaturas"
+    on public.subscriptions
+    for all
+    to service_role
+    using (true)
+    with check (true);
+
+-- Função e Trigger para iniciar Trial de 7 dias automaticamente ao cadastrar usuário
+create or replace function public.handle_new_user_trial()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+    insert into public.subscriptions (
+        user_id,
+        plan_tier,
+        status,
+        trial_ends_at
+    ) values (
+        new.id,
+        'obra',
+        'trialing',
+        now() + interval '7 days'
+    )
+    on conflict (user_id) do nothing;
+    return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_trial on auth.users;
+create trigger on_auth_user_created_trial
+    after insert on auth.users
+    for each row execute function public.handle_new_user_trial();
+

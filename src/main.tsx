@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
+import { WorkspaceProvider } from './context/WorkspaceContext';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -13,7 +15,11 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
-      <App />
+      <SubscriptionProvider>
+        <WorkspaceProvider>
+          <App />
+        </WorkspaceProvider>
+      </SubscriptionProvider>
     </ThemeProvider>
   </React.StrictMode>
 );
