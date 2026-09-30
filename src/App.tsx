@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import type { TabType } from './types/app';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './views/DashboardView';
 import { ExpenseFormView } from './views/ExpenseFormView';
@@ -11,10 +12,16 @@ import { AuthView } from './views/AuthView';
 import { SubscriptionGate } from './components/subscription/SubscriptionGate';
 import { Loader2 } from 'lucide-react';
 
+interface AuthUserData {
+  email: string;
+  name: string;
+}
+
 export const App: React.FC = () => {
-  const [sessionUser, setSessionUser] = useState<string | null>(null);
+  const [sessionUser, setSessionUser] = useState<AuthUserData | null>(null);
   const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -25,7 +32,16 @@ export const App: React.FC = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        setSessionUser(session?.user?.email || null);
+        const user = session?.user;
+        if (user?.email) {
+          const metadataName = (user.user_metadata?.nome || user.user_metadata?.full_name || '') as string;
+          setSessionUser({
+            email: user.email,
+            name: metadataName || user.email.split('@')[0],
+          });
+        } else {
+          setSessionUser(null);
+        }
       } finally {
         setAuthChecking(false);
       }
@@ -36,7 +52,16 @@ export const App: React.FC = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSessionUser(session?.user?.email || null);
+      const user = session?.user;
+      if (user?.email) {
+        const metadataName = (user.user_metadata?.nome || user.user_metadata?.full_name || '') as string;
+        setSessionUser({
+          email: user.email,
+          name: metadataName || user.email.split('@')[0],
+        });
+      } else {
+        setSessionUser(null);
+      }
       setAuthChecking(false);
     });
 
@@ -82,20 +107,33 @@ export const App: React.FC = () => {
 
   return (
     <SubscriptionGate>
-      <div className="min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-300">
+      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-300">
         
         {/* Header Superior Responsivo Largo (Desktop + Mobile) com Seletor de Ambiente */}
         <Header
-          userEmail={sessionUser}
+          userEmail={sessionUser.email}
+          userName={sessionUser.name}
           onLogout={handleLogout}
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
           currentTab={currentTab}
           onChangeTab={setCurrentTab}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+        />
+
+        {/* Menu Lateral Retrátil (Sidebar Drawer) */}
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          currentTab={currentTab}
+          onChangeTab={setCurrentTab}
+          userEmail={sessionUser.email}
+          userName={sessionUser.name}
+          onLogout={handleLogout}
         />
 
         {/* Área de Conteúdo Adaptativo: Mobile-First + Expansão Fluida Desktop */}
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 overflow-x-hidden min-w-0">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigateToForm={() => setCurrentTab('novo')}
@@ -116,7 +154,13 @@ export const App: React.FC = () => {
             />
           )}
 
-          {currentTab === 'configuracoes' && <SettingsView />}
+          {currentTab === 'configuracoes' && (
+            <SettingsView
+              onProfileUpdated={(updated) => {
+                setSessionUser(updated);
+              }}
+            />
+          )}
         </main>
 
         {/* Barra de Navegação Inferior (Fixa para Dispositivos Móveis) */}

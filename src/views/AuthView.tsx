@@ -89,17 +89,20 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
           
           {/* Marca / Identidade: Gestão Financeira */}
-          <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
-              <BrandLogo size={32} compact={true} animated={false} />
+          <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
+              <BrandLogo size={28} compact={true} animated={false} />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center space-x-1.5">
-                <span className="text-base font-extrabold text-white tracking-tight">Gestão</span>
-                <span className="text-base font-extrabold text-emerald-400">Financeira</span>
+                <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">Gestão</span>
+                <span className="text-sm sm:text-base font-extrabold text-emerald-400">Financeira</span>
               </div>
-              <p className="text-[10px] font-medium text-slate-400 tracking-wide">
+              <p className="text-[10px] font-medium text-slate-400 tracking-wide hidden sm:block">
                 Controle financeiro de obras & finanças pessoais
+              </p>
+              <p className="text-[10px] font-medium text-slate-400 tracking-wide sm:hidden truncate">
+                Obras & Finanças Pessoais
               </p>
             </div>
           </div>

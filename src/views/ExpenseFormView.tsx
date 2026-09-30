@@ -341,8 +341,13 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               type="date"
               required
               value={dataGasto}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch (_) {}
+              }}
               onChange={(e) => setDataGasto(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all cursor-pointer"
             />
           </div>
 
@@ -481,10 +486,12 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block">
-                    Lançamento Recorrente
+                    {currentEnvironment === 'obra' ? 'Lançamento Recorrente / Parcelado' : 'Lançamento Recorrente'}
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    Repetir automaticamente nos próximos meses (salário, contas, aluguel)
+                    {currentEnvironment === 'obra'
+                      ? 'Repetir automaticamente nos próximos meses (empreiteiro, parcelas de materiais, aluguel de caçamba/máquinas)'
+                      : 'Repetir automaticamente nos próximos meses (salário, contas, aluguel)'}
                   </span>
                 </div>
               </div>

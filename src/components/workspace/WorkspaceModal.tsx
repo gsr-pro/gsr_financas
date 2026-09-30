@@ -286,8 +286,13 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                   <input
                     type="date"
                     value={dataAquisicao}
+                    onClick={(e) => {
+                      try {
+                        e.currentTarget.showPicker?.();
+                      } catch (_) {}
+                    }}
                     onChange={(e) => setDataAquisicao(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
                   />
                 </div>
 

@@ -329,8 +329,13 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               type="date"
               required
               value={dataGasto}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch (_) {}
+              }}
               onChange={(e) => setDataGasto(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all cursor-pointer"
             />
           </div>
 

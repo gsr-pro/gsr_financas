@@ -42,32 +42,34 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({ children }) 
       {isTrialing && !isBannerDismissed && (
         <aside
           aria-label="Aviso de período de testes e prazo de contratação"
-          className="bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-slate-950 px-3.5 py-2 text-center text-xs font-bold flex flex-wrap items-center justify-between gap-2 sticky top-0 z-50 shadow-md border-b border-amber-600/30 animate-fade-in"
+          className="bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-slate-950 px-3 py-1.5 sm:py-2 text-center text-xs font-bold flex items-center justify-between gap-2 sticky top-0 z-50 shadow-md border-b border-amber-600/30 animate-fade-in w-full max-w-full box-border"
         >
-          <div className="flex-1 flex items-center justify-center space-x-1.5 flex-wrap">
-            <Clock className="w-4 h-4 fill-slate-950/20 text-slate-950 flex-shrink-0" />
-            <span>
-              Fase de Testes: Faltam <strong>{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</strong> para a contratação.
+          <div className="flex-1 min-w-0 flex items-center justify-start sm:justify-center space-x-1.5 text-left sm:text-center text-[11px] sm:text-xs">
+            <Clock className="w-3.5 h-3.5 fill-slate-950/20 text-slate-950 flex-shrink-0" />
+            <span className="truncate">
+              Fase de Testes: <strong>{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</strong>
+              <span className="hidden sm:inline"> para contratação</span>
             </span>
-            <span className="hidden sm:inline text-slate-900/80 font-medium">
-              (Caso não contratar até o vencimento, o acesso aos módulos será bloqueado).
+            <span className="hidden md:inline text-slate-900/80 font-medium">
+              (Após o prazo, o acesso aos módulos será bloqueado).
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
             <button
               type="button"
               onClick={() => setShowUpgradeModal(true)}
-              className="bg-slate-950 hover:bg-slate-900 text-white px-3 py-1 rounded-full text-[11px] font-extrabold flex items-center space-x-1.5 transition-transform active:scale-95 shadow-sm cursor-pointer"
+              className="bg-slate-950 hover:bg-slate-900 text-white px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold flex items-center space-x-1 transition-transform active:scale-95 shadow-sm cursor-pointer whitespace-nowrap"
             >
-              <span>Ver Planos (Mensal / Anual)</span>
+              <span className="sm:hidden">Planos</span>
+              <span className="hidden sm:inline">Ver Planos (Mensal / Anual)</span>
               <ArrowRight className="w-3 h-3 text-amber-400" />
             </button>
 
             <button
               type="button"
               onClick={handleDismissBanner}
-              className="p-1 rounded-full text-slate-950/70 hover:text-slate-950 hover:bg-amber-600/20 transition-all cursor-pointer"
+              className="p-1 rounded-full text-slate-950/70 hover:text-slate-950 hover:bg-amber-600/20 transition-all cursor-pointer flex-shrink-0"
               title="Fechar aviso durante a navegação"
               aria-label="Fechar aviso de teste"
             >
