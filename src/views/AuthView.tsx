@@ -26,7 +26,7 @@ interface AuthViewProps {
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
-  const [email, setEmail] = useState<string>('gabrielsantosrocha.pro@gmail.com');
+  const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);

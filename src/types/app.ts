@@ -1,4 +1,4 @@
-import type { Database } from './database.types';
+import type { Database, Json } from './database.types';
 
 export type StatusPagamento = Database['public']['Enums']['status_pagamento'];
 export type DespesaRow = Database['public']['Tables']['despesas']['Row'];
@@ -21,3 +21,26 @@ export type TipoImovel =
   | 'outro';
 
 export type CategoriaDespesa = string;
+
+export type TipoMovimentacao = 'despesa' | 'receita';
+
+export type TipoInvestimento =
+  | 'CDB'
+  | 'Poupança'
+  | 'Tesouro Direto'
+  | 'LCI/LCA'
+  | 'Ações/FIIs'
+  | 'Cripto'
+  | 'Outro';
+
+export interface InvestimentoItem {
+  id: string;
+  nome: string;
+  tipo: TipoInvestimento;
+  instituicao: string;
+  valor: number;
+  rentabilidade?: string;
+  atualizado_em: string;
+  [key: string]: Json | undefined;
+}
+

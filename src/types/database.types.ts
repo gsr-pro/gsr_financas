@@ -23,6 +23,7 @@ export type Database = {
           observacoes: string | null
           status_pagamento: Database["public"]["Enums"]["status_pagamento"]
           tipo_ambiente: 'obra' | 'pessoal'
+          tipo_movimentacao?: 'despesa' | 'receita'
           updated_at: string
           user_id: string
           valor: number
@@ -38,6 +39,7 @@ export type Database = {
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
           tipo_ambiente?: 'obra' | 'pessoal'
+          tipo_movimentacao?: 'despesa' | 'receita'
           updated_at?: string
           user_id: string
           valor: number
@@ -53,6 +55,7 @@ export type Database = {
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
           tipo_ambiente?: 'obra' | 'pessoal'
+          tipo_movimentacao?: 'despesa' | 'receita'
           updated_at?: string
           user_id?: string
           valor?: number
@@ -225,6 +228,45 @@ export type Database = {
           trial_ends_at?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      investimentos: {
+        Row: {
+          created_at: string
+          id: string
+          instituicao: string
+          nome: string
+          rentabilidade: string | null
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instituicao: string
+          nome: string
+          rentabilidade?: string | null
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor: number
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instituicao?: string
+          nome?: string
+          rentabilidade?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+          workspace_id?: string | null
         }
         Relationships: []
       }

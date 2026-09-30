@@ -44,7 +44,7 @@ serve(async (req) => {
         },
       ],
       discounts: discounts.length > 0 ? discounts : undefined,
-      allow_promotion_codes: true,
+      allow_promotion_codes: interval === 'month',
       customer_email: email || undefined,
       client_reference_id: userId,
       subscription_data: {

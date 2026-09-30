@@ -336,3 +336,68 @@ create trigger on_auth_user_created_trial
     after insert on auth.users
     for each row execute function public.handle_new_user_trial();
 
+-- ===================================================================
+-- 11. SUPORTE A FINANÇAS PESSOAIS (RECEITAS & INVESTIMENTOS)
+-- ===================================================================
+
+-- Coluna para diferenciar Receita x Despesa nas movimentações financeiras
+alter table public.despesas
+add column if not exists tipo_movimentacao text not null default 'despesa'
+check (tipo_movimentacao in ('despesa', 'receita'));
+
+create index if not exists idx_despesas_tipo_movimentacao on public.despesas(tipo_movimentacao);
+
+-- Tabela de Investimentos (CDB, Poupança, Tesouro Direto, etc.)
+create table if not exists public.investimentos (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    workspace_id uuid references public.workspaces(id) on delete set null,
+    tipo text not null default 'cdb' check (tipo in ('cdb', 'poupanca', 'tesouro', 'acoes', 'fiis', 'cripto', 'outro')),
+    instituicao text not null check (length(trim(instituicao)) >= 2),
+    saldo numeric(12, 2) not null check (saldo >= 0),
+    rentabilidade text,
+    vencimento date,
+    observacoes text,
+    created_at timestamptz not null default timezone('utc'::text, now()),
+    updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+comment on table public.investimentos is 'Registro de aplicações financeiras e reserva de emergência (CDB, Poupança, etc.)';
+
+create index if not exists idx_investimentos_user_id on public.investimentos(user_id);
+create index if not exists idx_investimentos_workspace_id on public.investimentos(workspace_id);
+
+-- Gatilho de updated_at para investimentos
+create trigger trigger_investimentos_updated_at
+    before update on public.investimentos
+    for each row execute function public.set_updated_at();
+
+-- Habilitar RLS em investimentos
+alter table public.investimentos enable row level security;
+
+-- Políticas de RLS para investimentos
+create policy "Usuários podem visualizar seus próprios investimentos"
+    on public.investimentos
+    for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "Usuários podem cadastrar seus próprios investimentos"
+    on public.investimentos
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem atualizar seus próprios investimentos"
+    on public.investimentos
+    for update
+    to authenticated
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem excluir seus próprios investimentos"
+    on public.investimentos
+    for delete
+    to authenticated
+    using (auth.uid() = user_id);
+

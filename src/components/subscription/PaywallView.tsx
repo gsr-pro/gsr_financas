@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { PLANS } from '../../config/plans';
 import type { BillingInterval } from '../../types/subscription.types';
-import { Check, Zap, CreditCard, Lock, LogOut } from 'lucide-react';
+import { Check, Zap, CreditCard, Lock, LogOut, X, Sparkles, ShieldCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 
 interface PaywallViewProps {
@@ -17,18 +17,17 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   onClose,
 }) => {
   const { startCheckout } = useSubscription();
-  const [interval, setInterval] = useState<BillingInterval>('month');
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submittingInterval, setSubmittingInterval] = useState<BillingInterval | null>(null);
 
   const plan = PLANS.obra; // Plano Gestão Completa Pro
 
-  const handleSelectPlan = async () => {
-    const priceId = interval === 'year' ? plan.yearlyPriceId : plan.monthlyPriceId;
-    setSubmitting(true);
+  const handleCheckout = async (selectedInterval: BillingInterval) => {
+    const priceId = selectedInterval === 'year' ? plan.yearlyPriceId : plan.monthlyPriceId;
+    setSubmittingInterval(selectedInterval);
     try {
-      await startCheckout(priceId, interval);
+      await startCheckout(priceId, selectedInterval);
     } finally {
-      setSubmitting(false);
+      setSubmittingInterval(null);
     }
   };
 
@@ -37,13 +36,26 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300 relative">
       
       {/* Container Principal Centralizado */}
-      <div className="max-w-2xl w-full mx-auto space-y-6 animate-fade-in my-auto">
+      <div className="max-w-4xl w-full mx-auto space-y-6 animate-fade-in my-auto relative">
         
+        {/* Botão de Fechar Modal (se onClose for fornecido) */}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute -top-2 right-0 sm:right-2 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all z-20 cursor-pointer shadow-md"
+            title="Fechar"
+            aria-label="Fechar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+
         {/* Cabeçalho do Paywall */}
-        <div className="text-center space-y-2 max-w-xl mx-auto">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
           <div className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
             reason === 'trial_expired'
               ? 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
@@ -59,139 +71,178 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
 
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             {reason === 'trial_expired'
-              ? 'Contrate para Desbloquear os Módulos'
+              ? 'Escolha seu Plano para Liberar os Módulos'
               : 'Desbloqueie todo o poder da sua gestão'}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
             {reason === 'trial_expired'
-              ? 'Seu período de teste gratuito de 7 dias encerrou e o acesso aos módulos de Obras e Finanças Pessoais foi bloqueado. Seus dados e notas continuam 100% seguros. Realize a contratação para restaurar o acesso instantaneamente.'
+              ? 'Seu período de teste de 7 dias expirou. Todos os seus dados, notas e lançamentos continuam 100% preservados. Escolha entre o plano Mensal com 50% OFF ou o plano Anual com 2 meses grátis.'
               : 'Seus dados, notas e ambientes continuam 100% seguros. Assine o plano único completo com acesso ilimitado a Custo de Obras e Finanças Pessoais.'}
           </p>
-
-          {/* Toggle Mensal / Anual */}
-          <div className="pt-2 flex items-center justify-center">
-            <div className="bg-slate-900 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1">
-              <button
-                type="button"
-                onClick={() => setInterval('month')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  interval === 'month'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Mensal (R$ 14,90)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setInterval('year')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                  interval === 'year'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <span>Anual (R$ 149,00)</span>
-                <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded-md">
-                  2 meses grátis
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Card do Plano Único Completo */}
-        <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden ring-4 ring-emerald-500/10 text-white">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Grade de Planos: Mensal vs Anual Lado a Lado */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          
+          {/* Card 1: PLANO MENSAL COM 50% OFF */}
+          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-7 shadow-xl relative flex flex-col justify-between hover:border-emerald-400 transition-all">
+            <div className="absolute -top-3 left-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
+              <Sparkles className="w-3 h-3 fill-slate-950" />
+              <span>50% OFF nos 2 primeiros meses</span>
+            </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
             <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-xl font-extrabold text-white">
-                  {plan.name}
-                </h3>
-                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 flex items-center space-x-1 shadow-sm">
-                  <Zap className="w-3 h-3 fill-slate-950" />
-                  <span>{interval === 'month' ? '50% OFF - 2 Meses' : plan.badge}</span>
+              <div className="flex items-center justify-between mb-2 pt-1">
+                <h3 className="text-xl font-black text-white">Plano Mensal</h3>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  Mais Flexível
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                {plan.description}
+              <p className="text-xs text-slate-400 mb-4">
+                Assinatura mensal sem fidelidade. Cancele quando quiser.
               </p>
-            </div>
 
-            <div className="text-left sm:text-right">
-              <div className="flex items-baseline space-x-1 sm:justify-end">
-                {interval === 'month' && (
-                  <span className="text-xs text-slate-500 line-through mr-1 font-mono">
-                    R$ 14,90
-                  </span>
-                )}
-                <span className="text-3xl sm:text-4xl font-black text-emerald-400">
-                  R$ {interval === 'year' ? '12,41' : '7,45'}
+              {/* Preço Mensal */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-3xl sm:text-4xl font-black text-emerald-400">R$ 7,45</span>
+                  <span className="text-xs text-slate-400">/mês</span>
+                  <span className="text-xs text-slate-500 line-through">R$ 14,90</span>
+                </div>
+                <span className="text-[11px] text-emerald-300/90 font-mono block mt-1">
+                  50% OFF nos meses 1 e 2 • R$ 14,90 a partir do mês 3
                 </span>
-                <span className="text-xs text-slate-400">/mês</span>
               </div>
-              <span className="text-[11px] text-amber-300 font-mono block">
-                {interval === 'year'
-                  ? 'Cobrança anual de R$ 149,00 (2 meses grátis)'
-                  : '50% OFF nos 2 primeiros meses (R$ 14,90 a partir do 3º)'}
-              </span>
+
+              {/* Recursos Inclusos */}
+              <div className="space-y-2 mb-6 text-xs text-slate-300">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Acesso ilimitado a Custo de Obras</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Acesso ilimitado a Finanças Pessoais</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Múltiplos projetos e ambientes</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Upload de recibos e notas fiscais</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Grade de Recursos Inclusos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-6">
-            {plan.features.map((feat, idx) => (
-              <div key={idx} className="flex items-center space-x-2 text-xs">
-                <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span className="text-slate-200 font-medium">{feat.title}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2">
             <button
               type="button"
-              disabled={submitting}
-              onClick={handleSelectPlan}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-sm font-black shadow-xl shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+              disabled={submittingInterval !== null}
+              onClick={() => handleCheckout('month')}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-sm font-black shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
             >
               <span>
-                {submitting
-                  ? 'Iniciando checkout seguro...'
-                  : interval === 'year'
-                  ? 'Assinar Plano Anual (R$ 149/ano)'
-                  : 'Garantir 50% OFF (R$ 7,45 nos 2 primeiros meses)'}
+                {submittingInterval === 'month'
+                  ? 'Iniciando checkout...'
+                  : 'Assinar Mensal (R$ 7,45/mês)'}
               </span>
             </button>
           </div>
+
+          {/* Card 2: PLANO ANUAL COM 2 MESES GRÁTIS */}
+          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/70 rounded-3xl p-6 sm:p-7 shadow-xl relative flex flex-col justify-between hover:border-amber-400 transition-all ring-2 ring-amber-500/10">
+            <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
+              <Zap className="w-3 h-3 fill-slate-950" />
+              <span>Melhor Custo-Benefício • 2 Meses Grátis</span>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2 pt-1">
+                <h3 className="text-xl font-black text-white">Plano Anual</h3>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-400 text-slate-950">
+                  Mais Popular
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mb-4">
+                Pagamento único anual para 12 meses completos de tranquilidade.
+              </p>
+
+              {/* Preço Anual */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-3xl sm:text-4xl font-black text-amber-400">R$ 149,00</span>
+                  <span className="text-xs text-slate-400">/ano</span>
+                </div>
+                <span className="text-[11px] text-amber-300 font-mono block mt-1">
+                  Equivalente a apenas R$ 12,41/mês (Economia de 2 meses)
+                </span>
+              </div>
+
+              {/* Recursos Inclusos */}
+              <div className="space-y-2 mb-6 text-xs text-slate-300">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Todos os recursos do plano Pro inclusos</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Acesso garantido por 1 ano completo</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Prioridade nos novos lançamentos do SaaS</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Isolamento total de dados e segurança RLS</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={submittingInterval !== null}
+              onClick={() => handleCheckout('year')}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-black shadow-lg shadow-amber-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+            >
+              <span>
+                {submittingInterval === 'year'
+                  ? 'Iniciando checkout...'
+                  : 'Assinar Anual (R$ 149,00/ano)'}
+              </span>
+            </button>
+          </div>
+
         </div>
 
         {/* Rodapé de Confiança e Segurança */}
         <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-3">
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1.5">
-              <Lock className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Checkout Seguro Stripe (SSL 256-Bit)</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Checkout Oficial Stripe (Criptografia SSL 256-Bit)</span>
             </span>
             <span className="flex items-center space-x-1.5">
               <CreditCard className="w-3.5 h-3.5 text-sky-400" />
-              <span>PIX & Cartão de Crédito</span>
+              <span>Cartão de Crédito</span>
             </span>
           </div>
 
           <div className="flex items-center space-x-4">
             {onClose && (
-              <button onClick={onClose} className="hover:underline">
-                Voltar
+              <button
+                type="button"
+                onClick={onClose}
+                className="hover:underline text-slate-400 hover:text-white cursor-pointer"
+              >
+                Continuar no teste
               </button>
             )}
             <button
+              type="button"
               onClick={handleLogout}
-              className="flex items-center space-x-1 text-rose-400 hover:underline"
+              className="flex items-center space-x-1 text-rose-400 hover:underline cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sair da conta</span>

@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { LogOut, RefreshCw, LayoutDashboard, Plus, ReceiptText, Settings, Clock } from 'lucide-react';
+import React from 'react';
+import { LogOut, RefreshCw, LayoutDashboard, Plus, ReceiptText, Settings } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { ThemeSelector } from './ThemeSelector';
 import { EnvironmentSelector } from './workspace/EnvironmentSelector';
-import { useSubscription } from '../context/SubscriptionContext';
-import { PaywallView } from './subscription/PaywallView';
 import type { TabType } from '../types/app';
 
 interface HeaderProps {
@@ -24,8 +22,6 @@ export const Header: React.FC<HeaderProps> = ({
   currentTab,
   onChangeTab,
 }) => {
-  const { isTrialing, trialDaysRemaining } = useSubscription();
-  const [paywallModalOpen, setPaywallModalOpen] = useState<boolean>(false);
   return (
     <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
@@ -107,20 +103,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Lado Direito: Ações, Tema e Perfil */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Badge Indicador de Fase de Testes */}
-          {isTrialing && (
-            <button
-              type="button"
-              onClick={() => setPaywallModalOpen(true)}
-              className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/35 text-amber-300 hover:bg-amber-500/25 transition-all text-xs font-bold shadow-sm cursor-pointer"
-              title="Período de avaliação ativo. Clique para contratar o plano Gestão Completa Pro"
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span className="hidden sm:inline">Teste:</span>
-              <span>{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</span>
-            </button>
-          )}
-
           {/* Seletor de Tema */}
           <ThemeSelector />
 
@@ -157,16 +139,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
       </div>
-
-      {paywallModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <PaywallView
-            reason="feature_locked"
-            lockedFeatureName="Gestão Completa Pro"
-            onClose={() => setPaywallModalOpen(false)}
-          />
-        </div>
-      )}
     </header>
   );
 };

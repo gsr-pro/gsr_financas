@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { useSubscription } from '../context/SubscriptionContext';
-import { PaywallView } from '../components/subscription/PaywallView';
-import type { DespesaRow } from '../types/app';
+import type { DespesaRow, InvestimentoItem } from '../types/app';
 import { MetricCard } from '../components/MetricCard';
 import { CategoryProgress } from '../components/CategoryProgress';
 import { DashboardSkeleton } from '../components/LoadingSkeleton';
+import { InvestmentDashboard } from '../components/investments/InvestmentDashboard';
 import { formatCurrency, formatDate, getCategoryBadgeStyle } from '../lib/formatters';
 import {
   Trees,
@@ -20,6 +19,9 @@ import {
   Layers,
   MapPin,
   Maximize2,
+  TrendingUp,
+  TrendingDown,
+  PiggyBank,
 } from 'lucide-react';
 
 const TIPO_IMOVEL_LABELS: Record<string, string> = {
@@ -44,12 +46,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   refreshTrigger,
 }) => {
   const { currentEnvironment, currentWorkspace } = useWorkspace();
-  const { isTrialing, trialDaysRemaining } = useSubscription();
 
   const [despesas, setDespesas] = useState<DespesaRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [paywallOpen, setPaywallOpen] = useState<boolean>(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -76,7 +76,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       if (fetchError) throw fetchError;
       setDespesas(data || []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao sincronizar dados do painel.';
+      const message = err instanceof Error ? err.message : 'Erro ao carregar dados do dashboard.';
       setError(message);
     } finally {
       setLoading(false);
@@ -87,34 +87,65 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     fetchDashboardData();
   }, [fetchDashboardData, refreshTrigger]);
 
-  // Cálculos consolidados dinâmicos
-  const totalDespesas = useMemo(() => {
-    return despesas.reduce((acc, curr) => acc + Number(curr.valor), 0);
+  const isObra = currentEnvironment === 'obra';
+
+  // Finanças Pessoais: Separação de Receitas vs Despesas
+  const receitasList = useMemo(() => {
+    return despesas.filter(
+      (d) => d.tipo_movimentacao === 'receita' || d.descricao.startsWith('[RECEITA]')
+    );
   }, [despesas]);
+
+  const despesasList = useMemo(() => {
+    return isObra
+      ? despesas
+      : despesas.filter(
+          (d) => d.tipo_movimentacao !== 'receita' && !d.descricao.startsWith('[RECEITA]')
+        );
+  }, [despesas, isObra]);
+
+  const totalReceitas = useMemo(() => {
+    return receitasList.reduce((acc, curr) => acc + Number(curr.valor), 0);
+  }, [receitasList]);
+
+  const totalDespesas = useMemo(() => {
+    return despesasList.reduce((acc, curr) => acc + Number(curr.valor), 0);
+  }, [despesasList]);
+
+  const saldoLiquido = totalReceitas - totalDespesas;
 
   const totalPago = useMemo(() => {
-    return despesas
+    return despesasList
       .filter((d) => d.status_pagamento === 'Pago')
       .reduce((acc, curr) => acc + Number(curr.valor), 0);
-  }, [despesas]);
+  }, [despesasList]);
 
   const totalPendente = useMemo(() => {
-    return despesas
+    return despesasList
       .filter((d) => d.status_pagamento === 'Pendente')
       .reduce((acc, curr) => acc + Number(curr.valor), 0);
-  }, [despesas]);
+  }, [despesasList]);
+
+  // Investimentos do workspace de Finanças Pessoais
+  const workspaceConfig = (currentWorkspace?.configuracoes as Record<string, unknown>) || {};
+  const investimentos = Array.isArray(workspaceConfig.investimentos)
+    ? (workspaceConfig.investimentos as InvestimentoItem[])
+    : [];
+
+  const totalInvestido = useMemo(() => {
+    return investimentos.reduce((acc, curr) => acc + Number(curr.valor), 0);
+  }, [investimentos]);
 
   // Métricas específicas de Obra
-  const isObra = currentEnvironment === 'obra';
   const valorAquisicao = Number(currentWorkspace?.valor_aquisicao || 0);
   const hasAquisicao = isObra && valorAquisicao > 0;
   const custoTotalGeral = hasAquisicao ? valorAquisicao + totalDespesas : totalDespesas;
   const dimensoesImovel = currentWorkspace?.dimensoes_terreno || 'Terreno / Imóvel';
 
-  // Agrupamento por Categoria Dinâmico
+  // Agrupamento por Categoria Dinâmico das Despesas
   const categoryBreakdown = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const d of despesas) {
+    for (const d of despesasList) {
       map[d.categoria] = (map[d.categoria] || 0) + Number(d.valor);
     }
 
@@ -136,9 +167,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         amount,
         color: colors[idx % colors.length],
       }));
-  }, [despesas]);
+  }, [despesasList]);
 
-  // Últimos 4 lançamentos recentes para exibição desktop
+  // Últimos lançamentos recentes para exibição desktop
   const recentExpenses = useMemo(() => despesas.slice(0, 5), [despesas]);
 
   if (loading) {
@@ -153,7 +184,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <p className="text-xs text-rose-700 leading-relaxed">{error}</p>
         <button
           onClick={fetchDashboardData}
-          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
+          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer"
         >
           Tentar novamente
         </button>
@@ -211,7 +242,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <p className="text-[11px] text-slate-400">
                 {isObra
                   ? 'Painel de custos diretos, evolução física e aquisição de imóveis.'
-                  : 'Painel orçamentário pessoal, contas fixas, variáveis e reservas.'}
+                  : 'Painel orçamentário pessoal, receitas, despesas e investimentos.'}
               </p>
             )}
           </div>
@@ -230,101 +261,154 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Banner Informativo de Fase de Testes & Prazo de Contratação */}
-      {isTrialing && (
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md animate-fade-in">
-          <div className="flex items-start sm:items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
-              <Clock className="w-5 h-5 animate-pulse" />
+      {/* Grid Superior de Métricas: Obra vs Pessoal */}
+      {isObra ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Total Geral Acumulado */}
+          <div className="sm:col-span-2 lg:col-span-2">
+            <MetricCard
+              variant="highlight"
+              title={
+                hasAquisicao
+                  ? 'Investimento Total Geral'
+                  : 'Total Acumulado da Obra'
+              }
+              value={formatCurrency(custoTotalGeral)}
+              subtitle={
+                hasAquisicao
+                  ? `Aquisição (${formatCurrency(valorAquisicao)}) + Despesas da Obra`
+                  : `${despesas.length} lançamentos registrados na obra`
+              }
+              icon={<Trees className="w-6 h-6" />}
+            />
+          </div>
+
+          {/* Card 2: Total Pago / Quitado */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5 theme-card-status">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 theme-status-icon-pago">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-mono font-black uppercase tracking-wider text-amber-400">
-                  Fase de Testes Ativa
-                </span>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
-                  Restam {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}
-                </span>
-              </div>
-              <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
-                Você está com todos os recursos e módulos liberados. <strong>Contrate o plano Gestão Completa Pro</strong> antes do término para não ter o acesso aos módulos bloqueado.
-              </p>
+            <div>
+              <span className="text-xs font-medium text-slate-400 block">Total Quitado</span>
+              <span className="text-lg font-extrabold text-emerald-400 theme-status-val-pago font-mono">
+                {formatCurrency(totalPago)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Pagamentos liquidados</span>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setPaywallOpen(true)}
-            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center justify-center space-x-1.5 flex-shrink-0 self-start sm:self-center cursor-pointer"
-          >
-            <span>Contratar (R$ 14,90/mês)</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          {/* Card 3: Total Pendente / A Pagar */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5 theme-card-status">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0 theme-status-icon-pendente">
+              <Clock className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-400 block">A Pagar / Pendente</span>
+              <span className="text-lg font-extrabold text-amber-400 theme-status-val-pendente font-mono">
+                {formatCurrency(totalPendente)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Contas em aberto</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Painel Consolidado de Finanças Pessoais: Saldo Líquido, Receitas, Despesas e Investimentos */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Saldo Líquido (Receitas - Despesas) */}
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-2 border-emerald-500/50 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
+                  Saldo Líquido do Período
+                </span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                  saldoLiquido >= 0
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }`}>
+                  {saldoLiquido >= 0 ? 'Superávit' : 'Déficit'}
+                </span>
+              </div>
+              <div className="flex items-baseline space-x-2 mt-1.5">
+                <span className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
+                  saldoLiquido >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}>
+                  {formatCurrency(saldoLiquido)}
+                </span>
+              </div>
+            </div>
+            <span className="text-[11px] text-slate-400 mt-2 block font-mono">
+              Receitas ({formatCurrency(totalReceitas)}) - Despesas ({formatCurrency(totalDespesas)})
+            </span>
+          </div>
+
+          {/* Card 2: Total de Receitas (Entradas) */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-400 block">Total Receitas</span>
+              <span className="text-lg font-black text-emerald-400 font-mono">
+                {formatCurrency(totalReceitas)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">
+                {receitasList.length} entradas registradas
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: Total de Despesas (Saídas) */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+              <TrendingDown className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-400 block">Total Despesas</span>
+              <span className="text-lg font-black text-rose-400 font-mono">
+                {formatCurrency(totalDespesas)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">
+                {despesasList.length} saídas registradas
+              </span>
+            </div>
+          </div>
+
+          {/* Card 4: Investimentos e Reserva */}
+          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+              <PiggyBank className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-400 block">Investimentos & Reserva</span>
+              <span className="text-lg font-black text-cyan-400 font-mono">
+                {formatCurrency(totalInvestido)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">
+                {investimentos.length} aplicações (CDB, Poupança...)
+              </span>
+            </div>
+          </div>
+
         </div>
       )}
 
-      {/* Grid Superior de Métricas - 1 a 4 colunas dependendo do breakpoint */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Card 1: Total Geral Acumulado */}
-        <div className="sm:col-span-2 lg:col-span-2">
-          <MetricCard
-            variant="highlight"
-            title={
-              isObra
-                ? hasAquisicao
-                  ? 'Investimento Total Geral'
-                  : 'Total Acumulado da Obra'
-                : 'Total de Gastos Pessoais'
-            }
-            value={formatCurrency(custoTotalGeral)}
-            subtitle={
-              isObra
-                ? hasAquisicao
-                  ? `Aquisição (${formatCurrency(valorAquisicao)}) + Despesas da Obra`
-                  : `${despesas.length} lançamentos registrados na obra`
-                : `${despesas.length} despesas registradas no ambiente pessoal`
-            }
-            icon={isObra ? <Trees className="w-6 h-6" /> : <Wallet className="w-6 h-6" />}
-          />
-        </div>
-
-        {/* Card 2: Total Pago / Quitado */}
-        <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5 theme-card-status">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 theme-status-icon-pago">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="text-xs font-medium text-slate-400 block">Total Quitado</span>
-            <span className="text-lg font-extrabold text-emerald-400 theme-status-val-pago">
-              {formatCurrency(totalPago)}
-            </span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Pagamentos liquidados</span>
-          </div>
-        </div>
-
-        {/* Card 3: Total Pendente / A Pagar */}
-        <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5 theme-card-status">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0 theme-status-icon-pendente">
-            <Clock className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="text-xs font-medium text-slate-400 block">A Pagar / Pendente</span>
-            <span className="text-lg font-extrabold text-amber-400 theme-status-val-pendente">
-              {formatCurrency(totalPendente)}
-            </span>
-            <span className="text-[10px] text-slate-500 block mt-0.5">Contas em aberto</span>
-          </div>
-        </div>
-      </div>
+      {/* DASHBOARD DE INVESTIMENTOS E RESERVA (Exclusivo para Finanças Pessoais) */}
+      {!isObra && (
+        <InvestmentDashboard
+          investimentos={investimentos}
+          onRefresh={fetchDashboardData}
+        />
+      )}
 
       {/* Grid Médio Desktop: Distribuição por Categorias + Lançamentos Recentes Simultâneos */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Coluna Esquerda (7 colunas no Desktop): Gráfico e Detalhamento de Categorias */}
+        {/* Coluna Esquerda: Gráfico e Detalhamento de Categorias */}
         <div className="lg:col-span-7 space-y-4">
           
-          {/* Card Aquisição (se Obra) ou Resumo do Ambiente */}
+          {/* Card Aquisição (se Obra) */}
           {isObra && hasAquisicao && (
             <div className="bg-emerald-950/20 rounded-2xl p-4 border border-emerald-500/30 shadow-md flex items-center justify-between">
               <div>
@@ -363,24 +447,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="bg-gradient-to-r from-slate-900 via-emerald-950/60 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 text-white flex items-center justify-between shadow-lg theme-action-banner">
             <div>
               <h4 className="text-sm font-bold leading-tight text-white">
-                {isObra ? 'Novo Gasto na Construção?' : 'Novo Gasto Pessoal?'}
+                {isObra ? 'Novo Gasto na Construção?' : 'Novo Lançamento Financeiro?'}
               </h4>
-              <p className="text-[11px] text-emerald-300 mt-0.5">
+              <p className="text-xs text-slate-300 mt-1">
                 {isObra
-                  ? 'Cadastre notas de cimento, pedreiros e maquinário no ato.'
-                  : 'Registre despesas diárias, contas fixas ou investimentos.'}
+                  ? 'Cadastre recibos, notas fiscais e controle o custo por m².'
+                  : 'Cadastre receitas, salários, despesas ou contas mensais.'}
               </p>
             </div>
             <button
               onClick={onNavigateToForm}
-              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 transition-all active:scale-95 flex-shrink-0 cursor-pointer"
             >
-              Lançar Gasto
+              {isObra ? 'Lançar Gasto' : 'Novo Lançamento'}
             </button>
           </div>
         </div>
 
-        {/* Coluna Direita (5 colunas no Desktop): Lançamentos Recentes Simultâneos */}
+        {/* Coluna Direita: Lançamentos Recentes Simultâneos */}
         <div className="lg:col-span-5 space-y-3">
           <div className="bg-slate-900/90 rounded-3xl p-5 border border-slate-800 shadow-md flex flex-col h-full">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
@@ -391,7 +475,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {onNavigateToHistory && (
                 <button
                   onClick={onNavigateToHistory}
-                  className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1"
+                  className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 cursor-pointer"
                 >
                   <span>Ver Todos</span>
                   <ArrowRight className="w-3 h-3" />
@@ -406,49 +490,55 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             ) : (
               <div className="space-y-2.5 flex-1 overflow-y-auto">
-                {recentExpenses.map((exp) => (
-                  <div
-                    key={exp.id}
-                    className="p-3 bg-slate-950/60 hover:bg-slate-950 border border-slate-800/80 rounded-2xl flex items-center justify-between transition-colors"
-                  >
-                    <div className="space-y-0.5 truncate mr-2">
-                      <div className="flex items-center space-x-1.5">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${getCategoryBadgeStyle(exp.categoria)}`}>
-                          {exp.categoria}
+                {recentExpenses.map((exp) => {
+                  const isReceita = exp.tipo_movimentacao === 'receita' || exp.descricao.startsWith('[RECEITA]');
+                  return (
+                    <div
+                      key={exp.id}
+                      className="p-3 bg-slate-950/60 hover:bg-slate-950 border border-slate-800/80 rounded-2xl flex items-center justify-between transition-colors"
+                    >
+                      <div className="space-y-0.5 truncate mr-2">
+                        <div className="flex items-center space-x-1.5">
+                          {isReceita && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+                              Receita
+                            </span>
+                          )}
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${getCategoryBadgeStyle(exp.categoria)}`}>
+                            {exp.categoria}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {formatDate(exp.data_gasto)}
+                          </span>
+                        </div>
+                        <p className="text-xs font-semibold text-white truncate">
+                          {exp.descricao.replace(/^\[RECEITA\]\s*/, '')}
+                        </p>
+                      </div>
+
+                      <div className="text-right flex-shrink-0">
+                        <span className={`text-xs font-black block font-mono ${
+                          isReceita ? 'text-emerald-400' : 'text-white'
+                        }`}>
+                          {isReceita ? `+ ${formatCurrency(exp.valor)}` : formatCurrency(exp.valor)}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {formatDate(exp.data_gasto)}
+                        <span className={`text-[9px] font-bold ${exp.status_pagamento === 'Pago' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {isReceita
+                            ? exp.status_pagamento === 'Pago'
+                              ? 'Recebido'
+                              : 'A Receber'
+                            : exp.status_pagamento}
                         </span>
                       </div>
-                      <p className="text-xs font-semibold text-white truncate">{exp.descricao}</p>
                     </div>
-
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-xs font-bold text-white block">
-                        {formatCurrency(exp.valor)}
-                      </span>
-                      <span className={`text-[9px] font-bold ${exp.status_pagamento === 'Pago' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {exp.status_pagamento}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
 
       </div>
-
-      {paywallOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <PaywallView
-            reason="feature_locked"
-            lockedFeatureName="Gestão Completa Pro"
-            onClose={() => setPaywallOpen(false)}
-          />
-        </div>
-      )}
     </div>
   );
 };
