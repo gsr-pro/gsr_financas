@@ -2,7 +2,6 @@ import React from 'react';
 import { Menu, LogOut, RefreshCw, Plus, LayoutDashboard, ReceiptText, Settings } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { ThemeSelector } from './ThemeSelector';
-import { EnvironmentSelector } from './workspace/EnvironmentSelector';
 import type { TabType } from '../types/app';
 
 interface HeaderProps {
@@ -30,14 +29,14 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md transition-colors duration-300 w-full max-w-full">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-3 w-full">
         
-        {/* Lado Esquerdo: Botão Menu Lateral, Logo e Seletor de Ambientes */}
+        {/* Lado Esquerdo: Botão Menu Lateral e Identidade da Marca */}
         <div className="flex items-center space-x-2 sm:space-x-3.5 min-w-0">
           
-          {/* Botão de Abrir o Menu Lateral (Drawer) */}
+          {/* Botão de Abrir o Menu Lateral (Drawer) - Oculto no Mobile pois já fica no BottomNav */}
           <button
             type="button"
             onClick={onOpenSidebar}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 flex items-center space-x-2 transition-all active:scale-95 cursor-pointer shadow-sm group flex-shrink-0"
+            className="hidden md:flex items-center space-x-2 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 transition-all active:scale-95 cursor-pointer shadow-sm group flex-shrink-0"
             title="Abrir menu lateral de navegação"
             aria-label="Abrir menu lateral"
           >
@@ -54,20 +53,12 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0 group-hover:border-emerald-500/40 transition-colors">
               <BrandLogo size={24} compact={true} animated={false} />
             </div>
-            <div className="hidden min-[480px]:block">
+            <div>
               <h1 className="text-sm font-extrabold tracking-tight leading-tight flex items-center space-x-1">
                 <span className="text-white">Gestão</span>
                 <span className="text-emerald-400">Financeira</span>
               </h1>
             </div>
-          </div>
-
-          {/* Divisor sutil */}
-          <div className="h-5 w-px bg-slate-800 hidden md:block flex-shrink-0" />
-
-          {/* Seletor Dinâmico de Ambientes (Obra vs Pessoal) com espaçamento livre */}
-          <div className="min-w-0">
-            <EnvironmentSelector compact={true} />
           </div>
         </div>
 

@@ -5,16 +5,13 @@ import {
   ReceiptText,
   Settings,
   X,
-  Building2,
-  Wallet,
   LogOut,
-  ChevronRight,
   ShieldCheck,
   Clock,
   Sparkles,
 } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
-import { useWorkspace } from '../context/WorkspaceContext';
+import { EnvironmentSelector } from './workspace/EnvironmentSelector';
 import { useSubscription } from '../context/SubscriptionContext';
 import type { TabType } from '../types/app';
 
@@ -37,7 +34,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userName,
   onLogout,
 }) => {
-  const { currentEnvironment, currentWorkspace } = useWorkspace();
   const { isTrialing, trialDaysRemaining } = useSubscription();
 
   // Fecha o drawer ao pressionar a tecla ESC
@@ -67,10 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onChangeTab(tab);
     onClose();
   };
-
-  const isObra = currentEnvironment === 'obra';
-  const workspaceTitle =
-    currentWorkspace?.nome || (isObra ? 'Controle de Obra Principal' : 'Minhas Finanças Pessoais');
 
   if (!isOpen) return null;
 
@@ -122,38 +114,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* 2. CORPO DA SIDEBAR: Ambiente Ativo & Menu de Navegação */}
           <div className="flex-1 overflow-y-auto p-4 space-y-5">
             
-            {/* Card de Identificação do Ambiente / Workspace Atual */}
-            <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-2">
-              <div className="flex items-center justify-between">
-                <span
-                  className={`flex items-center space-x-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                    isObra
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  }`}
-                >
-                  {isObra ? <Building2 className="w-3 h-3" /> : <Wallet className="w-3 h-3" />}
-                  <span>{isObra ? 'Ambiente de Obra' : 'Finanças Pessoais'}</span>
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectTab('configuracoes')}
-                  className="text-[10px] text-slate-400 hover:text-emerald-300 font-semibold flex items-center space-x-0.5 transition-colors cursor-pointer"
-                >
-                  <span>Alterar</span>
-                  <ChevronRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-white truncate" title={workspaceTitle}>
-                  {workspaceTitle}
-                </p>
-                <p className="text-[10px] text-slate-400 leading-tight">
-                  {isObra ? 'Gestão de materiais, mão de obra e imóvel' : 'Receitas, despesas e investimentos'}
-                </p>
-              </div>
+            {/* Seletor Dinâmico de Ambientes & Projetos (Obra vs Pessoal) */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 px-1 font-bold block">
+                Ambiente & Projeto Ativo
+              </span>
+              <EnvironmentSelector compact={false} fullWidth={true} />
             </div>
 
             {/* Links Principais de Navegação */}

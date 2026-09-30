@@ -5,9 +5,13 @@ import { Building2, Wallet, ChevronDown, Check, Plus, FolderPlus } from 'lucide-
 
 interface EnvironmentSelectorProps {
   compact?: boolean;
+  fullWidth?: boolean;
 }
 
-export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ compact = false }) => {
+export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
+  compact = false,
+  fullWidth = false,
+}) => {
   const {
     currentEnvironment,
     currentWorkspace,
@@ -68,42 +72,52 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ compac
   const workspaceTitle = currentWorkspace?.nome || (isObra ? 'Controle de Obra' : 'Finanças Pessoais');
 
   return (
-    <div className="relative inline-flex items-center" ref={dropdownRef}>
+    <div className={`relative ${fullWidth ? 'flex w-full' : 'inline-flex items-center'}`} ref={dropdownRef}>
       
       {/* Botão Principal do Seletor: Exibe Modo + Nome do Projeto Ativo */}
       <button
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-950/70 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-sm transition-all group max-w-full"
+        className={`flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-sm transition-all group ${
+          fullWidth ? 'w-full justify-between' : 'max-w-full'
+        }`}
         title="Clique para alternar entre Obra, Finanças Pessoais ou selecionar outro projeto"
       >
-        {/* Ícone e Badge do Tipo de Ambiente */}
-        <span
-          className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex-shrink-0 ${
-            isObra
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-          }`}
-        >
-          {isObra ? <Building2 className="w-3 h-3" /> : <Wallet className="w-3 h-3" />}
-          <span>{isObra ? 'Obra' : 'Pessoal'}</span>
-        </span>
-
-        {/* Nome do Projeto / Ambiente em Destaque */}
-        <div className="text-left flex flex-col justify-center min-w-0">
-          <span className="text-[11px] sm:text-xs font-bold text-white group-hover:text-emerald-300 transition-colors max-w-[70px] min-[360px]:max-w-[95px] min-[390px]:max-w-[125px] sm:max-w-[190px] truncate leading-tight">
-            {workspaceTitle}
+        <div className="flex items-center space-x-2 min-w-0">
+          {/* Ícone e Badge do Tipo de Ambiente */}
+          <span
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex-shrink-0 ${
+              isObra
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+            }`}
+          >
+            {isObra ? <Building2 className="w-3 h-3" /> : <Wallet className="w-3 h-3" />}
+            <span>{isObra ? 'Obra' : 'Pessoal'}</span>
           </span>
-          {!compact && (
-            <span className="text-[9px] text-slate-400 leading-none hidden sm:inline">
-              Toque para alternar
+
+          {/* Nome do Projeto / Ambiente em Destaque */}
+          <div className="text-left flex flex-col justify-center min-w-0">
+            <span
+              className={`text-xs font-bold text-white group-hover:text-emerald-300 transition-colors leading-tight ${
+                fullWidth
+                  ? 'truncate max-w-[140px] sm:max-w-[170px]'
+                  : 'max-w-[70px] min-[360px]:max-w-[95px] min-[390px]:max-w-[125px] sm:max-w-[190px] truncate'
+              }`}
+            >
+              {workspaceTitle}
             </span>
-          )}
+            {!compact && (
+              <span className="text-[9px] text-slate-400 leading-none hidden sm:inline">
+                Toque para alternar
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Seta do Dropdown */}
         <ChevronDown
-          className={`w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 group-hover:text-white transition-transform duration-200 flex-shrink-0 ${
+          className={`w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform duration-200 flex-shrink-0 ${
             dropdownOpen ? 'rotate-180' : ''
           }`}
         />
@@ -111,7 +125,11 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ compac
 
       {/* Dropdown Menu Completo */}
       {dropdownOpen && (
-        <div className="absolute top-full left-0 mt-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-80 bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-2xl z-50 animate-fade-in space-y-3">
+        <div
+          className={`absolute top-full left-0 mt-2 ${
+            fullWidth ? 'w-full' : 'w-[calc(100vw-1.5rem)] max-w-xs sm:w-80'
+          } bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-2xl z-50 animate-fade-in space-y-3`}
+        >
           
           {/* Seletor de Modo / Tipo (Obra vs Pessoal) */}
           <div>

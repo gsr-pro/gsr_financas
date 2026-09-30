@@ -1,17 +1,34 @@
 import React from 'react';
-import { LayoutDashboard, Plus, ReceiptText, Settings } from 'lucide-react';
+import { Menu, LayoutDashboard, Plus, ReceiptText, Settings } from 'lucide-react';
 import type { TabType } from '../types/app';
 
 interface BottomNavProps {
   currentTab: TabType;
   onChangeTab: (tab: TabType) => void;
+  onOpenSidebar: () => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onChangeTab }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({
+  currentTab,
+  onChangeTab,
+  onOpenSidebar,
+}) => {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-[0_-4px_24px_rgba(0,0,0,0.25)] pb-safe transition-colors duration-300 theme-bottom-nav">
-      <div className="max-w-md mx-auto px-3 h-16 flex items-center justify-around">
-        {/* Aba Dashboard */}
+      <div className="max-w-md mx-auto px-2 h-16 flex items-center justify-around">
+        {/* Botão Menu Lateral (Drawer) - Ao lado esquerdo de Visão Geral */}
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-emerald-400 active:scale-95 transition-all cursor-pointer group"
+          title="Abrir Menu Lateral"
+          aria-label="Abrir Menu Lateral"
+        >
+          <Menu className="w-5 h-5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
+          <span className="text-[10px] mt-1 font-medium">Menu</span>
+        </button>
+
+        {/* Aba Dashboard / Visão Geral */}
         <button
           onClick={() => onChangeTab('dashboard')}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
@@ -24,20 +41,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onChangeTab })
           <span className="text-[10px] mt-1">Visão Geral</span>
         </button>
 
-        {/* Aba Histórico */}
-        <button
-          onClick={() => onChangeTab('historico')}
-          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-            currentTab === 'historico'
-              ? 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.35)]'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <ReceiptText className={`w-5 h-5 transition-transform ${currentTab === 'historico' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] mt-1">Extrato</span>
-        </button>
-
-        {/* Botão Central de Novo Lançamento */}
+        {/* Botão Central de Novo Lançamento (Centro exato da barra de 5 itens) */}
         <div className="flex-1 flex justify-center -mt-5">
           <button
             onClick={() => onChangeTab('novo')}
@@ -51,6 +55,19 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onChangeTab })
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>
         </div>
+
+        {/* Aba Histórico / Extrato */}
+        <button
+          onClick={() => onChangeTab('historico')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+            currentTab === 'historico'
+              ? 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.35)]'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <ReceiptText className={`w-5 h-5 transition-transform ${currentTab === 'historico' ? 'scale-110' : ''}`} />
+          <span className="text-[10px] mt-1">Extrato</span>
+        </button>
 
         {/* Aba Configurações */}
         <button

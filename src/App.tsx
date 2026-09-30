@@ -164,7 +164,11 @@ export const App: React.FC = () => {
         </main>
 
         {/* Barra de Navegação Inferior (Fixa para Dispositivos Móveis) */}
-        <BottomNav currentTab={currentTab} onChangeTab={setCurrentTab} />
+        <BottomNav
+          currentTab={currentTab}
+          onChangeTab={setCurrentTab}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+        />
       </div>
     </SubscriptionGate>
   );
