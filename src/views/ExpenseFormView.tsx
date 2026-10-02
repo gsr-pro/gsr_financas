@@ -48,7 +48,7 @@ const DEFAULT_NEGOCIO_RECEITA_CATEGORIES = [
 ];
 
 export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) => {
-  const { currentEnvironment, currentWorkspace, categories } = useWorkspace();
+  const { currentEnvironment, currentWorkspace, workspaces, categories } = useWorkspace();
 
   const [tipoMovimentacao, setTipoMovimentacao] = useState<TipoMovimentacao>('despesa');
   const [dataGasto, setDataGasto] = useState<string>(
@@ -195,9 +195,10 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         // Os meses seguintes futuros são programados como 'Pendente'
         const itemStatus = i === 0 ? statusPagamento : 'Pendente';
 
-        const safeWorkspaceId = currentWorkspace?.id && !currentWorkspace.id.startsWith('virtual-')
-          ? currentWorkspace.id
-          : null;
+        const realWorkspace =
+          (!currentWorkspace?.id?.startsWith('virtual-') ? currentWorkspace : null) ||
+          workspaces.find((w) => w.tipo === currentEnvironment && !w.id.startsWith('virtual-'));
+        const safeWorkspaceId = realWorkspace?.id || null;
 
         rowsToInsert.push({
           user_id: user.id,
@@ -362,29 +363,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Data do Lançamento */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>
-                {tipoMovimentacao === 'receita' ? 'Data do Recebimento' : 'Data da Despesa'}
-              </span>
-            </label>
-            <input
-              type="date"
-              required
-              value={dataGasto}
-              onClick={(e) => {
-                try {
-                  e.currentTarget.showPicker?.();
-                } catch (_) {}
-              }}
-              onChange={(e) => setDataGasto(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all cursor-pointer"
-            />
-          </div>
-
-          {/* Seleção Dinâmica de Categoria */}
+          {/* 1. Seleção Dinâmica de Categoria */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
@@ -428,7 +407,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
             </div>
           </div>
 
-          {/* Descrição */}
+          {/* 2. Descrição */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <FileText className="w-3.5 h-3.5 text-sky-400" />
@@ -454,7 +433,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
             />
           </div>
 
-          {/* Valor */}
+          {/* 3. Valor */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <DollarSign className="w-3.5 h-3.5 text-sky-400" />
@@ -483,6 +462,28 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 }`}
               />
             </div>
+          </div>
+
+          {/* 4. Data do Lançamento (Posicionada após o Valor) */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <span>
+                {tipoMovimentacao === 'receita' ? 'Data do Recebimento' : 'Data da Despesa'}
+              </span>
+            </label>
+            <input
+              type="date"
+              required
+              value={dataGasto}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch (_) {}
+              }}
+              onChange={(e) => setDataGasto(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all cursor-pointer"
+            />
           </div>
 
           {/* Status do Pagamento / Recebimento */}

@@ -314,33 +314,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             </div>
           )}
 
-          {/* Data do Lançamento */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>
-                {currentEnvironment === 'pessoal'
-                  ? tipoMovimentacao === 'receita'
-                    ? 'Data da Receita'
-                    : 'Data da Despesa'
-                  : 'Data da Despesa'}
-              </span>
-            </label>
-            <input
-              type="date"
-              required
-              value={dataGasto}
-              onClick={(e) => {
-                try {
-                  e.currentTarget.showPicker?.();
-                } catch (_) {}
-              }}
-              onChange={(e) => setDataGasto(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all cursor-pointer"
-            />
-          </div>
-
-          {/* Categoria Dinâmica + Botão "+ Nova Categoria" */}
+          {/* 1. Categoria Dinâmica + Botão "+ Nova Categoria" */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
@@ -398,7 +372,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Descrição */}
+          {/* 2. Descrição */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <FileText className="w-3.5 h-3.5 text-sky-400" />
@@ -424,7 +398,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             />
           </div>
 
-          {/* Valor */}
+          {/* 3. Valor */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <DollarSign className="w-3.5 h-3.5 text-sky-400" />
@@ -449,6 +423,30 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all font-mono"
               />
             </div>
+          </div>
+
+          {/* 4. Data do Lançamento (Posicionada após o Valor) */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <span>
+                {currentEnvironment === 'pessoal' && tipoMovimentacao === 'receita'
+                  ? 'Data da Receita'
+                  : 'Data da Despesa'}
+              </span>
+            </label>
+            <input
+              type="date"
+              required
+              value={dataGasto}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch (_) {}
+              }}
+              onChange={(e) => setDataGasto(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all cursor-pointer"
+            />
           </div>
 
           {/* Status do Pagamento / Recebimento */}

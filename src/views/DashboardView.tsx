@@ -25,9 +25,11 @@ import {
   Briefcase,
   Calculator,
   Sparkles,
+  Edit3,
 } from 'lucide-react';
 import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
 import { PricingCalculatorModal } from '../components/business/PricingCalculatorModal';
+import { WorkspaceModal } from '../components/workspace/WorkspaceModal';
 
 const TIPO_IMOVEL_LABELS: Record<string, string> = {
   terreno: 'Terreno / Lote',
@@ -88,7 +90,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [currentEnvironment, currentWorkspace]);
+  }, [currentEnvironment, currentWorkspace?.id]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -97,6 +99,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const isObra = currentEnvironment === 'obra';
   const isNegocio = currentEnvironment === 'negocio';
   const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
+  const [isEditWorkspaceModalOpen, setIsEditWorkspaceModalOpen] = useState<boolean>(false);
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({
     year: null,
@@ -516,17 +519,51 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Coluna Esquerda: Gráfico e Detalhamento de Categorias */}
         <div className="lg:col-span-7 space-y-4">
           
-          {/* Card Aquisição (se Obra) */}
+          {/* Card Aquisição (se Obra) - Interativo e com CTA amigável quando zerado */}
           {isObra && hasAquisicao && (
-            <div className="bg-emerald-950/20 rounded-2xl p-4 border border-emerald-500/30 shadow-md flex items-center justify-between">
+            <div
+              onClick={() => setIsEditWorkspaceModalOpen(true)}
+              className="bg-emerald-950/20 hover:bg-emerald-950/35 rounded-2xl p-4 border border-emerald-500/30 hover:border-emerald-500/50 shadow-md flex items-center justify-between cursor-pointer transition-all group"
+              title="Clique para editar especificações do terreno/imóvel"
+            >
               <div>
-                <span className="text-xs font-semibold text-emerald-400">Aquisição do Terreno / Lote</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-semibold text-emerald-400">Aquisição do Terreno / Lote</span>
+                  <span className="text-[10px] text-emerald-400/70 group-hover:text-emerald-300 flex items-center space-x-0.5 transition-colors">
+                    <Edit3 className="w-3 h-3" />
+                    <span className="font-medium">Editar</span>
+                  </span>
+                </div>
                 <div className="text-xl font-extrabold text-white mt-0.5">
                   {formatCurrency(valorAquisicao)}
                 </div>
               </div>
               <span className="text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-xl">
                 {dimensoesImovel}
+              </span>
+            </div>
+          )}
+
+          {isObra && !hasAquisicao && (
+            <div
+              onClick={() => setIsEditWorkspaceModalOpen(true)}
+              className="bg-slate-900/90 hover:bg-slate-900 border border-dashed border-emerald-500/40 hover:border-emerald-500/70 rounded-2xl p-3.5 sm:p-4 shadow-md flex items-center justify-between cursor-pointer transition-all group"
+            >
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <Trees className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-white block truncate">
+                    Adicionar Valor do Terreno / Imóvel
+                  </span>
+                  <span className="text-[11px] text-slate-400 block truncate mt-0.5">
+                    Componha o custo total da obra somando o valor de aquisição
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 flex items-center space-x-1 flex-shrink-0 ml-2">
+                <span>+ Definir</span>
               </span>
             </div>
           )}
@@ -653,6 +690,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         isOpen={isPricingModalOpen}
         onClose={() => setIsPricingModalOpen(false)}
       />
+
+      {/* Modal de Edição Rápida do Workspace / Imóvel da Obra */}
+      {isEditWorkspaceModalOpen && currentWorkspace && (
+        <WorkspaceModal
+          isOpen={isEditWorkspaceModalOpen}
+          onClose={() => setIsEditWorkspaceModalOpen(false)}
+          workspaceToEdit={currentWorkspace}
+        />
+      )}
     </div>
   );
 };

@@ -93,14 +93,41 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
 
   const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
+
+  // Inicialização instantânea do workspace ativo via cache local para eliminar atraso perceptivo
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceRow | null>(() => {
+    try {
+      const cached = localStorage.getItem('gsr_cached_active_workspace');
+      if (cached) {
+        const parsed = JSON.parse(cached) as WorkspaceRow;
+        if (parsed && parsed.id && parsed.tipo) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
     const saved = localStorage.getItem('gsr_selected_environment') as WorkspaceType | null;
     const initialEnv: WorkspaceType = saved === 'pessoal' || saved === 'negocio' ? saved : 'obra';
     return createVirtualWorkspace(initialEnv);
   });
+
   const [categories, setCategories] = useState<CategoriaRow[]>([]);
   const [loadingWorkspaces, setLoadingWorkspaces] = useState<boolean>(true);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+
+  // Helper centralizado para persistência do workspace ativo
+  const persistActiveWorkspace = useCallback((workspace: WorkspaceRow | null) => {
+    setCurrentWorkspace(workspace);
+    if (workspace) {
+      try {
+        localStorage.setItem('gsr_cached_active_workspace', JSON.stringify(workspace));
+        localStorage.setItem('gsr_selected_workspace_id', workspace.id);
+        localStorage.setItem('gsr_selected_environment', workspace.tipo);
+      } catch (_) {}
+    } else {
+      localStorage.removeItem('gsr_cached_active_workspace');
+      localStorage.removeItem('gsr_selected_workspace_id');
+    }
+  }, []);
 
   // Cria um novo workspace e já o ativa imediatamente
   const createWorkspace = useCallback(
@@ -134,67 +161,39 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (error || !data) throw error || new Error('Falha ao criar ambiente.');
 
       const created = data as WorkspaceRow;
-      setWorkspaces((prev) => [...prev.filter((w) => w.id !== `virtual-${tipo}`), created]);
-      setCurrentWorkspace(created);
+      setWorkspaces((prev) => [
+        ...prev.filter((w) => w.id !== `virtual-${tipo}` && w.id !== created.id),
+        created,
+      ]);
+      persistActiveWorkspace(created);
       setCurrentEnvironment(tipo);
-      localStorage.setItem('gsr_selected_workspace_id', created.id);
-      localStorage.setItem('gsr_selected_environment', tipo);
       return created;
     },
-    []
+    [persistActiveWorkspace]
   );
 
-  // Orquestrador de Alternância de Ambientes: Instantâneo e Resiliente
+  // Orquestrador de Alternância de Ambientes: Instantâneo, Resiliente e SEM duplicações
   const switchEnvironment = useCallback(
     async (tipo: WorkspaceType) => {
       // 1. Atualização imediata do contexto e persistência local
       setCurrentEnvironment(tipo);
       localStorage.setItem('gsr_selected_environment', tipo);
 
-      // 2. Busca se já existe um workspace carregado para o tipo
-      let targetWorkspace = workspaces.find((w) => w.tipo === tipo && !w.id.startsWith('virtual-'));
+      // 2. Busca se já existe um workspace carregado para o tipo (priorizando reais sobre virtuais)
+      const targetWorkspace =
+        workspaces.find((w) => w.tipo === tipo && !w.id.startsWith('virtual-')) ||
+        workspaces.find((w) => w.tipo === tipo);
 
-      if (!targetWorkspace) {
-        // Se ainda não existir registro persistido, usa o workspace de domínio padrão de imediato
-        const virtual = createVirtualWorkspace(tipo);
-        setCurrentWorkspace(virtual);
-        localStorage.setItem('gsr_selected_workspace_id', virtual.id);
-
-        // 3. Tenta persistir no Supabase em segundo plano
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const config = DEFAULT_WORKSPACES_CONFIG[tipo];
-            const { data, error } = await supabase
-              .from('workspaces')
-              .insert({
-                user_id: user.id,
-                nome: config.nome,
-                tipo,
-                is_default: tipo === 'obra',
-                valor_aquisicao: config.valor_aquisicao,
-                tipo_imovel: config.tipo_imovel,
-                dimensoes_terreno: config.dimensoes_terreno,
-              })
-              .select()
-              .single();
-
-            if (!error && data) {
-              const created = data as WorkspaceRow;
-              setWorkspaces((prev) => [...prev.filter((w) => w.id !== `virtual-${tipo}`), created]);
-              setCurrentWorkspace(created);
-              localStorage.setItem('gsr_selected_workspace_id', created.id);
-            }
-          }
-        } catch (syncErr) {
-          console.warn('Sincronização do workspace com o backend ocorrerá sob demanda:', syncErr);
-        }
+      if (targetWorkspace) {
+        persistActiveWorkspace(targetWorkspace);
       } else {
-        setCurrentWorkspace(targetWorkspace);
-        localStorage.setItem('gsr_selected_workspace_id', targetWorkspace.id);
+        // Se ainda não existir no estado local, usa referência virtual provisória
+        // SEM FAZER INSERÇÕES CEGAS NO BANCO (evita race conditions e duplicatas)
+        const virtual = createVirtualWorkspace(tipo);
+        persistActiveWorkspace(virtual);
       }
     },
-    [workspaces]
+    [workspaces, persistActiveWorkspace]
   );
 
   // Busca todos os workspaces do usuário atual sem reverter o ambiente ativo
@@ -271,45 +270,66 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
+      // Sanitização e De-duplicação defensiva:
+      // Remove duplicatas de ID e duplicatas de workspaces padrão por tipo
+      const seenIds = new Set<string>();
+      const deduplicatedList: WorkspaceRow[] = [];
+
+      for (const w of list) {
+        if (!w.id || seenIds.has(w.id)) continue;
+        seenIds.add(w.id);
+
+        const isDefaultName = w.nome === DEFAULT_WORKSPACES_CONFIG[w.tipo]?.nome;
+        if (isDefaultName) {
+          const hasExistingDefault = deduplicatedList.some(
+            (item) => item.tipo === w.tipo && item.nome === w.nome
+          );
+          if (hasExistingDefault) {
+            // Ignora duplicata idêntica padrão
+            continue;
+          }
+        }
+
+        deduplicatedList.push(w);
+      }
+
       // Garante que haja ao menos uma referência virtual para qualquer um dos 3 ambientes não retornados
-      const completeList = [...list];
       (['obra', 'pessoal', 'negocio'] as WorkspaceType[]).forEach((t) => {
-        if (!completeList.some((w) => w.tipo === t)) {
-          completeList.push(createVirtualWorkspace(t, user.id));
+        if (!deduplicatedList.some((w) => w.tipo === t)) {
+          deduplicatedList.push(createVirtualWorkspace(t, user.id));
         }
       });
 
-      setWorkspaces(completeList);
+      setWorkspaces(deduplicatedList);
 
-      // Seleção do Workspace Ativo respeitando SEMPRE o ambiente selecionado pelo usuário
+      // Seleção e Sincronização do Workspace Ativo
       const savedEnv = localStorage.getItem('gsr_selected_environment') as WorkspaceType | null;
       const targetEnv = savedEnv === 'pessoal' || savedEnv === 'negocio' || savedEnv === 'obra'
         ? savedEnv
         : currentEnvironment;
 
       const savedWorkspaceId = localStorage.getItem('gsr_selected_workspace_id');
-      const foundSaved = savedWorkspaceId
-        ? completeList.find((w) => w.id === savedWorkspaceId && w.tipo === targetEnv)
+      let matching = savedWorkspaceId
+        ? deduplicatedList.find((w) => w.id === savedWorkspaceId && w.tipo === targetEnv)
         : null;
 
-      if (foundSaved) {
-        setCurrentWorkspace(foundSaved);
-        setCurrentEnvironment(foundSaved.tipo);
-      } else {
-        const matchingEnvWorkspace = completeList.find((w) => w.tipo === targetEnv) || completeList[0];
-        if (matchingEnvWorkspace) {
-          setCurrentWorkspace(matchingEnvWorkspace);
-          setCurrentEnvironment(matchingEnvWorkspace.tipo);
-          localStorage.setItem('gsr_selected_workspace_id', matchingEnvWorkspace.id);
-          localStorage.setItem('gsr_selected_environment', matchingEnvWorkspace.tipo);
-        }
+      if (!matching) {
+        matching =
+          deduplicatedList.find((w) => w.tipo === targetEnv && !w.id.startsWith('virtual-')) ||
+          deduplicatedList.find((w) => w.tipo === targetEnv) ||
+          deduplicatedList[0];
+      }
+
+      if (matching) {
+        persistActiveWorkspace(matching);
+        setCurrentEnvironment(matching.tipo);
       }
     } catch (err: unknown) {
       console.error('Erro ao orquestrar workspaces:', err);
     } finally {
       setLoadingWorkspaces(false);
     }
-  }, [currentEnvironment]);
+  }, [currentEnvironment, persistActiveWorkspace]);
 
   // Busca as categorias do ambiente selecionado (Globais onde user_id é NULL ou Próprias do usuário)
   const fetchCategories = useCallback(async () => {
@@ -357,13 +377,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     (workspaceId: string) => {
       const found = workspaces.find((w) => w.id === workspaceId);
       if (found) {
-        setCurrentWorkspace(found);
+        persistActiveWorkspace(found);
         setCurrentEnvironment(found.tipo);
-        localStorage.setItem('gsr_selected_workspace_id', found.id);
-        localStorage.setItem('gsr_selected_environment', found.tipo);
       }
     },
-    [workspaces]
+    [workspaces, persistActiveWorkspace]
   );
 
   // Atualiza um workspace existente
@@ -374,6 +392,16 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     ): Promise<WorkspaceRow> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado.');
+
+      // Se for virtual provisório, cria o registro real no Supabase
+      if (workspaceId.startsWith('virtual-')) {
+        const tipo = (updates.tipo || currentEnvironment) as WorkspaceType;
+        return await createWorkspace(
+          updates.nome || DEFAULT_WORKSPACES_CONFIG[tipo].nome,
+          tipo,
+          updates
+        );
+      }
 
       const cleanUpdates: Partial<WorkspaceRow> = { ...updates };
       delete cleanUpdates.id;
@@ -395,13 +423,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const updated = data as WorkspaceRow;
       setWorkspaces((prev) => prev.map((w) => (w.id === workspaceId ? updated : w)));
 
-      // Se o workspace atual for o alterado, sincroniza
+      // Se o workspace atual for o alterado, sincroniza de imediato
       setCurrentWorkspace((curr) => {
-        if (curr?.id === workspaceId) {
-          if (updated.tipo !== curr.tipo) {
-            setCurrentEnvironment(updated.tipo);
-            localStorage.setItem('gsr_selected_environment', updated.tipo);
-          }
+        if (curr?.id === workspaceId || (curr?.tipo === updated.tipo && curr?.id.startsWith('virtual-'))) {
+          persistActiveWorkspace(updated);
           return updated;
         }
         return curr;
@@ -409,7 +434,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       return updated;
     },
-    []
+    [currentEnvironment, createWorkspace, persistActiveWorkspace]
   );
 
   // Exclui um workspace com salvaguardas
@@ -436,17 +461,14 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (currentWorkspace?.id === workspaceId) {
         const nextWorkspace = remaining.find((w) => w.tipo === currentEnvironment) || remaining[0];
         if (nextWorkspace) {
-          setCurrentWorkspace(nextWorkspace);
+          persistActiveWorkspace(nextWorkspace);
           setCurrentEnvironment(nextWorkspace.tipo);
-          localStorage.setItem('gsr_selected_workspace_id', nextWorkspace.id);
-          localStorage.setItem('gsr_selected_environment', nextWorkspace.tipo);
         } else {
-          setCurrentWorkspace(null);
-          localStorage.removeItem('gsr_selected_workspace_id');
+          persistActiveWorkspace(null);
         }
       }
     },
-    [workspaces, currentWorkspace, currentEnvironment]
+    [workspaces, currentWorkspace, currentEnvironment, persistActiveWorkspace]
   );
 
   // Cria uma categoria customizada na hora (com o tenant_id do usuário)
