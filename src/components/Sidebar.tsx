@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Plus,
@@ -9,9 +9,11 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
+  Calculator,
 } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { EnvironmentSelector } from './workspace/EnvironmentSelector';
+import { PricingCalculatorModal } from './business/PricingCalculatorModal';
 import { useSubscription } from '../context/SubscriptionContext';
 import type { TabType } from '../types/app';
 
@@ -35,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
 }) => {
   const { isTrialing, trialDaysRemaining } = useSubscription();
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState<boolean>(false);
 
   // Fecha o drawer ao pressionar a tecla ESC
   useEffect(() => {
@@ -91,11 +94,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div>
                 <h2 className="text-sm font-extrabold tracking-tight leading-tight flex items-center space-x-1">
-                  <span className="text-white">Gestão</span>
-                  <span className="text-emerald-400">Financeira</span>
+                  <span className="text-white">GSR</span>
+                  <span className="text-emerald-400">Finanças</span>
                 </h2>
-                <p className="text-[10px] font-mono text-sky-400 leading-none mt-0.5">
-                  SaaS Multi-Ambiente
+                <p className="text-[10px] font-mono text-emerald-400/90 leading-none mt-0.5">
+                  Gestão Financeira Facilitada
                 </p>
               </div>
             </div>
@@ -206,6 +209,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />
                   )}
                 </button>
+
+                {/* 5. Calculadora de Precificação (Ficha Técnica & Markup) */}
+                <button
+                  type="button"
+                  onClick={() => setIsCalculatorOpen(true)}
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer text-slate-300 hover:text-white hover:bg-slate-800/70 group"
+                  title="Abrir Calculadora de Precificação e Ficha Técnica de Produtos"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Calculator className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <span>Calculadora de Preço & CMV</span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    PME
+                  </span>
+                </button>
               </nav>
             </div>
 
@@ -264,6 +283,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         </div>
       </aside>
+
+      {/* Modal da Calculadora de Precificação PME */}
+      <PricingCalculatorModal
+        isOpen={isCalculatorOpen}
+        onClose={() => setIsCalculatorOpen(false)}
+      />
     </div>
   );
 };

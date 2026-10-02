@@ -401,3 +401,182 @@ create policy "Usuários podem excluir seus próprios investimentos"
     to authenticated
     using (auth.uid() = user_id);
 
+-- ===================================================================
+-- 12. TABELA CANÔNICA DE AMBIENTES / PROJETOS (WORKSPACES)
+-- ===================================================================
+
+create table if not exists public.workspaces (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    nome text not null check (length(trim(nome)) >= 2),
+    tipo text not null default 'obra' check (tipo in ('obra', 'pessoal', 'negocio')),
+    is_default boolean not null default false,
+    valor_aquisicao numeric(12, 2) not null default 0.00 check (valor_aquisicao >= 0),
+    tipo_imovel text,
+    dimensoes_terreno text,
+    localizacao text,
+    data_aquisicao date,
+    configuracoes jsonb,
+    created_at timestamptz not null default timezone('utc'::text, now()),
+    updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+comment on table public.workspaces is 'Ambientes de isolamento de dados: Obras, Finanças Pessoais e Negócios/PME';
+
+-- Atualização e flexibilização de constraints caso a tabela já existisse com enums restritivos
+alter table public.workspaces drop constraint if exists workspaces_tipo_check;
+alter table public.workspaces add constraint workspaces_tipo_check check (tipo in ('obra', 'pessoal', 'negocio'));
+
+create index if not exists idx_workspaces_user_id on public.workspaces(user_id);
+create index if not exists idx_workspaces_tipo on public.workspaces(tipo);
+
+-- Trigger de updated_at para workspaces
+create trigger trigger_workspaces_updated_at
+    before update on public.workspaces
+    for each row execute function public.set_updated_at();
+
+-- Habilitar RLS em workspaces
+alter table public.workspaces enable row level security;
+
+create policy "Usuários podem visualizar seus próprios workspaces"
+    on public.workspaces
+    for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "Usuários podem cadastrar seus próprios workspaces"
+    on public.workspaces
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem atualizar seus próprios workspaces"
+    on public.workspaces
+    for update
+    to authenticated
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem excluir seus próprios workspaces"
+    on public.workspaces
+    for delete
+    to authenticated
+    using (auth.uid() = user_id);
+
+-- Compatibilidade de constraints em despesas e categorias
+alter table public.despesas drop constraint if exists despesas_tipo_ambiente_check;
+alter table public.despesas add constraint despesas_tipo_ambiente_check check (tipo_ambiente in ('obra', 'pessoal', 'negocio'));
+
+alter table public.categorias drop constraint if exists categorias_tipo_ambiente_check;
+alter table public.categorias add constraint categorias_tipo_ambiente_check check (tipo_ambiente in ('obra', 'pessoal', 'geral', 'negocio'));
+
+-- ===================================================================
+-- 13. DOMÍNIO DE NEGÓCIO & PME: PRODUTOS, INSUMOS & PRECIFICAÇÃO
+-- ===================================================================
+
+create table if not exists public.produtos_negocio (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    workspace_id uuid references public.workspaces(id) on delete cascade,
+    nome text not null check (length(trim(nome)) >= 2),
+    descricao text,
+    insumos jsonb not null default '[]'::jsonb,
+    custo_insumos numeric(12, 2) not null default 0.00 check (custo_insumos >= 0),
+    horas_trabalho numeric(10, 2) not null default 0.00 check (horas_trabalho >= 0),
+    valor_hora_mao_obra numeric(12, 2) not null default 0.00 check (valor_hora_mao_obra >= 0),
+    custo_mao_obra numeric(12, 2) not null default 0.00 check (custo_mao_obra >= 0),
+    custos_fixos_rateados numeric(12, 2) not null default 0.00 check (custos_fixos_rateados >= 0),
+    custo_total_producao numeric(12, 2) not null default 0.00 check (custo_total_producao >= 0),
+    margem_lucro_desejada_pct numeric(8, 2) not null default 0.00,
+    preco_venda_sugerido numeric(12, 2) not null default 0.00 check (preco_venda_sugerido >= 0),
+    lucro_bruto_unitario numeric(12, 2) not null default 0.00,
+    markup_multiplicador numeric(8, 4) not null default 1.0000,
+    ponto_equilibrio_unidades integer,
+    created_at timestamptz not null default timezone('utc'::text, now()),
+    updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+comment on table public.produtos_negocio is 'Fichas técnicas de produtos, estrutura de custos de produção e cálculo de markup';
+
+create index if not exists idx_produtos_negocio_user on public.produtos_negocio(user_id);
+create index if not exists idx_produtos_negocio_workspace on public.produtos_negocio(workspace_id);
+
+alter table public.produtos_negocio enable row level security;
+
+create policy "Usuários podem visualizar seus próprios produtos de negócio"
+    on public.produtos_negocio
+    for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "Usuários podem cadastrar seus próprios produtos de negócio"
+    on public.produtos_negocio
+    for insert
+    to authenticated
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem atualizar seus próprios produtos de negócio"
+    on public.produtos_negocio
+    for update
+    to authenticated
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Usuários podem excluir seus próprios produtos de negócio"
+    on public.produtos_negocio
+    for delete
+    to authenticated
+    using (auth.uid() = user_id);
+
+-- Inserção de categorias globais padrão para Negócio / PME:
+insert into public.categorias (nome, tipo_ambiente, cor, icone)
+values
+    ('Insumos & Matéria-Prima', 'negocio', '#6366F1', 'Boxes'),
+    ('Embalagens', 'negocio', '#8B5CF6', 'Package'),
+    ('Custos Operacionais & Fixo', 'negocio', '#F59E0B', 'Building'),
+    ('Equipamentos & Ferramentas', 'negocio', '#3B82F6', 'Wrench'),
+    ('Marketing & Vendas', 'negocio', '#EC4899', 'Megaphone'),
+    ('Logística & Frete', 'negocio', '#06B6D4', 'Truck'),
+    ('Impostos & Tributos', 'negocio', '#EF4444', 'Receipt'),
+    ('Mão de Obra & Pró-Labore', 'negocio', '#10B981', 'Users'),
+    ('Serviços Terceirizados', 'negocio', '#14B8A6', 'Briefcase'),
+    ('Outros', 'negocio', '#64748B', 'Tag')
+on conflict do nothing;
+
+-- ===================================================================
+-- 14. ORQUESTRADOR CENTRAL DE AMBIENTES NO BACKEND (RPC)
+-- ===================================================================
+
+create or replace function public.orquestrar_ambientes_usuario(p_user_id uuid)
+returns setof public.workspaces
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    -- 1. Garante que existam os 3 ambientes nativos de forma atômica
+    if not exists (select 1 from public.workspaces where user_id = p_user_id and tipo = 'obra') then
+        insert into public.workspaces (user_id, nome, tipo, is_default, valor_aquisicao, dimensoes_terreno)
+        values (p_user_id, 'Controle de Obra Principal', 'obra', true, 50000.00, 'Terreno Principal');
+    end if;
+
+    if not exists (select 1 from public.workspaces where user_id = p_user_id and tipo = 'pessoal') then
+        insert into public.workspaces (user_id, nome, tipo, is_default, valor_aquisicao)
+        values (p_user_id, 'Minhas Finanças Pessoais', 'pessoal', false, 0.00);
+    end if;
+
+    if not exists (select 1 from public.workspaces where user_id = p_user_id and tipo = 'negocio') then
+        insert into public.workspaces (user_id, nome, tipo, is_default, valor_aquisicao)
+        values (p_user_id, 'Meu Negócio & PME', 'negocio', false, 0.00);
+    end if;
+
+    -- 2. Retorna a lista completa dos ambientes orquestrados
+    return query
+    select *
+    from public.workspaces
+    where user_id = p_user_id
+    order by created_at asc;
+end;
+$$;
+
+

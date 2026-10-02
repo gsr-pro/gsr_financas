@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Save,
   Plus,
+  Briefcase,
 } from 'lucide-react';
 
 interface WorkspaceModalProps {
@@ -134,10 +135,18 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
               className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
                 tipo === 'obra'
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : tipo === 'negocio'
+                  ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30'
                   : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
               }`}
             >
-              {tipo === 'obra' ? <Building2 className="w-5 h-5" /> : <Wallet className="w-5 h-5" />}
+              {tipo === 'obra' ? (
+                <Building2 className="w-5 h-5" />
+              ) : tipo === 'negocio' ? (
+                <Briefcase className="w-5 h-5" />
+              ) : (
+                <Wallet className="w-5 h-5" />
+              )}
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
@@ -145,7 +154,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
               </h3>
               <p className="text-xs text-slate-400">
                 {isEditing
-                  ? 'Atualize as informações do seu projeto ou imóvel.'
+                  ? 'Atualize as informações do seu projeto ou empresa.'
                   : 'Crie um novo ambiente de acompanhamento financeiro.'}
               </p>
             </div>
@@ -175,46 +184,72 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
             <input
               type="text"
               required
-              placeholder="Ex: Loteamento Alphaville 14, Minha Casa, Reforma Sala..."
+              placeholder={
+                tipo === 'obra'
+                  ? 'Ex: Loteamento Alphaville 14, Minha Casa, Reforma Sala...'
+                  : tipo === 'negocio'
+                  ? 'Ex: Minha Empresa PME, Ateliê Doçura, Marcenaria Silva...'
+                  : 'Ex: Finanças Pessoais da Família, Reserva...'
+              }
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
 
-          {/* 2. Tipo de Ambiente (Obra vs Pessoal) */}
+          {/* 2. Tipo de Ambiente (Obra vs Pessoal vs Negócio) */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Finalidade do Ambiente
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setTipo('obra')}
-                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
+                className={`p-2.5 rounded-xl border flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 text-xs font-bold transition-all ${
                   tipo === 'obra'
                     ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-sm'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                <Building2 className="w-4 h-4 text-emerald-400" />
-                <span>Custo de Obra</span>
+                <Building2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span>Obra</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTipo('pessoal')}
-                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
+                className={`p-2.5 rounded-xl border flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 text-xs font-bold transition-all ${
                   tipo === 'pessoal'
                     ? 'bg-cyan-500/15 border-cyan-500 text-cyan-300 shadow-sm'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
-                <Wallet className="w-4 h-4 text-cyan-400" />
-                <span>Finanças Pessoais</span>
+                <Wallet className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <span>Pessoal</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTipo('negocio')}
+                className={`p-2.5 rounded-xl border flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-1.5 text-xs font-bold transition-all ${
+                  tipo === 'negocio'
+                    ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-sm'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                <Briefcase className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                <span>Negócio</span>
               </button>
             </div>
           </div>
+
+          {tipo === 'negocio' && (
+            <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-300 flex items-center space-x-2">
+              <Briefcase className="w-4 h-4 flex-shrink-0 text-indigo-400" />
+              <span>Ambiente corporativo para pequenas empresas: precificação por insumos, markup e ponto de equilíbrio.</span>
+            </div>
+          )}
 
           {/* SE FOR OBRA: Campos ricos de imóvel (Terreno, Casa, Apartamento, dimensões, etc.) */}
           {tipo === 'obra' && (

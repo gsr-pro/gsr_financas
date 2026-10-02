@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
 import { useSubscription } from '../../context/SubscriptionContext';
-import { PLANS } from '../../config/plans';
-import type { BillingInterval } from '../../types/subscription.types';
-import { Check, Zap, CreditCard, Lock, LogOut, X, Sparkles, ShieldCheck } from 'lucide-react';
+import { PLANS, PLAN_COMPARISON_FEATURES } from '../../config/plans';
+import type { BillingInterval, SubscriptionTier } from '../../types/subscription.types';
+import {
+  Check,
+  CreditCard,
+  Lock,
+  LogOut,
+  X,
+  Sparkles,
+  ShieldCheck,
+  Building2,
+  Wallet,
+  Briefcase,
+  Layers,
+} from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 
 interface PaywallViewProps {
   reason?: 'trial_expired' | 'feature_locked' | 'landing_page';
   lockedFeatureName?: string;
   onClose?: () => void;
-  onSelectPlan?: (interval: BillingInterval) => void;
+  onSelectPlan?: (interval: BillingInterval, tier: SubscriptionTier) => void;
   isInline?: boolean;
 }
 
@@ -21,22 +33,26 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   isInline = false,
 }) => {
   const { startCheckout } = useSubscription();
-  const [submittingInterval, setSubmittingInterval] = useState<BillingInterval | null>(null);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('year');
+  const [submittingTier, setSubmittingTier] = useState<SubscriptionTier | null>(null);
 
-  const plan = PLANS.obra; // Plano Gestão Completa Pro
+  const litePlan = PLANS.lite;
+  const businessPlan = PLANS.business;
 
-  const handleCheckout = async (selectedInterval: BillingInterval) => {
+  const handleCheckout = async (tier: 'lite' | 'business') => {
     if (onSelectPlan) {
-      onSelectPlan(selectedInterval);
+      onSelectPlan(billingInterval, tier);
       return;
     }
 
-    const priceId = selectedInterval === 'year' ? plan.yearlyPriceId : plan.monthlyPriceId;
-    setSubmittingInterval(selectedInterval);
+    const plan = tier === 'business' ? businessPlan : litePlan;
+    const priceId = billingInterval === 'year' ? plan.yearlyPriceId : plan.monthlyPriceId;
+
+    setSubmittingTier(tier);
     try {
-      await startCheckout(priceId, selectedInterval);
+      await startCheckout(priceId, billingInterval, tier);
     } finally {
-      setSubmittingInterval(null);
+      setSubmittingTier(null);
     }
   };
 
@@ -45,12 +61,17 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   };
 
   return (
-    <div className={isInline ? 'w-full text-[var(--text-primary)] transition-colors duration-300 relative py-2' : 'min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-300 relative'}>
-      
-      {/* Container Principal Centralizado */}
-      <div className={`max-w-4xl w-full mx-auto space-y-6 animate-fade-in relative ${isInline ? '' : 'my-auto'}`}>
+    <div
+      className={
+        isInline
+          ? 'w-full text-[var(--text-primary)] transition-colors duration-300 relative py-2'
+          : 'min-h-screen bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col items-center justify-center p-3 sm:p-6 transition-colors duration-300 relative'
+      }
+    >
+      {/* Container Principal */}
+      <div className={`max-w-5xl w-full mx-auto space-y-6 animate-fade-in relative ${isInline ? '' : 'my-auto'}`}>
         
-        {/* Botão de Fechar Modal (se onClose for fornecido) */}
+        {/* Botão de Fechar Modal */}
         {onClose && (
           <button
             type="button"
@@ -64,179 +85,359 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
         )}
 
         {/* Cabeçalho do Paywall */}
-        <div className="text-center space-y-2 max-w-2xl mx-auto">
-          <div className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-            reason === 'trial_expired'
-              ? 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
-              : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-          }`}>
+        <div className="text-center space-y-2.5 max-w-2xl mx-auto">
+          <div
+            className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+              reason === 'trial_expired'
+                ? 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
+                : reason === 'feature_locked'
+                ? 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-300'
+                : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+            }`}
+          >
             {reason === 'trial_expired' ? (
               <Lock className="w-3.5 h-3.5" />
+            ) : reason === 'feature_locked' ? (
+              <Briefcase className="w-3.5 h-3.5" />
             ) : (
               <Sparkles className="w-3.5 h-3.5" />
             )}
             <span>
               {reason === 'trial_expired'
-                ? 'Módulos Bloqueados • Teste Encerrado'
-                : reason === 'landing_page'
-                ? 'Planos & Recursos • 7 Dias Grátis'
-                : `Recurso Exclusivo: ${lockedFeatureName || 'Plano Pro'}`}
+                ? 'Período de Testes Encerrado'
+                : reason === 'feature_locked'
+                ? `Exclusivo do Plano Business: ${lockedFeatureName || 'Negócios & PME'}`
+                : 'Planos Transparentes • 7 Dias Grátis'}
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
             {reason === 'trial_expired'
-              ? 'Escolha seu Plano para Liberar os Módulos'
-              : reason === 'landing_page'
-              ? 'Escolha seu Plano Ideal'
-              : 'Desbloqueie todo o poder da sua gestão'}
+              ? 'Escolha seu Plano para Continuar'
+              : reason === 'feature_locked'
+              ? 'Desbloqueie o Módulo de Negócios & PME'
+              : 'Gestão Inteligente ao Alcance do seu Negócio'}
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
             {reason === 'trial_expired'
-              ? 'Seu período de teste de 7 dias expirou. Todos os seus dados, notas e lançamentos continuam 100% preservados. Escolha entre o plano Mensal com 50% OFF ou o plano Anual com 2 meses grátis.'
-              : reason === 'landing_page'
-              ? 'Comece hoje mesmo com 7 dias grátis. Acesso ilimitado e completo a Custo de Obras e Finanças Pessoais, com segurança total e sem fidelidade.'
-              : 'Seus dados, notas e ambientes continuam 100% seguros. Assine o plano único completo com acesso ilimitado a Custo de Obras e Finanças Pessoais.'}
+              ? 'Seus 7 dias gratuitos encerraram. Escolha o plano Lite (2 ambientes) ou Business (3 ambientes com precificação) para manter seus dados ativos.'
+              : reason === 'feature_locked'
+              ? 'O ambiente de Negócios & PME com Ficha Técnica e Markup faz parte do Plano Business (3 Ambientes). Faça o upgrade e acesse imediatamente.'
+              : 'Comece com 7 dias grátis sem compromisso. Cancele a qualquer momento com total segurança.'}
           </p>
+
+          {/* Seletor de Faturamento: Mensal vs Anual */}
+          <div className="pt-2 flex items-center justify-center">
+            <div className="p-1 rounded-2xl bg-slate-950 border border-slate-800 flex items-center space-x-1 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setBillingInterval('month')}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  billingInterval === 'month'
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Faturamento Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingInterval('year')}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  billingInterval === 'year'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span>Anual</span>
+                <span className="text-[10px] font-black uppercase px-1.5 py-0.2 rounded-full bg-slate-950/80 text-emerald-300">
+                  2 Meses Grátis
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Grade de Planos: Mensal vs Anual Lado a Lado */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        {/* Cards dos Planos Lado a Lado */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           
-          {/* Card 1: PLANO MENSAL COM 50% OFF */}
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-7 shadow-xl relative flex flex-col justify-between hover:border-emerald-400 transition-all">
-            <div className="absolute -top-3 left-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
-              <Sparkles className="w-3 h-3 fill-slate-950" />
-              <span>50% OFF nos 2 primeiros meses</span>
-            </div>
-
+          {/* CARD 1: PLANO LITE (2 Ambientes: Obra + Pessoal) */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl relative flex flex-col justify-between hover:border-slate-700 transition-all">
             <div>
-              <div className="flex items-center justify-between mb-2 pt-1">
-                <h3 className="text-xl font-black text-white">Plano Mensal</h3>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  Mais Flexível
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mb-4">
-                Assinatura mensal sem fidelidade. Cancele quando quiser.
-              </p>
-
-              {/* Preço Mensal */}
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
-                <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl sm:text-4xl font-black text-emerald-400">R$ 7,45</span>
-                  <span className="text-xs text-slate-400">/mês</span>
-                  <span className="text-xs text-slate-500 line-through">R$ 14,90</span>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="text-xl font-extrabold text-white">Plano Lite</h3>
+                  <span className="text-xs text-slate-400">Obras & Finanças Pessoais</span>
                 </div>
-                <span className="text-[11px] text-emerald-300/90 font-mono block mt-1">
-                  50% OFF nos meses 1 e 2 • R$ 14,90 a partir do mês 3
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  2 Ambientes
                 </span>
               </div>
 
-              {/* Recursos Inclusos */}
+              {/* Badges de Ambientes Inclusos */}
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <Building2 className="w-3 h-3" />
+                  <span>Obra</span>
+                </span>
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  <Wallet className="w-3 h-3" />
+                  <span>Pessoal</span>
+                </span>
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-500 border border-slate-700 line-through">
+                  <Briefcase className="w-3 h-3" />
+                  <span>Negócio</span>
+                </span>
+              </div>
+
+              {/* Preço */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
+                {billingInterval === 'month' ? (
+                  <>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="text-3xl font-black text-white">R$ 7,45</span>
+                      <span className="text-xs text-slate-400">/mês</span>
+                      <span className="text-xs text-slate-500 line-through">R$ 14,90</span>
+                    </div>
+                    <span className="text-[11px] text-emerald-400 font-mono block mt-1">
+                      50% OFF nos 2 primeiros meses com cupom
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="text-3xl font-black text-white">R$ 149,00</span>
+                      <span className="text-xs text-slate-400">/ano</span>
+                    </div>
+                    <span className="text-[11px] text-emerald-400 font-mono block mt-1">
+                      Apenas R$ 12,41/mês • Economize 2 meses
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Resumo de Recursos */}
               <div className="space-y-2 mb-6 text-xs text-slate-300">
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Acesso ilimitado a Custo de Obras</span>
+                  <span>Gestão completa de Obras, Lotes e Reformas</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Acesso ilimitado a Finanças Pessoais</span>
+                  <span>Finanças Pessoais, Receitas e Investimentos</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Múltiplos projetos e ambientes</span>
+                  <span>Filtro por Período e Relatórios em PDF/Excel</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Upload de recibos e notas fiscais</span>
+                <div className="flex items-center space-x-2 text-slate-500">
+                  <X className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                  <span>Sem acesso ao módulo de Negócios e PME</span>
                 </div>
               </div>
             </div>
 
             <button
               type="button"
-              disabled={submittingInterval !== null}
-              onClick={() => handleCheckout('month')}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-sm font-black shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+              disabled={submittingTier !== null}
+              onClick={() => handleCheckout('lite')}
+              className="w-full py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-bold border border-slate-700 transition-all active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
             >
               <span>
-                {submittingInterval === 'month'
+                {submittingTier === 'lite'
                   ? 'Iniciando checkout...'
                   : onSelectPlan
-                  ? 'Começar 7 Dias Grátis • Mensal'
-                  : 'Assinar Mensal (R$ 7,45/mês)'}
+                  ? 'Selecionar Plano Lite'
+                  : billingInterval === 'month'
+                  ? 'Assinar Lite (R$ 7,45/mês)'
+                  : 'Assinar Lite Anual (R$ 149/ano)'}
               </span>
             </button>
           </div>
 
-          {/* Card 2: PLANO ANUAL COM 2 MESES GRÁTIS */}
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/70 rounded-3xl p-6 sm:p-7 shadow-xl relative flex flex-col justify-between hover:border-amber-400 transition-all ring-2 ring-amber-500/10">
-            <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
-              <Zap className="w-3 h-3 fill-slate-950" />
-              <span>Melhor Custo-Benefício • 2 Meses Grátis</span>
+          {/* CARD 2: PLANO BUSINESS (3 Ambientes: Obra + Pessoal + Negócios) */}
+          <div className="bg-gradient-to-b from-indigo-950/40 via-slate-900 to-slate-950 border-2 border-indigo-500/80 rounded-3xl p-6 sm:p-7 shadow-2xl relative flex flex-col justify-between hover:border-indigo-400 transition-all ring-2 ring-indigo-500/20">
+            <div className="absolute -top-3 left-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
+              <Sparkles className="w-3 h-3 fill-white" />
+              <span>Recomendado para PME • 3 Ambientes</span>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2 pt-1">
-                <h3 className="text-xl font-black text-white">Plano Anual</h3>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-400 text-slate-950">
-                  Mais Popular
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mb-4">
-                Pagamento único anual para 12 meses completos de tranquilidade.
-              </p>
-
-              {/* Preço Anual */}
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
-                <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl sm:text-4xl font-black text-amber-400">R$ 149,00</span>
-                  <span className="text-xs text-slate-400">/ano</span>
+                <div>
+                  <h3 className="text-xl font-extrabold text-white">Plano Business PME</h3>
+                  <span className="text-xs text-indigo-300">Empresas, Obras & Finanças</span>
                 </div>
-                <span className="text-[11px] text-amber-300 font-mono block mt-1">
-                  Equivalente a apenas R$ 12,41/mês (Economia de 2 meses)
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  3 Ambientes
                 </span>
               </div>
 
-              {/* Recursos Inclusos */}
-              <div className="space-y-2 mb-6 text-xs text-slate-300">
+              {/* Badges dos 3 Ambientes Inclusos */}
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <Building2 className="w-3 h-3" />
+                  <span>Obra</span>
+                </span>
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  <Wallet className="w-3 h-3" />
+                  <span>Pessoal</span>
+                </span>
+                <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  <Briefcase className="w-3 h-3" />
+                  <span>Negócio (PME)</span>
+                </span>
+              </div>
+
+              {/* Preço */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-indigo-500/30 mb-5">
+                {billingInterval === 'month' ? (
+                  <>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="text-3xl font-black text-indigo-300">R$ 14,95</span>
+                      <span className="text-xs text-slate-400">/mês</span>
+                      <span className="text-xs text-slate-500 line-through">R$ 29,90</span>
+                    </div>
+                    <span className="text-[11px] text-indigo-400 font-mono block mt-1">
+                      50% OFF nos 2 primeiros meses com cupom
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="text-3xl font-black text-indigo-300">R$ 299,00</span>
+                      <span className="text-xs text-slate-400">/ano</span>
+                    </div>
+                    <span className="text-[11px] text-indigo-400 font-mono block mt-1">
+                      Apenas R$ 24,91/mês • 2 meses grátis
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Resumo de Recursos */}
+              <div className="space-y-2 mb-6 text-xs text-slate-200">
                 <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>Todos os recursos do plano Pro inclusos</span>
+                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <span className="font-semibold text-white">Tudo do Plano Lite incluso</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>Acesso garantido por 1 ano completo</span>
+                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <span>Módulo de Negócios & Pequenas Empresas</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>Prioridade nos novos lançamentos do SaaS</span>
+                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <span>Ficha Técnica com Insumos e Custos de Produção</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>Isolamento total de dados e segurança RLS</span>
+                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <span>Calculadora de Precificação & Markup Divisor</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <span>Simulação de Ponto de Equilíbrio & Margem Líquida</span>
                 </div>
               </div>
             </div>
 
             <button
               type="button"
-              disabled={submittingInterval !== null}
-              onClick={() => handleCheckout('year')}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 text-sm font-black shadow-lg shadow-amber-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+              disabled={submittingTier !== null}
+              onClick={() => handleCheckout('business')}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-emerald-500 hover:from-indigo-400 hover:to-emerald-400 text-white text-xs sm:text-sm font-black shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
             >
               <span>
-                {submittingInterval === 'year'
+                {submittingTier === 'business'
                   ? 'Iniciando checkout...'
                   : onSelectPlan
-                  ? 'Começar 7 Dias Grátis • Anual'
-                  : 'Assinar Anual (R$ 149,00/ano)'}
+                  ? 'Selecionar Plano Business'
+                  : billingInterval === 'month'
+                  ? 'Assinar Business (R$ 14,95/mês)'
+                  : 'Assinar Business Anual (R$ 299/ano)'}
               </span>
             </button>
           </div>
 
+        </div>
+
+        {/* ================================================================= */}
+        {/* TABELA COMPARATIVA LADO A LADO (Clean UX/UI)                      */}
+        {/* ================================================================= */}
+        <div className="pt-6 border-t border-slate-800">
+          <div className="text-center mb-4">
+            <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center justify-center space-x-2">
+              <Layers className="w-4 h-4 text-indigo-400" />
+              <span>Comparativo Detalhado de Recursos</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Veja lado a lado as funcionalidades inclusas em cada plano.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg">
+            <table className="w-full min-w-[460px] text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider font-mono">
+                  <th className="py-3 px-4 font-semibold">Funcionalidade / Recurso</th>
+                  <th className="py-3 px-4 text-center font-bold text-slate-300 w-36 sm:w-48">
+                    Plano Lite
+                    <span className="block text-[9px] text-slate-500 font-normal lowercase">2 ambientes</span>
+                  </th>
+                  <th className="py-3 px-4 text-center font-bold text-indigo-300 w-36 sm:w-48 bg-indigo-500/5">
+                    Plano Business
+                    <span className="block text-[9px] text-indigo-400 font-normal lowercase">3 ambientes</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {PLAN_COMPARISON_FEATURES.map((feat, idx) => (
+                  <tr
+                    key={idx}
+                    className="hover:bg-slate-800/30 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-slate-300 font-medium">
+                      {feat.name}
+                    </td>
+
+                    {/* Coluna Lite */}
+                    <td className="py-3 px-4 text-center">
+                      {typeof feat.lite === 'string' ? (
+                        <span className="font-semibold text-slate-300 text-[11px] bg-slate-800/80 px-2 py-0.5 rounded">
+                          {feat.lite}
+                        </span>
+                      ) : feat.lite ? (
+                        <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-slate-800/50 text-slate-600 flex items-center justify-center mx-auto">
+                          <X className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Coluna Business */}
+                    <td className="py-3 px-4 text-center bg-indigo-500/5">
+                      {typeof feat.business === 'string' ? (
+                        <span className="font-bold text-indigo-300 text-[11px] bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 rounded">
+                          {feat.business}
+                        </span>
+                      ) : feat.business ? (
+                        <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-slate-800/50 text-slate-600 flex items-center justify-center mx-auto">
+                          <X className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Rodapé de Confiança e Segurança */}
@@ -248,7 +449,7 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
             </span>
             <span className="flex items-center space-x-1.5">
               <CreditCard className="w-3.5 h-3.5 text-sky-400" />
-              <span>Cartão de Crédito</span>
+              <span>Cartão de Crédito sem fidelidade</span>
             </span>
           </div>
 
@@ -259,7 +460,7 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
                 onClick={onClose}
                 className="hover:underline text-slate-400 hover:text-white cursor-pointer"
               >
-                {reason === 'trial_expired' ? 'Continuar no teste' : 'Fechar'}
+                {reason === 'trial_expired' ? 'Fechar' : 'Voltar'}
               </button>
             )}
             {reason !== 'landing_page' && (

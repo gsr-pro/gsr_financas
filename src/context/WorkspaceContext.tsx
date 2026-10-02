@@ -9,7 +9,7 @@ interface WorkspaceContextType {
   categories: CategoriaRow[];
   loadingWorkspaces: boolean;
   loadingCategories: boolean;
-  switchEnvironment: (tipo: WorkspaceType) => void;
+  switchEnvironment: (tipo: WorkspaceType) => Promise<void>;
   selectWorkspace: (workspaceId: string) => void;
   createWorkspace: (
     nome: string,
@@ -26,153 +26,81 @@ interface WorkspaceContextType {
   refreshCategories: () => Promise<void>;
 }
 
+const DEFAULT_BUSINESS_CATEGORIES: CategoriaRow[] = [
+  { id: 'cat-neg-1', nome: 'Insumos & Matéria-Prima', tipo_ambiente: 'negocio', cor: '#6366F1', icone: 'Boxes', user_id: null, created_at: '' },
+  { id: 'cat-neg-2', nome: 'Embalagens', tipo_ambiente: 'negocio', cor: '#8B5CF6', icone: 'Package', user_id: null, created_at: '' },
+  { id: 'cat-neg-3', nome: 'Custos Fixos / Operacional', tipo_ambiente: 'negocio', cor: '#F59E0B', icone: 'Building', user_id: null, created_at: '' },
+  { id: 'cat-neg-4', nome: 'Equipamentos & Ferramentas', tipo_ambiente: 'negocio', cor: '#3B82F6', icone: 'Wrench', user_id: null, created_at: '' },
+  { id: 'cat-neg-5', nome: 'Marketing & Anúncios', tipo_ambiente: 'negocio', cor: '#EC4899', icone: 'Megaphone', user_id: null, created_at: '' },
+  { id: 'cat-neg-6', nome: 'Logística & Frete', tipo_ambiente: 'negocio', cor: '#06B6D4', icone: 'Truck', user_id: null, created_at: '' },
+  { id: 'cat-neg-7', nome: 'Impostos & Tributos', tipo_ambiente: 'negocio', cor: '#EF4444', icone: 'Receipt', user_id: null, created_at: '' },
+  { id: 'cat-neg-8', nome: 'Pró-Labore & Equipe', tipo_ambiente: 'negocio', cor: '#10B981', icone: 'Users', user_id: null, created_at: '' },
+  { id: 'cat-neg-9', nome: 'Serviços Terceirizados', tipo_ambiente: 'negocio', cor: '#14B8A6', icone: 'Briefcase', user_id: null, created_at: '' },
+  { id: 'cat-neg-10', nome: 'Outros Custos', tipo_ambiente: 'negocio', cor: '#64748B', icone: 'Tag', user_id: null, created_at: '' },
+];
+
+const DEFAULT_WORKSPACES_CONFIG: Record<
+  WorkspaceType,
+  {
+    nome: string;
+    valor_aquisicao: number;
+    tipo_imovel: string | null;
+    dimensoes_terreno: string | null;
+  }
+> = {
+  obra: {
+    nome: 'Controle de Obra Principal',
+    valor_aquisicao: 50000.0,
+    tipo_imovel: 'terreno',
+    dimensoes_terreno: 'Terreno Principal',
+  },
+  pessoal: {
+    nome: 'Minhas Finanças Pessoais',
+    valor_aquisicao: 0.0,
+    tipo_imovel: null,
+    dimensoes_terreno: null,
+  },
+  negocio: {
+    nome: 'Meu Negócio & PME',
+    valor_aquisicao: 0.0,
+    tipo_imovel: null,
+    dimensoes_terreno: null,
+  },
+};
+
+const createVirtualWorkspace = (tipo: WorkspaceType, userId = 'user-active'): WorkspaceRow => ({
+  id: `virtual-${tipo}`,
+  user_id: userId,
+  nome: DEFAULT_WORKSPACES_CONFIG[tipo].nome,
+  tipo,
+  is_default: tipo === 'obra',
+  valor_aquisicao: DEFAULT_WORKSPACES_CONFIG[tipo].valor_aquisicao,
+  tipo_imovel: DEFAULT_WORKSPACES_CONFIG[tipo].tipo_imovel,
+  dimensoes_terreno: DEFAULT_WORKSPACES_CONFIG[tipo].dimensoes_terreno,
+  localizacao: null,
+  data_aquisicao: null,
+  configuracoes: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+});
+
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentEnvironment, setCurrentEnvironment] = useState<WorkspaceType>(() => {
     const saved = localStorage.getItem('gsr_selected_environment');
-    return saved === 'pessoal' ? 'pessoal' : 'obra';
+    return saved === 'pessoal' || saved === 'negocio' ? saved : 'obra';
   });
 
   const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
-  const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceRow | null>(null);
+  const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceRow | null>(() => {
+    const saved = localStorage.getItem('gsr_selected_environment') as WorkspaceType | null;
+    const initialEnv: WorkspaceType = saved === 'pessoal' || saved === 'negocio' ? saved : 'obra';
+    return createVirtualWorkspace(initialEnv);
+  });
   const [categories, setCategories] = useState<CategoriaRow[]>([]);
   const [loadingWorkspaces, setLoadingWorkspaces] = useState<boolean>(true);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
-
-  // Busca todos os workspaces do usuário atual
-  const fetchWorkspaces = useCallback(async () => {
-    try {
-      setLoadingWorkspaces(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const list: WorkspaceRow[] = (data as WorkspaceRow[]) || [];
-
-      // Se o usuário ainda não tiver workspaces criados, cria os dois ambientes padrões
-      if (list.length === 0) {
-        const { data: createdWorkspaces, error: createError } = await supabase
-          .from('workspaces')
-          .insert([
-            {
-              user_id: user.id,
-              nome: 'Controle de Obra Principal',
-              tipo: 'obra' as const,
-              is_default: true,
-              valor_aquisicao: 50000.0,
-              dimensoes_terreno: 'Terreno Principal',
-            },
-            {
-              user_id: user.id,
-              nome: 'Minhas Finanças Pessoais',
-              tipo: 'pessoal' as const,
-              is_default: false,
-              valor_aquisicao: 0.0,
-            },
-          ])
-          .select();
-
-        if (!createError && createdWorkspaces) {
-          const freshList = createdWorkspaces as WorkspaceRow[];
-          setWorkspaces(freshList);
-          const active = freshList.find((w) => w.tipo === currentEnvironment) || freshList[0];
-          setCurrentWorkspace(active || null);
-          if (active) {
-            localStorage.setItem('gsr_selected_workspace_id', active.id);
-            localStorage.setItem('gsr_selected_environment', active.tipo);
-          }
-          return;
-        }
-      }
-
-      setWorkspaces(list);
-
-      // Prioridade 1: Tenta recuperar o workspace específico salvo no localStorage
-      const savedWorkspaceId = localStorage.getItem('gsr_selected_workspace_id');
-      const foundSaved = savedWorkspaceId ? list.find((w) => w.id === savedWorkspaceId) : null;
-
-      if (foundSaved) {
-        setCurrentWorkspace(foundSaved);
-        setCurrentEnvironment(foundSaved.tipo);
-        localStorage.setItem('gsr_selected_environment', foundSaved.tipo);
-      } else {
-        // Prioridade 2: Primeiro workspace compatível com o ambiente ativo
-        const active = list.find((w) => w.tipo === currentEnvironment) || list[0];
-        setCurrentWorkspace(active || null);
-        if (active) {
-          localStorage.setItem('gsr_selected_workspace_id', active.id);
-        }
-      }
-    } catch (err: unknown) {
-      console.error('Erro ao carregar workspaces:', err);
-    } finally {
-      setLoadingWorkspaces(false);
-    }
-  }, [currentEnvironment]);
-
-  // Busca as categorias do ambiente selecionado (Globais onde user_id é NULL ou Próprias do usuário)
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoadingCategories(true);
-      const { data, error } = await supabase
-        .from('categorias')
-        .select('*')
-        .or(`tipo_ambiente.eq.${currentEnvironment},tipo_ambiente.eq.geral`)
-        .order('nome', { ascending: true });
-
-      if (error) throw error;
-      setCategories((data as CategoriaRow[]) || []);
-    } catch (err: unknown) {
-      console.error('Erro ao carregar categorias:', err);
-    } finally {
-      setLoadingCategories(false);
-    }
-  }, [currentEnvironment]);
-
-  useEffect(() => {
-    fetchWorkspaces();
-  }, [fetchWorkspaces]);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  // Alterna o tipo de ambiente ativo ('obra' | 'pessoal')
-  const switchEnvironment = useCallback(
-    (tipo: WorkspaceType) => {
-      setCurrentEnvironment(tipo);
-      localStorage.setItem('gsr_selected_environment', tipo);
-
-      // Seleciona o workspace daquele tipo
-      const targetWorkspace = workspaces.find((w) => w.tipo === tipo);
-      if (targetWorkspace) {
-        setCurrentWorkspace(targetWorkspace);
-        localStorage.setItem('gsr_selected_workspace_id', targetWorkspace.id);
-      }
-    },
-    [workspaces]
-  );
-
-  // Seleciona um workspace específico por ID
-  const selectWorkspace = useCallback(
-    (workspaceId: string) => {
-      const found = workspaces.find((w) => w.id === workspaceId);
-      if (found) {
-        setCurrentWorkspace(found);
-        setCurrentEnvironment(found.tipo);
-        localStorage.setItem('gsr_selected_workspace_id', found.id);
-        localStorage.setItem('gsr_selected_environment', found.tipo);
-      }
-    },
-    [workspaces]
-  );
 
   // Cria um novo workspace e já o ativa imediatamente
   const createWorkspace = useCallback(
@@ -206,7 +134,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (error || !data) throw error || new Error('Falha ao criar ambiente.');
 
       const created = data as WorkspaceRow;
-      setWorkspaces((prev) => [...prev, created]);
+      setWorkspaces((prev) => [...prev.filter((w) => w.id !== `virtual-${tipo}`), created]);
       setCurrentWorkspace(created);
       setCurrentEnvironment(tipo);
       localStorage.setItem('gsr_selected_workspace_id', created.id);
@@ -214,6 +142,228 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return created;
     },
     []
+  );
+
+  // Orquestrador de Alternância de Ambientes: Instantâneo e Resiliente
+  const switchEnvironment = useCallback(
+    async (tipo: WorkspaceType) => {
+      // 1. Atualização imediata do contexto e persistência local
+      setCurrentEnvironment(tipo);
+      localStorage.setItem('gsr_selected_environment', tipo);
+
+      // 2. Busca se já existe um workspace carregado para o tipo
+      let targetWorkspace = workspaces.find((w) => w.tipo === tipo && !w.id.startsWith('virtual-'));
+
+      if (!targetWorkspace) {
+        // Se ainda não existir registro persistido, usa o workspace de domínio padrão de imediato
+        const virtual = createVirtualWorkspace(tipo);
+        setCurrentWorkspace(virtual);
+        localStorage.setItem('gsr_selected_workspace_id', virtual.id);
+
+        // 3. Tenta persistir no Supabase em segundo plano
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const config = DEFAULT_WORKSPACES_CONFIG[tipo];
+            const { data, error } = await supabase
+              .from('workspaces')
+              .insert({
+                user_id: user.id,
+                nome: config.nome,
+                tipo,
+                is_default: tipo === 'obra',
+                valor_aquisicao: config.valor_aquisicao,
+                tipo_imovel: config.tipo_imovel,
+                dimensoes_terreno: config.dimensoes_terreno,
+              })
+              .select()
+              .single();
+
+            if (!error && data) {
+              const created = data as WorkspaceRow;
+              setWorkspaces((prev) => [...prev.filter((w) => w.id !== `virtual-${tipo}`), created]);
+              setCurrentWorkspace(created);
+              localStorage.setItem('gsr_selected_workspace_id', created.id);
+            }
+          }
+        } catch (syncErr) {
+          console.warn('Sincronização do workspace com o backend ocorrerá sob demanda:', syncErr);
+        }
+      } else {
+        setCurrentWorkspace(targetWorkspace);
+        localStorage.setItem('gsr_selected_workspace_id', targetWorkspace.id);
+      }
+    },
+    [workspaces]
+  );
+
+  // Busca todos os workspaces do usuário atual sem reverter o ambiente ativo
+  const fetchWorkspaces = useCallback(async () => {
+    try {
+      setLoadingWorkspaces(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      let list: WorkspaceRow[] = [];
+
+      // 1. Tenta orquestração atômica via procedure no backend
+      try {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('orquestrar_ambientes_usuario', {
+          p_user_id: user.id,
+        });
+        if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+          list = rpcData as WorkspaceRow[];
+        }
+      } catch (_) {
+        // Se a procedure ainda não estiver criada no banco, prossegue para consulta padrão
+      }
+
+      // 2. Se a procedure não retornou, consulta a tabela workspaces diretamente
+      if (list.length === 0) {
+        const { data, error } = await supabase
+          .from('workspaces')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.warn('Aviso ao consultar tabela workspaces:', error.message);
+        }
+
+        list = (data as WorkspaceRow[]) || [];
+      }
+
+      // Se o usuário ainda não tiver workspaces criados no banco, inicializa os 3 ambientes nativos
+      if (list.length === 0) {
+        try {
+          const { data: createdWorkspaces, error: createError } = await supabase
+            .from('workspaces')
+            .insert([
+              {
+                user_id: user.id,
+                nome: DEFAULT_WORKSPACES_CONFIG.obra.nome,
+                tipo: 'obra' as const,
+                is_default: true,
+                valor_aquisicao: DEFAULT_WORKSPACES_CONFIG.obra.valor_aquisicao,
+                dimensoes_terreno: DEFAULT_WORKSPACES_CONFIG.obra.dimensoes_terreno,
+              },
+              {
+                user_id: user.id,
+                nome: DEFAULT_WORKSPACES_CONFIG.pessoal.nome,
+                tipo: 'pessoal' as const,
+                is_default: false,
+                valor_aquisicao: 0.0,
+              },
+              {
+                user_id: user.id,
+                nome: DEFAULT_WORKSPACES_CONFIG.negocio.nome,
+                tipo: 'negocio' as const,
+                is_default: false,
+                valor_aquisicao: 0.0,
+              },
+            ])
+            .select();
+
+          if (!createError && createdWorkspaces) {
+            list = createdWorkspaces as WorkspaceRow[];
+          }
+        } catch (initErr) {
+          console.warn('Inicialização automática dos workspaces será completada pelo backend:', initErr);
+        }
+      }
+
+      // Garante que haja ao menos uma referência virtual para qualquer um dos 3 ambientes não retornados
+      const completeList = [...list];
+      (['obra', 'pessoal', 'negocio'] as WorkspaceType[]).forEach((t) => {
+        if (!completeList.some((w) => w.tipo === t)) {
+          completeList.push(createVirtualWorkspace(t, user.id));
+        }
+      });
+
+      setWorkspaces(completeList);
+
+      // Seleção do Workspace Ativo respeitando SEMPRE o ambiente selecionado pelo usuário
+      const savedEnv = localStorage.getItem('gsr_selected_environment') as WorkspaceType | null;
+      const targetEnv = savedEnv === 'pessoal' || savedEnv === 'negocio' || savedEnv === 'obra'
+        ? savedEnv
+        : currentEnvironment;
+
+      const savedWorkspaceId = localStorage.getItem('gsr_selected_workspace_id');
+      const foundSaved = savedWorkspaceId
+        ? completeList.find((w) => w.id === savedWorkspaceId && w.tipo === targetEnv)
+        : null;
+
+      if (foundSaved) {
+        setCurrentWorkspace(foundSaved);
+        setCurrentEnvironment(foundSaved.tipo);
+      } else {
+        const matchingEnvWorkspace = completeList.find((w) => w.tipo === targetEnv) || completeList[0];
+        if (matchingEnvWorkspace) {
+          setCurrentWorkspace(matchingEnvWorkspace);
+          setCurrentEnvironment(matchingEnvWorkspace.tipo);
+          localStorage.setItem('gsr_selected_workspace_id', matchingEnvWorkspace.id);
+          localStorage.setItem('gsr_selected_environment', matchingEnvWorkspace.tipo);
+        }
+      }
+    } catch (err: unknown) {
+      console.error('Erro ao orquestrar workspaces:', err);
+    } finally {
+      setLoadingWorkspaces(false);
+    }
+  }, [currentEnvironment]);
+
+  // Busca as categorias do ambiente selecionado (Globais onde user_id é NULL ou Próprias do usuário)
+  const fetchCategories = useCallback(async () => {
+    try {
+      setLoadingCategories(true);
+      const { data, error } = await supabase
+        .from('categorias')
+        .select('*')
+        .or(`tipo_ambiente.eq.${currentEnvironment},tipo_ambiente.eq.geral`)
+        .order('nome', { ascending: true });
+
+      if (error) throw error;
+      const loaded = (data as CategoriaRow[]) || [];
+
+      // Se for ambiente de negócio e o banco não tiver categorias específicas cadastradas, provê as categorias padrão
+      if (currentEnvironment === 'negocio') {
+        const hasBusinessCats = loaded.some((c) => c.tipo_ambiente === 'negocio');
+        if (!hasBusinessCats) {
+          setCategories([...DEFAULT_BUSINESS_CATEGORIES, ...loaded.filter((c) => c.tipo_ambiente === 'geral')]);
+          return;
+        }
+      }
+
+      setCategories(loaded);
+    } catch (err: unknown) {
+      console.error('Erro ao carregar categorias:', err);
+      if (currentEnvironment === 'negocio') {
+        setCategories(DEFAULT_BUSINESS_CATEGORIES);
+      }
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, [currentEnvironment]);
+
+  useEffect(() => {
+    fetchWorkspaces();
+  }, [fetchWorkspaces]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Seleciona um workspace específico por ID
+  const selectWorkspace = useCallback(
+    (workspaceId: string) => {
+      const found = workspaces.find((w) => w.id === workspaceId);
+      if (found) {
+        setCurrentWorkspace(found);
+        setCurrentEnvironment(found.tipo);
+        localStorage.setItem('gsr_selected_workspace_id', found.id);
+        localStorage.setItem('gsr_selected_environment', found.tipo);
+      }
+    },
+    [workspaces]
   );
 
   // Atualiza um workspace existente

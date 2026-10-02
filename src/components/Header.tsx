@@ -55,8 +55,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <h1 className="text-sm font-extrabold tracking-tight leading-tight flex items-center space-x-1">
-                <span className="text-white">Gestão</span>
-                <span className="text-emerald-400">Financeira</span>
+                <span className="text-white">GSR</span>
+                <span className="text-emerald-400">Finanças</span>
               </h1>
             </div>
           </div>

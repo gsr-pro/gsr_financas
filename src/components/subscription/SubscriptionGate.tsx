@@ -83,7 +83,7 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({ children }) 
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <PaywallView
             reason="feature_locked"
-            lockedFeatureName="Gestão Completa Pro"
+            lockedFeatureName="Planos GSR Finanças"
             onClose={() => setShowUpgradeModal(false)}
           />
         </div>

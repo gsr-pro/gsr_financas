@@ -22,7 +22,7 @@ export type Database = {
           id: string
           observacoes: string | null
           status_pagamento: Database["public"]["Enums"]["status_pagamento"]
-          tipo_ambiente: 'obra' | 'pessoal'
+          tipo_ambiente: 'obra' | 'pessoal' | 'negocio'
           tipo_movimentacao?: 'despesa' | 'receita'
           updated_at: string
           user_id: string
@@ -38,7 +38,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
-          tipo_ambiente?: 'obra' | 'pessoal'
+          tipo_ambiente?: 'obra' | 'pessoal' | 'negocio'
           tipo_movimentacao?: 'despesa' | 'receita'
           updated_at?: string
           user_id: string
@@ -54,7 +54,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           status_pagamento?: Database["public"]["Enums"]["status_pagamento"]
-          tipo_ambiente?: 'obra' | 'pessoal'
+          tipo_ambiente?: 'obra' | 'pessoal' | 'negocio'
           tipo_movimentacao?: 'despesa' | 'receita'
           updated_at?: string
           user_id?: string
@@ -88,7 +88,7 @@ export type Database = {
           is_default: boolean
           localizacao: string | null
           nome: string
-          tipo: 'obra' | 'pessoal'
+          tipo: 'obra' | 'pessoal' | 'negocio'
           tipo_imovel: string | null
           updated_at: string
           user_id: string
@@ -103,7 +103,7 @@ export type Database = {
           is_default?: boolean
           localizacao?: string | null
           nome: string
-          tipo: 'obra' | 'pessoal'
+          tipo: 'obra' | 'pessoal' | 'negocio'
           tipo_imovel?: string | null
           updated_at?: string
           user_id: string
@@ -118,7 +118,7 @@ export type Database = {
           is_default?: boolean
           localizacao?: string | null
           nome?: string
-          tipo?: 'obra' | 'pessoal'
+          tipo?: 'obra' | 'pessoal' | 'negocio'
           tipo_imovel?: string | null
           updated_at?: string
           user_id?: string
@@ -133,7 +133,7 @@ export type Database = {
           icone: string | null
           id: string
           nome: string
-          tipo_ambiente: 'obra' | 'pessoal' | 'geral'
+          tipo_ambiente: 'obra' | 'pessoal' | 'geral' | 'negocio'
           user_id: string | null
         }
         Insert: {
@@ -142,7 +142,7 @@ export type Database = {
           icone?: string | null
           id?: string
           nome: string
-          tipo_ambiente: 'obra' | 'pessoal' | 'geral'
+          tipo_ambiente: 'obra' | 'pessoal' | 'geral' | 'negocio'
           user_id?: string | null
         }
         Update: {
@@ -151,7 +151,7 @@ export type Database = {
           icone?: string | null
           id?: string
           nome?: string
-          tipo_ambiente?: 'obra' | 'pessoal' | 'geral'
+          tipo_ambiente?: 'obra' | 'pessoal' | 'geral' | 'negocio'
           user_id?: string | null
         }
         Relationships: []
@@ -192,7 +192,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           id: string
-          plan_tier: 'pessoal' | 'obra'
+          plan_tier: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
           status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -206,7 +206,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
-          plan_tier?: 'pessoal' | 'obra'
+          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
           status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -220,7 +220,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
-          plan_tier?: 'pessoal' | 'obra'
+          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
           status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -292,7 +292,12 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      orquestrar_ambientes_usuario: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: Database["public"]["Tables"]["workspaces"]["Row"][]
+      }
     }
     Enums: {
       categoria_despesa:

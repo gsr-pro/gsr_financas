@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { CreateCategoryModal } from '../components/category/CreateCategoryModal';
@@ -17,6 +17,7 @@ import {
   Plus,
   Building2,
   Wallet,
+  Briefcase,
   TrendingUp,
   TrendingDown,
   Repeat,
@@ -33,6 +34,15 @@ const DEFAULT_RECEITA_CATEGORIES = [
   'Rendimentos / Dividendos',
   'Venda de Ativos',
   'Reembolso',
+  'Outras Receitas',
+];
+
+const DEFAULT_NEGOCIO_RECEITA_CATEGORIES = [
+  'Venda de Produtos',
+  'Prestação de Serviços',
+  'Contratos Recorrentes',
+  'Comissões',
+  'Reembolsos & Bonificações',
   'Outras Receitas',
 ];
 
@@ -77,11 +87,14 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
       }
     } else {
       if (tipoMovimentacao === 'receita') {
-        setCategoria(DEFAULT_RECEITA_CATEGORIES[0]);
+        const defaultList = currentEnvironment === 'negocio'
+          ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
+          : DEFAULT_RECEITA_CATEGORIES;
+        setCategoria(defaultList[0]);
       } else if (categories.length > 0) {
         setCategoria(categories[0].nome);
       } else {
-        setCategoria('Moradia');
+        setCategoria(currentEnvironment === 'negocio' ? 'Insumos & Matéria-Prima' : 'Moradia');
       }
     }
   }, [currentEnvironment, tipoMovimentacao, categories]);
@@ -181,9 +194,13 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         // Os meses seguintes futuros são programados como 'Pendente'
         const itemStatus = i === 0 ? statusPagamento : 'Pendente';
 
+        const safeWorkspaceId = currentWorkspace?.id && !currentWorkspace.id.startsWith('virtual-')
+          ? currentWorkspace.id
+          : null;
+
         rowsToInsert.push({
           user_id: user.id,
-          workspace_id: currentWorkspace?.id || null,
+          workspace_id: safeWorkspaceId,
           tipo_ambiente: currentEnvironment,
           tipo_movimentacao: tipoMovimentacao,
           data_gasto: dateStr,
@@ -246,9 +263,15 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
   };
 
   // Lista de categorias a exibir dependendo se é receita ou despesa
-  const availableCategories = tipoMovimentacao === 'receita'
-    ? DEFAULT_RECEITA_CATEGORIES.map((name) => ({ id: name, nome: name, cor: '#10B981' }))
-    : categories;
+  const availableCategories = useMemo(() => {
+    if (tipoMovimentacao === 'receita') {
+      const receitaList = currentEnvironment === 'negocio'
+        ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
+        : DEFAULT_RECEITA_CATEGORIES;
+      return receitaList.map((name) => ({ id: name, nome: name, cor: '#10B981' }));
+    }
+    return categories;
+  }, [tipoMovimentacao, currentEnvironment, categories]);
 
   return (
     <div className="space-y-4 pb-24 animate-fade-in text-slate-100 max-w-2xl mx-auto">
@@ -263,6 +286,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
             <p className="text-xs text-slate-400 mt-0.5">
               {currentEnvironment === 'obra'
                 ? 'Cadastre os gastos de materiais, mão de obra e serviços da obra.'
+                : currentEnvironment === 'negocio'
+                ? 'Cadastre receitas, vendas de produtos, insumos e custos da empresa.'
                 : 'Cadastre receitas, salários, despesas e pagamentos recorrentes.'}
             </p>
           </div>
@@ -271,17 +296,24 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
           <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800 self-start sm:self-center">
             {currentEnvironment === 'obra' ? (
               <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+            ) : currentEnvironment === 'negocio' ? (
+              <Briefcase className="w-3.5 h-3.5 text-indigo-400" />
             ) : (
               <Wallet className="w-3.5 h-3.5 text-cyan-400" />
             )}
             <span className="text-[11px] font-bold text-slate-200">
-              {currentWorkspace?.nome || (currentEnvironment === 'obra' ? 'Custo de Obra' : 'Finanças Pessoais')}
+              {currentWorkspace?.nome ||
+                (currentEnvironment === 'obra'
+                  ? 'Custo de Obra'
+                  : currentEnvironment === 'negocio'
+                  ? 'Gestão de Negócio'
+                  : 'Finanças Pessoais')}
             </span>
           </div>
         </div>
 
-        {/* Seletor Receita vs Despesa (Exclusivo para Finanças Pessoais) */}
-        {currentEnvironment === 'pessoal' && (
+        {/* Seletor Receita vs Despesa (Disponível em Finanças Pessoais e Negócio) */}
+        {currentEnvironment !== 'obra' && (
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-5">
             <button
               type="button"
@@ -407,6 +439,10 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               placeholder={
                 currentEnvironment === 'obra'
                   ? 'Ex: 50 sacos de cimento CP-II, diária pedreiro...'
+                  : currentEnvironment === 'negocio'
+                  ? tipoMovimentacao === 'receita'
+                    ? 'Ex: Venda de produto pedido #102, prestação de serviço...'
+                    : 'Ex: Compra de matéria-prima, embalagens, conta de luz...'
                   : tipoMovimentacao === 'receita'
                   ? 'Ex: Salário mensal, consultoria freelance, dividendos...'
                   : 'Ex: Aluguel, compras supermercado, conta de luz...'

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
 import type { DespesaRow } from '../types/app';
@@ -6,8 +6,25 @@ import { formatCurrency, formatDate, getCategoryBadgeStyle } from '../lib/format
 import { ComprovanteModal } from '../components/ComprovanteModal';
 import { ListSkeleton } from '../components/LoadingSkeleton';
 import { EmptyState } from '../components/EmptyState';
-import { Search, FileImage, Trash2, AlertCircle, CheckCircle2, Clock, X, Pencil, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  Search,
+  FileImage,
+  Trash2,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  X,
+  Pencil,
+  TrendingUp,
+  TrendingDown,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
+  ChevronDown,
+} from 'lucide-react';
 import { EditExpenseModal } from '../components/EditExpenseModal';
+import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
+import { exportToPDF, exportToExcel } from '../lib/exportReports';
 
 interface ExpenseListViewProps {
   onNavigateToForm: () => void;
@@ -30,6 +47,15 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
   const [filterTipo, setFilterTipo] = useState<'todos' | 'receita' | 'despesa'>('todos');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('Todas');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({
+    year: null,
+    month: null,
+  });
+
+  // Exportação
+  const [exportMenuOpen, setExportMenuOpen] = useState<boolean>(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string }>({});
 
   // Modal de Comprovante e Modal de Edição
   const [activeComprovante, setActiveComprovante] = useState<{ url: string; descricao: string } | null>(null);
@@ -37,6 +63,31 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
 
   // Exclusão
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Carrega dados do usuário ativo para relatórios
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        const metadataName = (user.user_metadata?.nome || user.user_metadata?.full_name || '') as string;
+        setCurrentUser({ email: user.email, name: metadataName });
+      }
+    });
+  }, []);
+
+  // Fecha menu de exportação ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    if (exportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [exportMenuOpen]);
 
   const isItemReceita = useCallback((item: DespesaRow) => {
     return item.tipo_movimentacao === 'receita' || item.descricao.startsWith('[RECEITA]');
@@ -54,11 +105,13 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
         .order('data_gasto', { ascending: false })
         .order('created_at', { ascending: false });
 
-      if (currentWorkspace?.id) {
+      const hasRealWorkspace = Boolean(currentWorkspace?.id && !currentWorkspace.id.startsWith('virtual-'));
+
+      if (hasRealWorkspace && currentWorkspace) {
         if (currentWorkspace.tipo === 'obra') {
           query = query.or(`workspace_id.eq.${currentWorkspace.id},and(tipo_ambiente.eq.obra,workspace_id.is.null)`);
         } else {
-          query = query.eq('workspace_id', currentWorkspace.id);
+          query = query.or(`workspace_id.eq.${currentWorkspace.id},and(tipo_ambiente.eq.${currentEnvironment},workspace_id.is.null)`);
         }
       } else {
         query = query.eq('tipo_ambiente', currentEnvironment);
@@ -121,9 +174,50 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
         d.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (d.observacoes && d.observacoes.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      return matchTipo && matchCategoria && matchSearch;
+      let matchPeriod = true;
+      if (periodFilter.year !== null && periodFilter.month !== null) {
+        const [ano, mes] = d.data_gasto.split('-').map(Number);
+        matchPeriod = ano === periodFilter.year && mes === periodFilter.month;
+      }
+
+      return matchTipo && matchCategoria && matchSearch && matchPeriod;
     });
-  }, [despesas, filterTipo, selectedCategoria, searchTerm, currentEnvironment, isItemReceita]);
+  }, [despesas, filterTipo, selectedCategoria, searchTerm, currentEnvironment, isItemReceita, periodFilter]);
+
+  const periodLabel = useMemo(() => {
+    if (periodFilter.year === null || periodFilter.month === null) {
+      return 'Histórico Completo';
+    }
+    const MONTHS = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return `${MONTHS[periodFilter.month - 1]} de ${periodFilter.year}`;
+  }, [periodFilter]);
+
+  const handleExportPDF = () => {
+    setExportMenuOpen(false);
+    exportToPDF({
+      despesas: filteredDespesas,
+      workspaceName: currentWorkspace?.nome || (currentEnvironment === 'obra' ? 'Custo de Obra' : currentEnvironment === 'negocio' ? 'Gestão de Negócio' : 'Finanças Pessoais'),
+      workspaceType: currentEnvironment,
+      periodLabel,
+      userEmail: currentUser.email,
+      userName: currentUser.name,
+    });
+  };
+
+  const handleExportExcel = () => {
+    setExportMenuOpen(false);
+    exportToExcel({
+      despesas: filteredDespesas,
+      workspaceName: currentWorkspace?.nome || (currentEnvironment === 'obra' ? 'Custo de Obra' : currentEnvironment === 'negocio' ? 'Gestão de Negócio' : 'Finanças Pessoais'),
+      workspaceType: currentEnvironment,
+      periodLabel,
+      userEmail: currentUser.email,
+      userName: currentUser.name,
+    });
+  };
 
   const totalCalculado = useMemo(() => {
     let rec = 0;
@@ -165,13 +259,13 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Ambiente ativo: <span className="font-semibold text-emerald-400">{currentWorkspace?.nome || (currentEnvironment === 'obra' ? 'Custo de Obra' : 'Finanças Pessoais')}</span>
+            Ambiente ativo: <span className="font-semibold text-emerald-400">{currentWorkspace?.nome || (currentEnvironment === 'obra' ? 'Custo de Obra' : currentEnvironment === 'negocio' ? 'Gestão de Negócio' : 'Finanças Pessoais')}</span>
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
           <div className="text-right">
-            {currentEnvironment === 'pessoal' ? (
+            {currentEnvironment !== 'obra' ? (
               filterTipo === 'receita' ? (
                 <>
                   <span className="text-[10px] font-mono text-emerald-400 block">Total Receitas</span>
@@ -200,8 +294,60 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
         </div>
       </div>
 
-      {/* Filtro por Tipo de Movimentação (apenas no ambiente pessoal) */}
-      {currentEnvironment === 'pessoal' && (
+      {/* Barra de Filtro de Período & Ações de Exportação GSR Finanças */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80">
+        <PeriodFilter value={periodFilter} onChange={setPeriodFilter} />
+
+        {/* Dropdown de Exportação */}
+        <div className="relative inline-flex" ref={exportMenuRef}>
+          <button
+            type="button"
+            onClick={() => setExportMenuOpen(!exportMenuOpen)}
+            disabled={filteredDespesas.length === 0}
+            className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 hover:text-white transition-all disabled:opacity-40 cursor-pointer shadow-sm active:scale-95"
+            title="Exportar dados filtrados em PDF ou Excel"
+          >
+            <FileDown className="w-4 h-4 text-emerald-400" />
+            <span>Exportar Relatório</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${exportMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {exportMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-2xl z-40 animate-fade-in space-y-1">
+              <div className="px-2 py-1 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                GSR Finanças • Auditoria
+              </div>
+
+              <button
+                type="button"
+                onClick={handleExportPDF}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2.5 transition-colors cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-rose-400" />
+                <div>
+                  <span className="block font-bold">Relatório em PDF</span>
+                  <span className="text-[10px] text-slate-400 block">Formato executivo para impressão</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2.5 transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <div>
+                  <span className="block font-bold">Planilha Excel (.xlsx)</span>
+                  <span className="text-[10px] text-slate-400 block">Tabela estruturada com totais</span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Filtro por Tipo de Movimentação (ambientes Pessoal e Negócio) */}
+      {currentEnvironment !== 'obra' && (
         <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl">
           <button
             type="button"

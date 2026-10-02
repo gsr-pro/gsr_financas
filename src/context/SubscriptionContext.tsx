@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Subscription, SubscriptionTier, BillingInterval } from '../types/subscription.types';
+import type { WorkspaceType } from '../types/app';
 import { PLANS } from '../config/plans';
 
 interface SubscriptionContextType {
@@ -12,9 +13,11 @@ interface SubscriptionContextType {
   hasAccess: boolean;
   isPaywallActive: boolean;
   canManageObra: boolean;
+  canAccessNegocio: boolean;
+  canAccessEnvironment: (env: WorkspaceType) => boolean;
   currentPlanTier: SubscriptionTier;
   refreshSubscription: () => Promise<void>;
-  startCheckout: (priceId: string, interval: BillingInterval) => Promise<void>;
+  startCheckout: (priceId: string, interval: BillingInterval, tier?: SubscriptionTier) => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -41,8 +44,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       if (error) {
         console.warn('Tabela subscriptions não acessível ou sem dados, aplicando cálculo por auth.users:', error.message);
-        // Fallback defensivo: se a tabela de subscriptions ainda não existir no banco,
-        // calcula o prazo de 7 dias com base na data de criação do usuário no Supabase Auth
         const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : Date.now();
         const trialEndMs = userCreatedAt + 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -54,7 +55,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           stripe_customer_id: null,
           stripe_subscription_id: null,
           stripe_price_id: null,
-          plan_tier: 'obra',
+          plan_tier: 'lite',
           status: isStillTrial ? 'trialing' : 'canceled',
           trial_ends_at: new Date(trialEndMs).toISOString(),
           current_period_end: null,
@@ -68,14 +69,14 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (data) {
         setSubscription(data as Subscription);
       } else {
-        // Fallback defensivo: se o registro ainda não existir na tabela, cria o trial
+        // Inicializa o trial de 7 dias
         const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : Date.now();
         const trialEndsAt = new Date(userCreatedAt + 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: created, error: insertError } = await supabase
           .from('subscriptions')
           .insert({
             user_id: user.id,
-            plan_tier: 'obra',
+            plan_tier: 'lite',
             status: 'trialing',
             trial_ends_at: trialEndsAt,
           })
@@ -94,7 +95,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   useEffect(() => {
-    // Detecta retorno de checkout concluído na Stripe
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.get('checkout') === 'success' || searchParams.get('session_id')) {
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -115,8 +115,18 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [fetchSubscription]);
 
-  // Cálculos de Validade e Trial
-  const { isTrialing, trialDaysRemaining, isSubscriptionActive, hasAccess, isPaywallActive, canManageObra, currentPlanTier } = useMemo(() => {
+  // Cálculos de Validade, Regra dos 3 Ambientes e Paywall
+  const {
+    isTrialing,
+    trialDaysRemaining,
+    isSubscriptionActive,
+    hasAccess,
+    isPaywallActive,
+    canManageObra,
+    canAccessNegocio,
+    canAccessEnvironment,
+    currentPlanTier,
+  } = useMemo(() => {
     if (!subscription) {
       return {
         isTrialing: false,
@@ -125,7 +135,9 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         hasAccess: false,
         isPaywallActive: true,
         canManageObra: false,
-        currentPlanTier: 'pessoal' as SubscriptionTier,
+        canAccessNegocio: false,
+        canAccessEnvironment: () => false,
+        currentPlanTier: 'lite' as SubscriptionTier,
       };
     }
 
@@ -140,9 +152,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const accessAllowed = isActive || isWithinTrial;
     const isPaywallBlocked = !accessAllowed;
 
-    // No período de trial de 7 dias, tudo é liberado (incluindo Obra)
-    // Após assinar, a funcionalidade de Obra exige plan_tier === 'obra'
-    const obraAllowed = isWithinTrial || (isActive && subscription.plan_tier === 'obra');
+    // Regra de Ouro do Modelo SaaS:
+    // 1. Durante o Trial (7 dias): acesso aos 3 ambientes liberado para experimentação completa.
+    // 2. Pós-Trial / Assinatura Ativa:
+    //    - Plano Lite: Acesso a 2 Ambientes (Obra e Pessoal).
+    //    - Plano Business: Acesso a 3 Ambientes (Obra, Pessoal e Negócio).
+    const hasBusinessPlan =
+      subscription.plan_tier === 'business' || subscription.plan_tier === 'negocio';
+
+    const negocioAllowed = isWithinTrial || (isActive && hasBusinessPlan);
+    const obraAllowed = isWithinTrial || isActive;
+
+    const envChecker = (env: WorkspaceType): boolean => {
+      if (isWithinTrial) return true;
+      if (!isActive) return false;
+      if (env === 'negocio') return hasBusinessPlan;
+      return true; // Obra e Pessoal são liberados em qualquer plano contratado
+    };
 
     return {
       isTrialing: isWithinTrial,
@@ -151,17 +177,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       hasAccess: accessAllowed,
       isPaywallActive: isPaywallBlocked,
       canManageObra: obraAllowed,
+      canAccessNegocio: negocioAllowed,
+      canAccessEnvironment: envChecker,
       currentPlanTier: subscription.plan_tier,
     };
   }, [subscription]);
 
-  // Redirecionamento para Stripe Checkout com dupla camada de robustez:
-  // 1. Tenta Edge Function do Supabase
-  // 2. Se a Edge Function não estiver publicada, redireciona ao Stripe Payment Link oficial em modo Live
-  const startCheckout = async (priceId: string, interval: BillingInterval) => {
+  // Checkout Dinâmico com suporte aos planos Lite e Business
+  const startCheckout = async (
+    priceId: string,
+    interval: BillingInterval,
+    tier: SubscriptionTier = 'lite'
+  ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado.');
+
+      const targetPlan = PLANS[tier] || (priceId.includes('1ULvH') ? PLANS.business : PLANS.lite);
 
       // Tentativa 1: Supabase Edge Function
       try {
@@ -169,7 +201,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           body: {
             priceId,
             interval,
-            couponId: interval === 'month' ? PLANS.obra.promoCouponId : undefined,
+            couponId: interval === 'month' ? targetPlan.promoCouponId : undefined,
             userId: user.id,
             email: user.email,
             returnUrl: window.location.origin,
@@ -184,10 +216,10 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         console.warn('Edge Function indisponível, redirecionando via Stripe Payment Link nativo:', invokeErr);
       }
 
-      // Tentativa 2: Fallback direto e instantâneo para o Stripe Payment Link oficial em modo Live
+      // Tentativa 2: Stripe Payment Link nativo em modo Live
       const baseUrl = interval === 'year'
-        ? PLANS.obra.yearlyPaymentLink
-        : PLANS.obra.monthlyPaymentLink;
+        ? targetPlan.yearlyPaymentLink
+        : targetPlan.monthlyPaymentLink;
 
       if (baseUrl) {
         const checkoutUrl = new URL(baseUrl);
@@ -195,8 +227,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (user.email) {
           checkoutUrl.searchParams.set('prefilled_email', user.email);
         }
-        if (interval === 'month' && PLANS.obra.promoCouponId) {
-          checkoutUrl.searchParams.set('prefilled_promo_code', PLANS.obra.promoCouponId);
+        if (interval === 'month' && targetPlan.promoCouponId) {
+          checkoutUrl.searchParams.set('prefilled_promo_code', targetPlan.promoCouponId);
         }
         window.location.href = checkoutUrl.toString();
         return;
@@ -220,6 +252,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         hasAccess,
         isPaywallActive,
         canManageObra,
+        canAccessNegocio,
+        canAccessEnvironment,
         currentPlanTier,
         refreshSubscription: fetchSubscription,
         startCheckout,

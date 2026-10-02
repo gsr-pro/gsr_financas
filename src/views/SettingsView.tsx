@@ -251,6 +251,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
           {workspaces.map((w) => {
             const isActive = currentWorkspace?.id === w.id;
             const isObra = w.tipo === 'obra';
+            const isNegocio = w.tipo === 'negocio';
             const imovelLabel = w.tipo_imovel ? TIPO_IMOVEL_LABELS[w.tipo_imovel] || w.tipo_imovel : 'Terreno';
 
             return (
@@ -271,10 +272,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
                         className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
                           isObra
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : isNegocio
+                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
                             : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                         }`}
                       >
-                        {isObra ? 'Custo de Obra' : 'Finanças Pessoais'}
+                        {isObra ? 'Custo de Obra' : isNegocio ? 'Negócios & PME' : 'Finanças Pessoais'}
                       </span>
 
                       {isObra && (
@@ -422,16 +425,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
           <div className="space-y-2 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-extrabold text-white">
-                {plan?.name || 'Gestão Completa Pro'} • R$ 14,90/mês
+                {plan?.name || (currentPlanTier === 'business' ? 'Plano Business' : 'Plano Lite')} • {formatCurrency(plan?.monthlyPrice || 14.9)}/mês
               </span>
               <span
                 className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded font-bold ${
                   subscription?.status === 'active'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    ? currentPlanTier === 'business'
+                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                     : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                 }`}
               >
-                {subscription?.status === 'active' ? 'Assinatura Ativa' : 'Fase de Testes'}
+                {subscription?.status === 'active'
+                  ? currentPlanTier === 'business'
+                    ? 'Business (3 Ambientes)'
+                    : 'Lite (2 Ambientes)'
+                  : 'Fase de Testes'}
               </span>
             </div>
 
@@ -440,32 +449,40 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
                 <p className="flex items-center space-x-1.5 text-amber-300 font-semibold">
                   <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse flex-shrink-0" />
                   <span>
-                    Faltam <strong>{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</strong> para a contratação.
+                    Faltam <strong>{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</strong> no seu período de testes gratuito.
                   </span>
                 </p>
                 <p className="text-slate-400 leading-relaxed text-[11px]">
-                  Todos os módulos de Custo de Obra e Finanças Pessoais estão disponíveis para teste.
-                  Caso a contratação não seja realizada até o fim do período, <strong>o acesso aos módulos será bloqueado</strong>.
+                  Durante o teste, todos os 3 ambientes (Obra, Pessoal e Negócio) estão 100% liberados.
+                  Após o término, selecione o <strong>Plano Lite</strong> para 2 ambientes ou <strong>Plano Business</strong> para todos os 3 ambientes.
                 </p>
               </div>
+            ) : currentPlanTier === 'business' ? (
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Você possui acesso completo aos <strong>3 ambientes</strong>: Obras & Reformas, Finanças Pessoais e Gestão de Negócios & PME com cálculo de margens e insumos.
+              </p>
             ) : (
               <p className="text-xs text-slate-400 leading-relaxed">
-                Acesso total e irrestrito a todos os módulos de Obras, Finanças Pessoais e múltiplos ambientes.
+                Seu plano atual inclui <strong>2 ambientes</strong> (Obras e Finanças Pessoais). Para liberar o ambiente de <strong>Negócios & PME</strong>, faça upgrade para o Plano Business.
               </p>
             )}
           </div>
 
           <div className="flex items-center space-x-3 flex-shrink-0 w-full md:w-auto">
-            {isTrialing && (
-              <button
-                type="button"
-                onClick={() => setPaywallModalOpen(true)}
-                className="w-full sm:w-auto justify-center px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center space-x-1.5 cursor-pointer"
-              >
-                <span>Contratar Plano Pro</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setPaywallModalOpen(true)}
+              className="w-full sm:w-auto justify-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center space-x-1.5 cursor-pointer"
+            >
+              <span>
+                {isTrialing
+                  ? 'Assinar Plano'
+                  : currentPlanTier === 'lite'
+                  ? 'Upgrade para Business'
+                  : 'Gerenciar / Trocar Plano'}
+              </span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
 
             <div className="text-right hidden lg:block border-l border-slate-800 pl-3">
               <span className="text-xs font-mono text-slate-500 block">Segurança</span>
@@ -642,8 +659,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
       {paywallModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <PaywallView
-            reason="feature_locked"
-            lockedFeatureName="Gestão Completa Pro"
+            reason={isTrialing ? 'trial_expired' : 'feature_locked'}
+            lockedFeatureName="Planos GSR Finanças (Lite & Business)"
             onClose={() => setPaywallModalOpen(false)}
           />
         </div>

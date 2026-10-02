@@ -10,6 +10,7 @@ import { ExpenseListView } from './views/ExpenseListView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
 import { SubscriptionGate } from './components/subscription/SubscriptionGate';
+import { ResetPasswordModal } from './components/auth/ResetPasswordModal';
 import { Loader2 } from 'lucide-react';
 
 interface AuthUserData {
@@ -24,6 +25,14 @@ export const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState<boolean>(false);
+
+  // Detecta se a URL contém token de recuperação de senha ao carregar
+  useEffect(() => {
+    if (window.location.hash.includes('type=recovery') || window.location.href.includes('type=recovery')) {
+      setResetPasswordOpen(true);
+    }
+  }, []);
 
   // Monitora a sessão ativa no Supabase
   useEffect(() => {
@@ -51,7 +60,10 @@ export const App: React.FC = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setResetPasswordOpen(true);
+      }
       const user = session?.user;
       if (user?.email) {
         const metadataName = (user.user_metadata?.nome || user.user_metadata?.full_name || '') as string;
@@ -102,7 +114,16 @@ export const App: React.FC = () => {
 
   // Se não autenticado, renderiza a Landing Page SaaS com Login Superior integrado
   if (!sessionUser) {
-    return <AuthView onAuthSuccess={() => setRefreshTrigger((prev) => prev + 1)} />;
+    return (
+      <>
+        <AuthView onAuthSuccess={() => setRefreshTrigger((prev) => prev + 1)} />
+        <ResetPasswordModal
+          isOpen={resetPasswordOpen}
+          onClose={() => setResetPasswordOpen(false)}
+          onSuccess={() => setResetPasswordOpen(false)}
+        />
+      </>
+    );
   }
 
   return (
@@ -133,7 +154,7 @@ export const App: React.FC = () => {
         />
 
         {/* Área de Conteúdo Adaptativo: Mobile-First + Expansão Fluida Desktop */}
-        <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 overflow-x-hidden min-w-0">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-6 pb-24 md:pb-8 overflow-x-hidden min-w-0">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigateToForm={() => setCurrentTab('novo')}
@@ -168,6 +189,13 @@ export const App: React.FC = () => {
           currentTab={currentTab}
           onChangeTab={setCurrentTab}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+        />
+
+        {/* Modal de Redefinição de Senha ao Retornar do E-mail */}
+        <ResetPasswordModal
+          isOpen={resetPasswordOpen}
+          onClose={() => setResetPasswordOpen(false)}
+          onSuccess={() => setResetPasswordOpen(false)}
         />
       </div>
     </SubscriptionGate>

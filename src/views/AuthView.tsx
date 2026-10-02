@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { BrandLogo } from '../components/brand/BrandLogo';
 import { RemotionLogoShowcase } from '../components/remotion/RemotionLogoShowcase';
 import { RegisterModal } from '../components/auth/RegisterModal';
+import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import { PaywallView } from '../components/subscription/PaywallView';
 import {
   Lock,
@@ -13,13 +14,17 @@ import {
   EyeOff,
   Building2,
   Wallet,
+  Briefcase,
+  FileSpreadsheet,
+  Calendar,
+  Repeat,
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
   Zap,
-  Layers,
   ChevronDown,
   Sparkles,
+  KeyRound,
 } from 'lucide-react';
 
 interface AuthViewProps {
@@ -34,6 +39,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mobileLoginOpen, setMobileLoginOpen] = useState<boolean>(false);
   const [registerModalOpen, setRegisterModalOpen] = useState<boolean>(false);
+  const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState<boolean>(false);
   const [plansModalOpen, setPlansModalOpen] = useState<boolean>(false);
 
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -95,14 +101,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-1.5">
-                <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">Gestão</span>
-                <span className="text-sm sm:text-base font-extrabold text-emerald-400">Financeira</span>
+                <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">GSR</span>
+                <span className="text-sm sm:text-base font-extrabold text-emerald-400">Finanças</span>
               </div>
               <p className="text-[10px] font-medium text-slate-400 tracking-wide hidden sm:block">
-                Controle financeiro de obras & finanças pessoais
+                Gestão Financeira Facilitada • Obras, Pessoal e Negócios
               </p>
               <p className="text-[10px] font-medium text-slate-400 tracking-wide sm:hidden truncate">
-                Obras & Finanças Pessoais
+                Gestão Financeira Facilitada
               </p>
             </div>
           </div>
@@ -159,6 +165,16 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
               </button>
             </div>
 
+            {/* Link Esqueceu a Senha (Desktop) */}
+            <button
+              type="button"
+              onClick={() => setForgotPasswordModalOpen(true)}
+              className="text-[11px] text-slate-400 hover:text-amber-300 transition-colors whitespace-nowrap cursor-pointer hover:underline px-1"
+              title="Clique para recuperar sua senha"
+            >
+              Esqueceu?
+            </button>
+
             {/* Botão Entrar */}
             <button
               type="submit"
@@ -209,9 +225,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                  Senha
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-slate-300">
+                    Senha
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileLoginOpen(false);
+                      setForgotPasswordModalOpen(true);
+                    }}
+                    className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 hover:underline transition-colors"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
@@ -265,11 +293,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
           </div>
         )}
 
-        {/* Mensagem de Erro Superior */}
+        {/* Mensagem de Erro Superior com Atalho para Recuperação */}
         {errorMessage && (
-          <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2 flex items-center justify-center space-x-2 text-rose-300 text-xs animate-fade-in">
-            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-            <span>{errorMessage}</span>
+          <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2.5 flex flex-wrap items-center justify-center gap-2 text-rose-300 text-xs animate-fade-in text-center">
+            <div className="flex items-center space-x-1.5">
+              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForgotPasswordModalOpen(true)}
+              className="inline-flex items-center space-x-1 font-bold text-amber-300 hover:text-amber-200 underline underline-offset-2 transition-colors cursor-pointer ml-1"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span>Esqueceu sua senha? Clique aqui para recuperar</span>
+            </button>
           </div>
         )}
       </header>
@@ -287,17 +325,17 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
               {/* Badge de Destaque */}
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-inner">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
-                <span>Teste Gratuito de 7 Dias Liberado • Sem Cobrança Imediata</span>
+                <span>Teste Gratuito de 7 Dias Liberado • Obra, Negócio & Pessoal</span>
               </div>
 
               {/* Título Principal */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                A inteligência financeira definitiva para suas <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">obras e patrimônio.</span>
+                Gestão financeira facilitada para suas <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">obras, negócios e patrimônio.</span>
               </h1>
 
               {/* Subtítulo */}
               <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                Diga adeus a planilhas confusas e perdas financeiras invisíveis. Centralize custos de construção, reformas, notas fiscais e finanças pessoais em um único painel em tempo real.
+                Diga adeus a planilhas confusas e prejuízos invisíveis. Centralize custos de construção, controle de insumos e precificação de produtos para pequenas empresas e finanças pessoais em um único painel inteligente.
               </p>
 
               {/* Ações / Botões Rápidos */}
@@ -329,11 +367,11 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-                  <span>Ambientes Multi-Tenant</span>
+                  <span>3 Ambientes Integrados</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Mobile-First & Desktop</span>
+                  <span>Exportação PDF & Excel</span>
                 </div>
               </div>
             </div>
@@ -347,7 +385,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
                     <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-300 font-semibold">
-                      Ambientes Integrados • Obra & Pessoal
+                      Obra • Negócio • Pessoal
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
@@ -361,10 +399,10 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                 {/* Legenda Alinhada ao Sistema */}
                 <div className="mt-4 pt-4 border-t border-slate-800/80 text-center space-y-1">
                   <p className="text-xs font-bold text-slate-200">
-                    Controle Total de Obras & Finanças
+                    GSR Finanças • Gestão Financeira Facilitada
                   </p>
                   <p className="text-[11px] text-slate-400 leading-snug">
-                    Gerencie custos de materiais, mão de obra e seu orçamento diário em um só lugar, com clareza e previsibilidade financeira.
+                    Custos de construção, precificação por insumos para pequenos negócios e orçamento pessoal em uma única plataforma fluida.
                   </p>
                 </div>
               </div>
@@ -374,83 +412,179 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         </section>
 
         {/* =================================================================== */}
-        {/* 3. RECURSOS PRINCIPAIS: OS TRÊS PILARES                             */}
+        {/* 3. RECURSOS PRINCIPAIS: OS TRÊS AMBIENTES NATIVOS                   */}
         {/* =================================================================== */}
         <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Projetado para quem constrói e investe
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+              Três Ambientes em Um Só App
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
+              Projetado para quem constrói, empreende e investe
             </h2>
             <p className="text-sm text-slate-400 mt-2">
-              Um ecossistema dinâmico que se molda à sua rotina, no canteiro de obras ou no escritório.
+              Alterne em 1 clique entre o canteiro de obras, a gestão do seu pequeno negócio e o orçamento diário da família.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Pilar 1: Custo de Obra */}
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-emerald-500/40 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4 text-emerald-400 group-hover:scale-110 transition-transform">
-                <Building2 className="w-6 h-6" />
+            {/* Pilar 1: Custo de Obra & Reformas */}
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-[10px] font-mono uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                    Ambiente de Obra
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Custos de Obra & Terreno</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  Controle cada centavo da construção ou reforma: materiais, fundação, acabamento e mão de obra. Calcule o custo real por metro quadrado e anexe comprovantes.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Custo de Obra & Reformas</h3>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                Separe cada etapa da construção: fundação, alvenaria, acabamento e mão de obra. Calcule o custo real por metro quadrado e antecipe desvios de orçamento.
-              </p>
-              <ul className="text-xs space-y-1.5 text-slate-300">
+              <ul className="text-xs space-y-1.5 text-slate-300 pt-2 border-t border-slate-800/60">
                 <li className="flex items-center space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                  <span>Anexo de fotos e recibos</span>
+                  <span>Anexo de notas e recibos de pagamento</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                  <span>Evolução física do terreno</span>
+                  <span>Valor de aquisição de terreno e evolução</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <span>Contas quitadas vs pendentes em tempo real</span>
                 </li>
               </ul>
             </div>
 
-            {/* Pilar 2: Finanças Pessoais */}
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-cyan-500/40 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-4 text-cyan-400 group-hover:scale-110 transition-transform">
-                <Wallet className="w-6 h-6" />
+            {/* Pilar 2: Negócios & PME */}
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-[10px] font-mono uppercase font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">
+                    Novo • Ambiente Negócio
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Gestão de Negócio & PME</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  Perfeito para pequenas empresas, marcenarias, oficinas, ateliês e prestadores. Precifique produtos por insumos, mão de obra e embalagens com margem líquida precisa.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Finanças Pessoais Dinâmicas</h3>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                Alterne instantaneamente para o controle financeiro diário, gastos fixos, cartões e projetos específicos sem misturar as contas da obra.
-              </p>
-              <ul className="text-xs space-y-1.5 text-slate-300">
+              <ul className="text-xs space-y-1.5 text-slate-300 pt-2 border-t border-slate-800/60">
+                <li className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                  <span>Calculadora de Precificação & Markup Divisor</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                  <span>Ficha técnica de insumos e ponto de equilíbrio</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                  <span>Separação de vendas, custos fixos e impostos</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pilar 3: Finanças Pessoais */}
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-cyan-500/40 transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-4 text-cyan-400 group-hover:scale-110 transition-transform">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-[10px] font-mono uppercase font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">
+                    Ambiente Pessoal
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Finanças Pessoais & Investimentos</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  Controle receitas, salários, despesas diárias, cartões e projetos familiares. Conte com painel dedicado para investimentos e reserva de emergência.
+                </p>
+              </div>
+              <ul className="text-xs space-y-1.5 text-slate-300 pt-2 border-t border-slate-800/60">
                 <li className="flex items-center space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  <span>Categorias criadas na hora</span>
+                  <span>Acompanhamento de CDB, Poupança e Tesouro</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  <span>Separação de múltiplos orçamentos</span>
+                  <span>Fluxo de caixa de receitas vs despesas</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                  <span>Categorias dinâmicas criadas em segundos</span>
                 </li>
               </ul>
             </div>
 
-            {/* Pilar 3: Arquitetura SaaS */}
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 hover:border-amber-500/40 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-4 text-amber-400 group-hover:scale-110 transition-transform">
-                <Layers className="w-6 h-6" />
+          </div>
+        </section>
+
+        {/* =================================================================== */}
+        {/* 4. RECURSOS EXCLUSIVOS: RELATÓRIOS, FILTROS E AUTOMAÇÃO            */}
+        {/* =================================================================== */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80 bg-slate-950/40">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Recursos Avançados para Produtividade Máxima
+            </h2>
+            <p className="text-sm text-slate-400 mt-2">
+              Funcionalidades pensadas para você economizar horas de trabalho burocrático e tomar decisões com segurança.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Feature 1: Exportação PDF & Excel */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <FileSpreadsheet className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">SaaS Multi-Ambiente</h3>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                Isolamento estrito com PostgreSQL Row Level Security (RLS). Seus dados são criptografados, protegidos e acessíveis de qualquer dispositivo móvel ou desktop.
+              <h4 className="text-sm font-bold text-white">Relatórios PDF & Excel</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Exporte relatórios executivos de auditoria em PDF ou planilhas Excel (.xlsx) com a marca oficial GSR Finanças para contabilidade e sócios.
               </p>
-              <ul className="text-xs space-y-1.5 text-slate-300">
-                <li className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                  <span>Isolamento total por usuário</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                  <span>Sincronização instantânea na nuvem</span>
-                </li>
-              </ul>
             </div>
 
+            {/* Feature 2: Filtro de Período Inteligente */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-bold text-white">Filtro de Período Dinâmico</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Navegue mês a mês e ano a ano nos lançamentos e no dashboard com atalhos ágeis como "Mês Atual" e "Histórico Completo".
+              </p>
+            </div>
+
+            {/* Feature 3: Lançamentos Recorrentes */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <Repeat className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-bold text-white">Lançamentos Recorrentes</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Cadastre despesas e receitas fixas com agendamento automático para até 12 meses futuros, com status programado para auditoria.
+              </p>
+            </div>
+
+            {/* Feature 4: Segurança Bancária PostgreSQL */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-bold text-white">Segurança PostgreSQL RLS</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Seus dados isolados por usuário com políticas rígidas de Row Level Security, criptografia em trânsito e conformidade total com a LGPD.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -504,6 +638,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onSuccess={onAuthSuccess}
+      />
+
+      {/* Modal de Recuperação de Senha */}
+      <ForgotPasswordModal
+        isOpen={forgotPasswordModalOpen}
+        onClose={() => setForgotPasswordModalOpen(false)}
+        initialEmail={email}
       />
 
       {/* Modal de Planos idêntico ao de Configurações */}

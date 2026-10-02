@@ -122,60 +122,64 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 /* 2. MODO LEITURA: Prancheta Arquitetônica & Vellum de Engenharia */
 .theme-leitura {
-  --bg-viewport: #EAE5DC;
-  --bg-container: #F7F3EB;
-  --bg-header: #EDE7DC;
+  --bg-viewport: #F5F1E8;
+  --bg-container: #FAF7F0;
+  --bg-header: #ECE5D8;
   --bg-card: #FFFFFF;
-  --bg-card-subtle: #EDE5D8;
+  --bg-card-subtle: #EFE8DC;
   --bg-input: #FFFFFF;
-  --border-color: #D8CEBD;
-  --border-subtle: #E8E0D2;
-  --text-primary: #1C1917;
-  --text-secondary: #44403C;
+  --border-color: #DDD4C4;
+  --border-subtle: #EAE2D4;
+  --text-primary: #292524;
+  --text-secondary: #57534E;
   --text-muted: #78716C;
-  --accent-emerald: #059669;
-  --accent-emerald-subtle: rgba(5, 150, 105, 0.12);
-  --accent-cyan: #0284C7;
+  --accent-emerald: #166534;
+  --accent-emerald-subtle: rgba(22, 101, 52, 0.12);
+  --accent-cyan: #0369A1;
   --accent-amber: #B45309;
+  --accent-rose: #9F1239;
+  --accent-indigo: #3730A3;
   --shadow-card: 0 4px 16px rgba(41, 37, 36, 0.05);
 }
 
 .theme-leitura .theme-toggle-btn {
   background-color: #FFFFFF;
-  border-color: #D8CEBD;
-  color: #1C1917;
+  border-color: #DDD4C4;
+  color: #292524;
 }
 .theme-leitura .theme-dropdown-menu {
   background-color: #FFFFFF;
-  border-color: #D8CEBD;
-  color: #1C1917;
+  border-color: #DDD4C4;
+  color: #292524;
 }
 .theme-leitura .theme-dropdown-item-active {
-  background-color: #059669;
+  background-color: #166534;
   color: #FFFFFF;
 }
 .theme-leitura .theme-dropdown-item-hover:hover {
-  background-color: #F7F3EB;
+  background-color: #FAF7F0;
 }
 
 /* 3. MODO CLARO: Studio Clean Executivo */
 .theme-claro {
-  --bg-viewport: #F1F5F9;
+  --bg-viewport: #F8FAFC;
   --bg-container: #FFFFFF;
   --bg-header: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-card-subtle: #F8FAFC;
+  --bg-card-subtle: #F1F5F9;
   --bg-input: #FFFFFF;
   --border-color: #E2E8F0;
   --border-subtle: #F1F5F9;
   --text-primary: #0F172A;
-  --text-secondary: #475569;
+  --text-secondary: #334155;
   --text-muted: #64748B;
-  --accent-emerald: #059669;
-  --accent-emerald-subtle: rgba(5, 150, 105, 0.10);
+  --accent-emerald: #047857;
+  --accent-emerald-subtle: rgba(4, 120, 87, 0.10);
   --accent-cyan: #0284C7;
-  --accent-amber: #D97706;
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --accent-amber: #B45309;
+  --accent-rose: #BE123C;
+  --accent-indigo: #4338CA;
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.05);
 }
 
 .theme-claro .theme-toggle-btn {
@@ -201,10 +205,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
-/* A. ESTILOS REFINADOS DO MODO LEITURA (PRANCHETA ARQUITETÔNICA)            */
+/* A. ESTILOS HARMONIZADOS DO MODO LEITURA (PRANCHETA ARQUITETÔNICA)         */
 /* ------------------------------------------------------------------------- */
 
-.theme-leitura {
+.theme-leitura,
+.theme-leitura body {
   background-color: var(--bg-viewport) !important;
   color: var(--text-primary);
 }
@@ -213,7 +218,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: var(--bg-viewport) !important;
 }
 
-.theme-leitura .bg-\[\#070D1E\] {
+.theme-leitura .bg-\[\#070D1E\],
+.theme-leitura .bg-\[\#0B132B\],
+.theme-leitura .bg-\[\#0A1024\] {
   background-color: var(--bg-container) !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
@@ -230,46 +237,72 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-color: var(--border-color) !important;
 }
 
-/* Cartões Gerais */
-.theme-leitura .bg-slate-900\/90,
+/* Cartões e Containers Gerais - Cobertura Universal */
 .theme-leitura .bg-slate-900\/95,
+.theme-leitura .bg-slate-900\/90,
+.theme-leitura .bg-slate-900\/85,
+.theme-leitura .bg-slate-900\/80,
+.theme-leitura .bg-slate-900\/70,
+.theme-leitura .bg-slate-900\/60,
+.theme-leitura .bg-slate-900\/50,
+.theme-leitura .bg-slate-900\/40,
 .theme-leitura .bg-slate-900 {
   background-color: #FFFFFF !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
-  box-shadow: 0 2px 10px rgba(41, 37, 36, 0.05);
+  box-shadow: 0 2px 10px rgba(41, 37, 36, 0.04);
 }
 
-.theme-leitura .bg-slate-950\/50,
-.theme-leitura .bg-slate-950\/60,
-.theme-leitura .bg-slate-950\/70,
+/* Sub-painéis, seções internas e inputs desativados */
+.theme-leitura .bg-slate-950\/90,
 .theme-leitura .bg-slate-950\/80,
+.theme-leitura .bg-slate-950\/70,
+.theme-leitura .bg-slate-950\/60,
+.theme-leitura .bg-slate-950\/50,
+.theme-leitura .bg-slate-950\/40,
 .theme-leitura .bg-slate-950 {
-  background-color: #F7F3EB !important;
+  background-color: #FAF6ED !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
 }
 
-.theme-leitura .bg-slate-800,
-.theme-leitura .bg-slate-800\/80 {
-  background-color: #EDE5D8 !important;
+/* Elementos neutros e botões secundários */
+.theme-leitura .bg-slate-800\/90,
+.theme-leitura .bg-slate-800\/80,
+.theme-leitura .bg-slate-800\/70,
+.theme-leitura .bg-slate-800\/60,
+.theme-leitura .bg-slate-800 {
+  background-color: #EFE8DC !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
 }
 
-.theme-leitura .border-slate-800,
-.theme-leitura .border-slate-800\/80,
+/* Bordas de Containers e Divisores */
 .theme-leitura .border-slate-800\/90,
-.theme-leitura .border-slate-700,
-.theme-leitura .border-slate-700\/80 {
+.theme-leitura .border-slate-800\/80,
+.theme-leitura .border-slate-800\/60,
+.theme-leitura .border-slate-800\/50,
+.theme-leitura .border-slate-800,
+.theme-leitura .border-slate-700\/80,
+.theme-leitura .border-slate-700\/60,
+.theme-leitura .border-slate-700 {
   border-color: var(--border-color) !important;
 }
 
-/* Card Destaque (Custo Total): Mantém o gradiente escuro nobre floresta */
+/* Estados de Hover em Linhas e Botões Neutros */
+.theme-leitura .hover\:bg-slate-800:hover,
+.theme-leitura .hover\:bg-slate-800\/80:hover,
+.theme-leitura .hover\:bg-slate-800\/60:hover,
+.theme-leitura .hover\:bg-slate-700:hover,
+.theme-leitura .hover\:bg-slate-900:hover {
+  background-color: #E5DDCF !important;
+}
+
+/* Card Destaque (Custo Total / Indicadores Mestres) */
 .theme-leitura .theme-metric-highlight {
-  background: linear-gradient(135deg, #072B1A 0%, #0F3B25 50%, #154D32 100%) !important;
+  background: linear-gradient(135deg, #092819 0%, #0E3E26 50%, #145233 100%) !important;
   border-color: rgba(16, 185, 129, 0.45) !important;
-  box-shadow: 0 10px 25px -5px rgba(7, 43, 26, 0.5) !important;
+  box-shadow: 0 10px 25px -5px rgba(9, 40, 25, 0.4) !important;
 }
 .theme-leitura .theme-metric-highlight * {
   color: inherit;
@@ -281,16 +314,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #34D399 !important;
 }
 .theme-leitura .theme-metric-highlight .text-emerald-200\/80 {
-  color: rgba(167, 243, 208, 0.85) !important;
+  color: rgba(167, 243, 208, 0.9) !important;
 }
 
 /* Card Terreno Fixo */
 .theme-leitura .theme-card-terreno {
-  background-color: #EEF8F1 !important;
+  background-color: #EAF5ED !important;
   border-color: #A3D9B1 !important;
 }
 .theme-leitura .theme-terreno-label {
-  color: #15803D !important;
+  color: #166534 !important;
 }
 .theme-leitura .theme-terreno-badge {
   background-color: #DCF4E4 !important;
@@ -298,52 +331,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #14532D !important;
 }
 .theme-leitura .theme-terreno-val {
-  color: #1C1917 !important;
+  color: #292524 !important;
 }
 .theme-leitura .theme-terreno-sub {
-  color: #43694E !important;
-}
-
-/* Card Despesas Obra */
-.theme-leitura .theme-despesas-badge {
-  background-color: #EDE5D8 !important;
-  color: #44403C !important;
-  border-color: #D8CEBD !important;
-}
-
-/* Status de Pagamento */
-.theme-leitura .theme-status-icon-pago {
-  background-color: #DCFCE7 !important;
-  border-color: #86EFAC !important;
-  color: #15803D !important;
-}
-.theme-leitura .theme-status-val-pago {
-  color: #15803D !important;
-}
-.theme-leitura .theme-status-icon-pendente {
-  background-color: #FEF3C7 !important;
-  border-color: #FDE68A !important;
-  color: #B45309 !important;
-}
-.theme-leitura .theme-status-val-pendente {
-  color: #B45309 !important;
-}
-
-/* Ícones de Categoria */
-.theme-leitura .theme-cat-icon-mat {
-  background-color: #E0F2FE !important;
-  border-color: #BAE6FD !important;
-  color: #0284C7 !important;
-}
-.theme-leitura .theme-cat-icon-mao {
-  background-color: #FEF3C7 !important;
-  border-color: #FDE68A !important;
-  color: #D97706 !important;
-}
-.theme-leitura .theme-cat-icon-out {
-  background-color: #F3E8FF !important;
-  border-color: #E9D5FF !important;
-  color: #9333EA !important;
+  color: #166534 !important;
 }
 
 /* Action Banner */
@@ -358,69 +349,160 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #6EE7B7 !important;
 }
 
-/* Tipografia Geral */
-.theme-leitura h1:not([class*="text-emerald"]):not([class*="text-sky"]),
-.theme-leitura h2:not([class*="text-emerald"]):not([class*="text-sky"]),
-.theme-leitura h3:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]),
-.theme-leitura h4:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]) {
+/* Tipografia Geral - Leitura Confortável */
+.theme-leitura h1:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-leitura h2:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-leitura h3:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-leitura h4:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-leitura h5:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-leitura h6:not(.theme-metric-highlight *):not(.theme-action-banner *) {
   color: var(--text-primary) !important;
 }
 
-.theme-leitura p:not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-white"]):not([class*="theme-"]),
-.theme-leitura span:not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-sky"]):not([class*="text-amber"]):not([class*="text-purple"]):not([class*="text-orange"]):not([class*="theme-"]) {
-  color: inherit;
-}
-
-.theme-leitura .text-white:not(button):not(.theme-metric-highlight *):not(.theme-action-banner *):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-rose"]) {
-  color: var(--text-primary) !important;
-}
-
+/* Textos Neutros */
 .theme-leitura .text-slate-100,
 .theme-leitura .text-slate-200 {
-  color: #383431 !important;
+  color: #292524 !important;
 }
-
 .theme-leitura .text-slate-300 {
+  color: #44403C !important;
+}
+.theme-leitura .text-slate-400 {
+  color: #57534E !important;
+}
+.theme-leitura .text-slate-500 {
+  color: #78716C !important;
+}
+.theme-leitura .text-slate-600 {
   color: #57534E !important;
 }
 
-.theme-leitura .text-slate-400 {
-  color: #78716C !important;
+/* Textos de Destaque Neon Adaptados para Alto Contraste */
+.theme-leitura .text-emerald-400,
+.theme-leitura .text-emerald-300,
+.theme-leitura .text-emerald-500 {
+  color: #166534 !important;
 }
 
-.theme-leitura .text-slate-500 {
-  color: #A8A29E !important;
+.theme-leitura .text-cyan-400,
+.theme-leitura .text-cyan-300,
+.theme-leitura .text-sky-400,
+.theme-leitura .text-sky-300 {
+  color: #0369A1 !important;
 }
 
-/* Inputs e Formulários */
-.theme-leitura input,
-.theme-leitura textarea,
-.theme-leitura select {
-  background-color: #FFFFFF !important;
-  border-color: #D8CEBD !important;
+.theme-leitura .text-indigo-400,
+.theme-leitura .text-indigo-300 {
+  color: #3730A3 !important;
+}
+
+.theme-leitura .text-amber-400,
+.theme-leitura .text-amber-300,
+.theme-leitura .text-yellow-400 {
+  color: #92400E !important;
+}
+
+.theme-leitura .text-rose-400,
+.theme-leitura .text-rose-300 {
+  color: #9F1239 !important;
+}
+
+.theme-leitura .text-purple-400,
+.theme-leitura .text-purple-300 {
+  color: #6B21A8 !important;
+}
+
+.theme-leitura .text-orange-400,
+.theme-leitura .text-orange-300 {
+  color: #C2410C !important;
+}
+
+.theme-leitura .text-teal-400,
+.theme-leitura .text-teal-300 {
+  color: #115E59 !important;
+}
+
+/* Proteção Crucial: Textos em Botões Primários Coloridos Continuam Brancos */
+.theme-leitura button[class*="bg-emerald-"]:not([class*="/"]):not(.hover\:) *,
+.theme-leitura button[class*="bg-rose-"]:not([class*="/"]):not(.hover\:) *,
+.theme-leitura button[class*="bg-indigo-"]:not([class*="/"]):not(.hover\:) *,
+.theme-leitura button[class*="bg-gradient"] *,
+.theme-leitura .theme-metric-highlight *,
+.theme-leitura .theme-action-banner * {
+  color: #FFFFFF !important;
+}
+
+/* Botões Selecionados com bg-emerald-500 */
+.theme-leitura button.bg-emerald-500,
+.theme-leitura a.bg-emerald-500,
+.theme-leitura span.bg-emerald-500 {
+  background-color: #15803D !important;
+  color: #FFFFFF !important;
+}
+.theme-leitura button.bg-emerald-500 *,
+.theme-leitura a.bg-emerald-500 * {
+  color: #FFFFFF !important;
+}
+
+/* Conversão de .text-white genérico apenas em containers claros */
+.theme-leitura .text-white:not(button):not(button *):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-indigo"]):not([class*="bg-gradient"]):not(.theme-metric-highlight *):not(.theme-action-banner *) {
   color: var(--text-primary) !important;
 }
 
-.theme-leitura input::placeholder,
-.theme-leitura textarea::placeholder {
-  color: #A8A29E !important;
+/* Badges e Pílulas Translúcidas (Verde / Esmeralda) */
+.theme-leitura .bg-emerald-500\/10,
+.theme-leitura .bg-emerald-500\/15,
+.theme-leitura .bg-emerald-500\/20,
+.theme-leitura .bg-emerald-500\/25,
+.theme-leitura .bg-emerald-500\/30 {
+  background-color: #E2F2E7 !important;
+  border-color: #A3D9B1 !important;
+  color: #14532D !important;
 }
 
-.theme-leitura .hover\:bg-slate-800:hover,
-.theme-leitura .hover\:bg-slate-800\/60:hover {
-  background-color: #EDE5D8 !important;
+/* Badges e Pílulas Translúcidas (Âmbar / Amarelo) */
+.theme-leitura .bg-amber-500\/10,
+.theme-leitura .bg-amber-500\/15,
+.theme-leitura .bg-amber-500\/20,
+.theme-leitura .bg-amber-500\/25,
+.theme-leitura .bg-amber-500\/30 {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+  color: #92400E !important;
 }
 
-.theme-leitura .theme-icon-btn {
-  color: var(--text-secondary);
-}
-.theme-leitura .theme-icon-btn:hover {
-  color: var(--text-primary);
-  background-color: #EDE5D8;
+/* Badges e Pílulas Translúcidas (Rose / Vermelho) */
+.theme-leitura .bg-rose-500\/10,
+.theme-leitura .bg-rose-500\/15,
+.theme-leitura .bg-rose-500\/20,
+.theme-leitura .bg-rose-500\/25,
+.theme-leitura .bg-rose-500\/30 {
+  background-color: #FCE7EC !important;
+  border-color: #F8B4C4 !important;
+  color: #9F1239 !important;
 }
 
-.theme-leitura .theme-user-section {
-  border-color: var(--border-color) !important;
+/* Badges e Pílulas Translúcidas (Sky / Ciano / Azul) */
+.theme-leitura .bg-sky-500\/10,
+.theme-leitura .bg-sky-500\/15,
+.theme-leitura .bg-sky-500\/20,
+.theme-leitura .bg-cyan-500\/10,
+.theme-leitura .bg-cyan-500\/15,
+.theme-leitura .bg-cyan-500\/20 {
+  background-color: #E0F2FE !important;
+  border-color: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+
+/* Badges e Pílulas Translúcidas (Indigo / Roxo) */
+.theme-leitura .bg-indigo-500\/10,
+.theme-leitura .bg-indigo-500\/15,
+.theme-leitura .bg-indigo-500\/20,
+.theme-leitura .bg-purple-500\/10,
+.theme-leitura .bg-purple-500\/15 {
+  background-color: #EDE9FE !important;
+  border-color: #DDD6FE !important;
+  color: #3730A3 !important;
 }
 
 /* Badges de Categoria na Lista de Despesas */
@@ -432,12 +514,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .theme-leitura .border-amber-500\/30 {
   background-color: #FEF3C7 !important;
   border-color: #FDE68A !important;
-  color: #B45309 !important;
+  color: #92400E !important;
 }
 .theme-leitura .border-purple-500\/30 {
-  background-color: #F3E8FF !important;
-  border-color: #E9D5FF !important;
-  color: #7E22CE !important;
+  background-color: #EDE9FE !important;
+  border-color: #DDD6FE !important;
+  color: #6B21A8 !important;
 }
 .theme-leitura .border-orange-500\/30 {
   background-color: #FFEDD5 !important;
@@ -445,20 +527,53 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #C2410C !important;
 }
 
+/* Inputs e Formulários no Modo Leitura */
+.theme-leitura input,
+.theme-leitura textarea,
+.theme-leitura select {
+  background-color: #FFFFFF !important;
+  border-color: #DDD4C4 !important;
+  color: var(--text-primary) !important;
+}
+.theme-leitura input::placeholder,
+.theme-leitura textarea::placeholder {
+  color: #A8A29E !important;
+}
+.theme-leitura input:focus,
+.theme-leitura textarea:focus,
+.theme-leitura select:focus {
+  border-color: #166534 !important;
+}
+
+.theme-leitura .theme-icon-btn {
+  color: var(--text-secondary);
+}
+.theme-leitura .theme-icon-btn:hover {
+  color: var(--text-primary);
+  background-color: #EFE8DC;
+}
+.theme-leitura .theme-user-section {
+  border-color: var(--border-color) !important;
+}
+
+
 /* ------------------------------------------------------------------------- */
-/* B. ESTILOS REFINADOS DO MODO CLARO (STUDIO CLEAN EXECUTIVO)               */
+/* B. ESTILOS HARMONIZADOS DO MODO CLARO (STUDIO CLEAN EXECUTIVO)            */
 /* ------------------------------------------------------------------------- */
 
-.theme-claro {
-  background-color: #F1F5F9 !important;
+.theme-claro,
+.theme-claro body {
+  background-color: #F8FAFC !important;
   color: #0F172A;
 }
 
 .theme-claro .bg-\[\#050914\] {
-  background-color: #F1F5F9 !important;
+  background-color: #F8FAFC !important;
 }
 
-.theme-claro .bg-\[\#070D1E\] {
+.theme-claro .bg-\[\#070D1E\],
+.theme-claro .bg-\[\#0B132B\],
+.theme-claro .bg-\[\#0A1024\] {
   background-color: #FFFFFF !important;
   border-color: #E2E8F0 !important;
   color: #0F172A !important;
@@ -475,46 +590,72 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-color: #E2E8F0 !important;
 }
 
-/* Cartões Gerais */
-.theme-claro .bg-slate-900\/90,
+/* Cartões e Containers Gerais - Cobertura Universal */
 .theme-claro .bg-slate-900\/95,
+.theme-claro .bg-slate-900\/90,
+.theme-claro .bg-slate-900\/85,
+.theme-claro .bg-slate-900\/80,
+.theme-claro .bg-slate-900\/70,
+.theme-claro .bg-slate-900\/60,
+.theme-claro .bg-slate-900\/50,
+.theme-claro .bg-slate-900\/40,
 .theme-claro .bg-slate-900 {
   background-color: #FFFFFF !important;
   border-color: #E2E8F0 !important;
   color: #0F172A !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
 }
 
-.theme-claro .bg-slate-950\/50,
-.theme-claro .bg-slate-950\/60,
-.theme-claro .bg-slate-950\/70,
+/* Sub-painéis, seções internas e fundos de grupos */
+.theme-claro .bg-slate-950\/90,
 .theme-claro .bg-slate-950\/80,
+.theme-claro .bg-slate-950\/70,
+.theme-claro .bg-slate-950\/60,
+.theme-claro .bg-slate-950\/50,
+.theme-claro .bg-slate-950\/40,
 .theme-claro .bg-slate-950 {
   background-color: #F8FAFC !important;
   border-color: #E2E8F0 !important;
   color: #0F172A !important;
 }
 
-.theme-claro .bg-slate-800,
-.theme-claro .bg-slate-800\/80 {
+/* Elementos neutros e botões secundários */
+.theme-claro .bg-slate-800\/90,
+.theme-claro .bg-slate-800\/80,
+.theme-claro .bg-slate-800\/70,
+.theme-claro .bg-slate-800\/60,
+.theme-claro .bg-slate-800 {
   background-color: #F1F5F9 !important;
   border-color: #E2E8F0 !important;
   color: #0F172A !important;
 }
 
-.theme-claro .border-slate-800,
-.theme-claro .border-slate-800\/80,
+/* Bordas de Containers e Divisores */
 .theme-claro .border-slate-800\/90,
-.theme-claro .border-slate-700,
-.theme-claro .border-slate-700\/80 {
+.theme-claro .border-slate-800\/80,
+.theme-claro .border-slate-800\/60,
+.theme-claro .border-slate-800\/50,
+.theme-claro .border-slate-800,
+.theme-claro .border-slate-700\/80,
+.theme-claro .border-slate-700\/60,
+.theme-claro .border-slate-700 {
   border-color: #E2E8F0 !important;
 }
 
-/* Card Destaque (Custo Total): Executive Navy */
+/* Estados de Hover em Linhas e Botões Neutros */
+.theme-claro .hover\:bg-slate-800:hover,
+.theme-claro .hover\:bg-slate-800\/80:hover,
+.theme-claro .hover\:bg-slate-800\/60:hover,
+.theme-claro .hover\:bg-slate-700:hover,
+.theme-claro .hover\:bg-slate-900:hover {
+  background-color: #E2E8F0 !important;
+}
+
+/* Card Destaque (Custo Total / Indicadores Mestres) - Executive Navy */
 .theme-claro .theme-metric-highlight {
   background: linear-gradient(135deg, #0B132B 0%, #112042 50%, #092B1C 100%) !important;
   border-color: rgba(16, 185, 129, 0.5) !important;
-  box-shadow: 0 10px 25px -5px rgba(11, 19, 43, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(11, 19, 43, 0.35) !important;
 }
 .theme-claro .theme-metric-highlight * {
   color: inherit;
@@ -526,7 +667,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #34D399 !important;
 }
 .theme-claro .theme-metric-highlight .text-emerald-200\/80 {
-  color: rgba(167, 243, 208, 0.85) !important;
+  color: rgba(167, 243, 208, 0.9) !important;
 }
 
 /* Card Terreno Fixo */
@@ -549,48 +690,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #059669 !important;
 }
 
-/* Card Despesas Obra */
-.theme-claro .theme-despesas-badge {
-  background-color: #F1F5F9 !important;
-  color: #334155 !important;
-  border-color: #CBD5E1 !important;
-}
-
-/* Status de Pagamento */
-.theme-claro .theme-status-icon-pago {
-  background-color: #ECFDF5 !important;
-  border-color: #A7F3D0 !important;
-  color: #059669 !important;
-}
-.theme-claro .theme-status-val-pago {
-  color: #059669 !important;
-}
-.theme-claro .theme-status-icon-pendente {
-  background-color: #FFFBEB !important;
-  border-color: #FDE68A !important;
-  color: #D97706 !important;
-}
-.theme-claro .theme-status-val-pendente {
-  color: #D97706 !important;
-}
-
-/* Ícones de Categoria */
-.theme-claro .theme-cat-icon-mat {
-  background-color: #F0F9FF !important;
-  border-color: #BAE6FD !important;
-  color: #0284C7 !important;
-}
-.theme-claro .theme-cat-icon-mao {
-  background-color: #FFFBEB !important;
-  border-color: #FDE68A !important;
-  color: #D97706 !important;
-}
-.theme-claro .theme-cat-icon-out {
-  background-color: #FAF5FF !important;
-  border-color: #E9D5FF !important;
-  color: #9333EA !important;
-}
-
 /* Action Banner */
 .theme-claro .theme-action-banner {
   background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
@@ -603,64 +702,160 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #6EE7B7 !important;
 }
 
-/* Tipografia Geral */
-.theme-claro h1:not([class*="text-emerald"]):not([class*="text-sky"]),
-.theme-claro h2:not([class*="text-emerald"]):not([class*="text-sky"]),
-.theme-claro h3:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]),
-.theme-claro h4:not([class*="text-emerald"]):not([class*="text-sky"]):not([class*="text-rose"]) {
+/* Tipografia Geral - Contraste Executivo */
+.theme-claro h1:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-claro h2:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-claro h3:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-claro h4:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-claro h5:not(.theme-metric-highlight *):not(.theme-action-banner *),
+.theme-claro h6:not(.theme-metric-highlight *):not(.theme-action-banner *) {
   color: #0F172A !important;
 }
 
-.theme-claro .text-white:not(button):not(.theme-metric-highlight *):not(.theme-action-banner *):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-rose"]) {
-  color: #0F172A !important;
-}
-
+/* Textos Neutros */
 .theme-claro .text-slate-100,
 .theme-claro .text-slate-200 {
-  color: #1E293B !important;
+  color: #0F172A !important;
 }
-
 .theme-claro .text-slate-300 {
   color: #334155 !important;
 }
-
 .theme-claro .text-slate-400 {
+  color: #475569 !important;
+}
+.theme-claro .text-slate-500 {
   color: #64748B !important;
 }
-
-.theme-claro .text-slate-500 {
-  color: #94A3B8 !important;
+.theme-claro .text-slate-600 {
+  color: #334155 !important;
 }
 
-/* Inputs e Formulários */
-.theme-claro input,
-.theme-claro textarea,
-.theme-claro select {
-  background-color: #FFFFFF !important;
-  border-color: #CBD5E1 !important;
+/* Textos de Destaque Neon Adaptados para Alto Contraste */
+.theme-claro .text-emerald-400,
+.theme-claro .text-emerald-300,
+.theme-claro .text-emerald-500 {
+  color: #047857 !important;
+}
+
+.theme-claro .text-cyan-400,
+.theme-claro .text-cyan-300,
+.theme-claro .text-sky-400,
+.theme-claro .text-sky-300 {
+  color: #0284C7 !important;
+}
+
+.theme-claro .text-indigo-400,
+.theme-claro .text-indigo-300 {
+  color: #4338CA !important;
+}
+
+.theme-claro .text-amber-400,
+.theme-claro .text-amber-300,
+.theme-claro .text-yellow-400 {
+  color: #B45309 !important;
+}
+
+.theme-claro .text-rose-400,
+.theme-claro .text-rose-300 {
+  color: #BE123C !important;
+}
+
+.theme-claro .text-purple-400,
+.theme-claro .text-purple-300 {
+  color: #7E22CE !important;
+}
+
+.theme-claro .text-orange-400,
+.theme-claro .text-orange-300 {
+  color: #C2410C !important;
+}
+
+.theme-claro .text-teal-400,
+.theme-claro .text-teal-300 {
+  color: #0F766E !important;
+}
+
+/* Proteção Crucial: Textos em Botões Primários Coloridos Continuam Brancos */
+.theme-claro button[class*="bg-emerald-"]:not([class*="/"]):not(.hover\:) *,
+.theme-claro button[class*="bg-rose-"]:not([class*="/"]):not(.hover\:) *,
+.theme-claro button[class*="bg-indigo-"]:not([class*="/"]):not(.hover\:) *,
+.theme-claro button[class*="bg-gradient"] *,
+.theme-claro .theme-metric-highlight *,
+.theme-claro .theme-action-banner * {
+  color: #FFFFFF !important;
+}
+
+/* Botões Selecionados com bg-emerald-500 */
+.theme-claro button.bg-emerald-500,
+.theme-claro a.bg-emerald-500,
+.theme-claro span.bg-emerald-500 {
+  background-color: #059669 !important;
+  color: #FFFFFF !important;
+}
+.theme-claro button.bg-emerald-500 *,
+.theme-claro a.bg-emerald-500 * {
+  color: #FFFFFF !important;
+}
+
+/* Conversão de .text-white genérico apenas em containers claros */
+.theme-claro .text-white:not(button):not(button *):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-indigo"]):not([class*="bg-gradient"]):not(.theme-metric-highlight *):not(.theme-action-banner *) {
   color: #0F172A !important;
 }
 
-.theme-claro input::placeholder,
-.theme-claro textarea::placeholder {
-  color: #94A3B8 !important;
+/* Badges e Pílulas Translúcidas (Verde / Esmeralda) */
+.theme-claro .bg-emerald-500\/10,
+.theme-claro .bg-emerald-500\/15,
+.theme-claro .bg-emerald-500\/20,
+.theme-claro .bg-emerald-500\/25,
+.theme-claro .bg-emerald-500\/30 {
+  background-color: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #047857 !important;
 }
 
-.theme-claro .hover\:bg-slate-800:hover,
-.theme-claro .hover\:bg-slate-800\/60:hover {
-  background-color: #F1F5F9 !important;
+/* Badges e Pílulas Translúcidas (Âmbar / Amarelo) */
+.theme-claro .bg-amber-500\/10,
+.theme-claro .bg-amber-500\/15,
+.theme-claro .bg-amber-500\/20,
+.theme-claro .bg-amber-500\/25,
+.theme-claro .bg-amber-500\/30 {
+  background-color: #FFFBEB !important;
+  border-color: #FDE68A !important;
+  color: #B45309 !important;
 }
 
-.theme-claro .theme-icon-btn {
-  color: #64748B;
-}
-.theme-claro .theme-icon-btn:hover {
-  color: #0F172A;
-  background-color: #F1F5F9;
+/* Badges e Pílulas Translúcidas (Rose / Vermelho) */
+.theme-claro .bg-rose-500\/10,
+.theme-claro .bg-rose-500\/15,
+.theme-claro .bg-rose-500\/20,
+.theme-claro .bg-rose-500\/25,
+.theme-claro .bg-rose-500\/30 {
+  background-color: #FFF1F2 !important;
+  border-color: #FECDD3 !important;
+  color: #BE123C !important;
 }
 
-.theme-claro .theme-user-section {
-  border-color: #E2E8F0 !important;
+/* Badges e Pílulas Translúcidas (Sky / Ciano / Azul) */
+.theme-claro .bg-sky-500\/10,
+.theme-claro .bg-sky-500\/15,
+.theme-claro .bg-sky-500\/20,
+.theme-claro .bg-cyan-500\/10,
+.theme-claro .bg-cyan-500\/15,
+.theme-claro .bg-cyan-500\/20 {
+  background-color: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+
+/* Badges e Pílulas Translúcidas (Indigo / Roxo) */
+.theme-claro .bg-indigo-500\/10,
+.theme-claro .bg-indigo-500\/15,
+.theme-claro .bg-indigo-500\/20,
+.theme-claro .bg-purple-500\/10,
+.theme-claro .bg-purple-500\/15 {
+  background-color: #EEF2FF !important;
+  border-color: #C7D2FE !important;
+  color: #4338CA !important;
 }
 
 /* Badges de Categoria na Lista de Despesas */
@@ -672,17 +867,46 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .theme-claro .border-amber-500\/30 {
   background-color: #FFFBEB !important;
   border-color: #FDE68A !important;
-  color: #D97706 !important;
+  color: #B45309 !important;
 }
 .theme-claro .border-purple-500\/30 {
   background-color: #FAF5FF !important;
   border-color: #E9D5FF !important;
-  color: #9333EA !important;
+  color: #7E22CE !important;
 }
 .theme-claro .border-orange-500\/30 {
   background-color: #FFF7ED !important;
   border-color: #FED7AA !important;
   color: #EA580C !important;
+}
+
+/* Inputs e Formulários no Modo Claro */
+.theme-claro input,
+.theme-claro textarea,
+.theme-claro select {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+.theme-claro input::placeholder,
+.theme-claro textarea::placeholder {
+  color: #94A3B8 !important;
+}
+.theme-claro input:focus,
+.theme-claro textarea:focus,
+.theme-claro select:focus {
+  border-color: #059669 !important;
+}
+
+.theme-claro .theme-icon-btn {
+  color: #64748B;
+}
+.theme-claro .theme-icon-btn:hover {
+  color: #0F172A;
+  background-color: #F1F5F9;
+}
+.theme-claro .theme-user-section {
+  border-color: #E2E8F0 !important;
 }
 
 /* ========================================================================= */

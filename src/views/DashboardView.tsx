@@ -22,7 +22,12 @@ import {
   TrendingUp,
   TrendingDown,
   PiggyBank,
+  Briefcase,
+  Calculator,
+  Sparkles,
 } from 'lucide-react';
+import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
+import { PricingCalculatorModal } from '../components/business/PricingCalculatorModal';
 
 const TIPO_IMOVEL_LABELS: Record<string, string> = {
   terreno: 'Terreno / Lote',
@@ -61,11 +66,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         .select('*')
         .order('data_gasto', { ascending: false });
 
-      if (currentWorkspace?.id) {
+      const hasRealWorkspace = Boolean(currentWorkspace?.id && !currentWorkspace.id.startsWith('virtual-'));
+
+      if (hasRealWorkspace && currentWorkspace) {
         if (currentWorkspace.tipo === 'obra') {
           query = query.or(`workspace_id.eq.${currentWorkspace.id},and(tipo_ambiente.eq.obra,workspace_id.is.null)`);
         } else {
-          query = query.eq('workspace_id', currentWorkspace.id);
+          query = query.or(`workspace_id.eq.${currentWorkspace.id},and(tipo_ambiente.eq.${currentEnvironment},workspace_id.is.null)`);
         }
       } else {
         query = query.eq('tipo_ambiente', currentEnvironment);
@@ -88,21 +95,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [fetchDashboardData, refreshTrigger]);
 
   const isObra = currentEnvironment === 'obra';
+  const isNegocio = currentEnvironment === 'negocio';
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
 
-  // Finanças Pessoais: Separação de Receitas vs Despesas
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({
+    year: null,
+    month: null,
+  });
+
+  const filteredDespesas = useMemo(() => {
+    if (periodFilter.year === null || periodFilter.month === null) {
+      return despesas;
+    }
+    return despesas.filter((d) => {
+      const [ano, mes] = d.data_gasto.split('-').map(Number);
+      return ano === periodFilter.year && mes === periodFilter.month;
+    });
+  }, [despesas, periodFilter]);
+
+  const periodLabel = useMemo(() => {
+    if (periodFilter.year === null || periodFilter.month === null) {
+      return 'Todo o Histórico';
+    }
+    const MONTHS = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return `${MONTHS[periodFilter.month - 1]} de ${periodFilter.year}`;
+  }, [periodFilter]);
+
+  // Finanças Pessoais e Negócio: Separação de Receitas vs Despesas
   const receitasList = useMemo(() => {
-    return despesas.filter(
+    return filteredDespesas.filter(
       (d) => d.tipo_movimentacao === 'receita' || d.descricao.startsWith('[RECEITA]')
     );
-  }, [despesas]);
+  }, [filteredDespesas]);
 
   const despesasList = useMemo(() => {
     return isObra
-      ? despesas
-      : despesas.filter(
+      ? filteredDespesas
+      : filteredDespesas.filter(
           (d) => d.tipo_movimentacao !== 'receita' && !d.descricao.startsWith('[RECEITA]')
         );
-  }, [despesas, isObra]);
+  }, [filteredDespesas, isObra]);
 
   const totalReceitas = useMemo(() => {
     return receitasList.reduce((acc, curr) => acc + Number(curr.valor), 0);
@@ -202,10 +237,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
               isObra
                 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                : isNegocio
+                ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
                 : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
             }`}
           >
-            {isObra ? <Building2 className="w-5 h-5" /> : <Wallet className="w-5 h-5" />}
+            {isObra ? (
+              <Building2 className="w-5 h-5" />
+            ) : isNegocio ? (
+              <Briefcase className="w-5 h-5" />
+            ) : (
+              <Wallet className="w-5 h-5" />
+            )}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -213,7 +256,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Projeto Ativo:
               </span>
               <span className="text-sm font-extrabold text-white truncate">
-                {currentWorkspace?.nome || (isObra ? 'Controle de Obra Principal' : 'Minhas Finanças Pessoais')}
+                {currentWorkspace?.nome ||
+                  (isObra
+                    ? 'Controle de Obra Principal'
+                    : isNegocio
+                    ? 'Gestão de Negócio'
+                    : 'Minhas Finanças Pessoais')}
               </span>
               {isObra && currentWorkspace?.tipo_imovel && (
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-emerald-500/30 font-semibold">
@@ -242,6 +290,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <p className="text-[11px] text-slate-400">
                 {isObra
                   ? 'Painel de custos diretos, evolução física e aquisição de imóveis.'
+                  : isNegocio
+                  ? 'Painel executivo da empresa, insumos, fluxo de caixa e ponto de equilíbrio.'
                   : 'Painel orçamentário pessoal, receitas, despesas e investimentos.'}
               </p>
             )}
@@ -253,12 +303,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className={`text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-full ${
               isObra
                 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                : isNegocio
+                ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/40'
                 : 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40'
             }`}
           >
-            {isObra ? 'Ambiente de Obra' : 'Ambiente Pessoal'}
+            {isObra ? 'Ambiente de Obra' : isNegocio ? 'Ambiente de Negócio' : 'Ambiente Pessoal'}
           </span>
         </div>
+      </div>
+
+      {/* Barra de Filtro de Período do Dashboard */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80">
+        <PeriodFilter value={periodFilter} onChange={setPeriodFilter} />
+        <span className="text-xs text-slate-400 px-2 font-medium">
+          {periodFilter.year === null || periodFilter.month === null
+            ? 'Exibindo indicadores consolidados de todo o histórico'
+            : `Exibindo indicadores filtrados de ${periodLabel}`}
+        </span>
       </div>
 
       {/* Grid Superior de Métricas: Obra vs Pessoal */}
@@ -375,31 +437,77 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Card 4: Investimentos e Reserva */}
-          <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-              <PiggyBank className="w-6 h-6" />
+          {/* Card 4: Margem Líquida (Negócio) OU Investimentos & Reserva (Pessoal) */}
+          {isNegocio ? (
+            <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-medium text-slate-400 block">Margem Líquida</span>
+                <span className="text-lg font-black text-indigo-400 font-mono">
+                  {totalReceitas > 0 ? `${((saldoLiquido / totalReceitas) * 100).toFixed(1)}%` : '0.0%'}
+                </span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {totalReceitas > 0
+                    ? saldoLiquido >= 0
+                      ? 'Lucro operacional saudável'
+                      : 'Margem negativa no período'
+                    : 'Sem faturamento no período'}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-xs font-medium text-slate-400 block">Investimentos & Reserva</span>
-              <span className="text-lg font-black text-cyan-400 font-mono">
-                {formatCurrency(totalInvestido)}
-              </span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                {investimentos.length} aplicações (CDB, Poupança...)
-              </span>
+          ) : (
+            <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-md flex items-center space-x-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                <PiggyBank className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-medium text-slate-400 block">Investimentos & Reserva</span>
+                <span className="text-lg font-black text-cyan-400 font-mono">
+                  {formatCurrency(totalInvestido)}
+                </span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {investimentos.length} aplicações (CDB, Poupança...)
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       )}
 
       {/* DASHBOARD DE INVESTIMENTOS E RESERVA (Exclusivo para Finanças Pessoais) */}
-      {!isObra && (
+      {currentEnvironment === 'pessoal' && (
         <InvestmentDashboard
           investimentos={investimentos}
           onRefresh={fetchDashboardData}
         />
+      )}
+
+      {/* BANNER ESTRATÉGICO DE PRECIFICAÇÃO (Exclusivo para Negócio & PME) */}
+      {isNegocio && (
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                Módulo PME
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-white">Calculadora de Precificação & Markup</span>
+            </div>
+            <p className="text-xs text-slate-400 max-w-xl">
+              Simule o preço de venda ideal com base nos insumos, mão de obra, embalagens e impostos para nunca vender no prejuízo.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPricingModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer self-start sm:self-center flex-shrink-0"
+          >
+            <Calculator className="w-4 h-4" />
+            <span>Calcular Preço de Venda</span>
+          </button>
+        </div>
       )}
 
       {/* Grid Médio Desktop: Distribuição por Categorias + Lançamentos Recentes Simultâneos */}
@@ -539,6 +647,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
       </div>
+
+      {/* Modal de Precificação PME */}
+      <PricingCalculatorModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+      />
     </div>
   );
 };

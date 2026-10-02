@@ -54,6 +54,11 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     setLoading(true);
 
     try {
+      const redirectUrl =
+        typeof window !== 'undefined' && !window.location.origin.includes('localhost')
+          ? `${window.location.origin}/`
+          : 'https://gsr-financas.vercel.app/';
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -61,7 +66,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           data: {
             nome: nome.trim(),
           },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: redirectUrl,
         },
       });
 
