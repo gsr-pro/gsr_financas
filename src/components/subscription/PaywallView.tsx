@@ -14,8 +14,10 @@ import {
   Wallet,
   Briefcase,
   Layers,
+  FileDown,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { exportCommercialPlansPDF } from '../../lib/exportCommercialPlansPDF';
 
 interface PaywallViewProps {
   reason?: 'trial_expired' | 'feature_locked' | 'landing_page';
@@ -162,6 +164,19 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
                 </span>
               </button>
             </div>
+          </div>
+
+          {/* Botão Executivo: Download do Material Oficial dos Planos (PDF) */}
+          <div className="pt-2 flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => exportCommercialPlansPDF()}
+              className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Baixar material comercial oficial dos planos e recursos em formato PDF"
+            >
+              <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Baixar Material dos Planos (PDF)</span>
+            </button>
           </div>
         </div>
 
@@ -428,6 +443,17 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
             <p className="text-xs text-slate-400 mt-0.5">
               Veja o que está incluso em cada plano.
             </p>
+            <div className="mt-2.5 flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => exportCommercialPlansPDF()}
+                className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-xs font-bold text-slate-200 hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+                title="Baixar material comercial em PDF com a tabela comparativa completa"
+              >
+                <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Baixar Comparativo em PDF</span>
+              </button>
+            </div>
           </div>
 
           {/* =============================================================== */}

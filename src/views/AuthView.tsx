@@ -20,12 +20,15 @@ import {
   Repeat,
   CheckCircle2,
   ArrowRight,
+  ArrowDown,
+  FileDown,
   ShieldCheck,
   Zap,
   ChevronDown,
   Sparkles,
   KeyRound,
 } from 'lucide-react';
+import { exportCommercialPlansPDF } from '../lib/exportCommercialPlansPDF';
 
 interface AuthViewProps {
   onAuthSuccess: () => void;
@@ -339,7 +342,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
               </p>
 
               {/* Ações / Botões Rápidos */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setRegisterModalOpen(true)}
@@ -352,10 +355,26 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
 
                 <button
                   type="button"
-                  onClick={() => setPlansModalOpen(true)}
-                  className="w-full sm:w-auto px-6 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer"
+                  onClick={() => {
+                    const section = document.getElementById('planos');
+                    if (section) {
+                      section.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="w-full sm:w-auto px-5 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 hover:text-white font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer"
                 >
                   <span>Ver Planos & Recursos</span>
+                  <ArrowDown className="w-4 h-4 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => exportCommercialPlansPDF()}
+                  className="w-full sm:w-auto px-4 py-3.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-200 hover:text-emerald-300 font-bold rounded-2xl flex items-center justify-center space-x-2 text-xs sm:text-sm transition-all cursor-pointer shadow-md active:scale-95"
+                  title="Baixar material comercial em PDF dos planos para apresentação"
+                >
+                  <FileDown className="w-4 h-4 text-emerald-400" />
+                  <span>Baixar Material (PDF)</span>
                 </button>
               </div>
 
@@ -592,7 +611,37 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         {/* =================================================================== */}
         {/* 4. PLANOS E MODELO 7-DAY FREE TRIAL                                */}
         {/* =================================================================== */}
-        <section id="planos" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80">
+        <section id="planos" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80 scroll-mt-12">
+
+          {/* Banner de Destaque Executivo & Download para o Time Comercial / Clientes */}
+          <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center space-x-3.5 text-center sm:text-left">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                <FileDown className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center justify-center sm:justify-start space-x-2">
+                  <span>Apresentação Comercial & Tabela de Recursos</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">
+                    PDF Oficial
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Baixe o material executivo completo com a matriz técnica de todos os recursos para apresentar a clientes, sócios ou equipe.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => exportCommercialPlansPDF()}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-center space-x-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer flex-shrink-0"
+            >
+              <FileDown className="w-4 h-4 fill-slate-950" />
+              <span>Baixar Material dos Planos (PDF)</span>
+            </button>
+          </div>
+
           <PaywallView
             reason="landing_page"
             isInline={true}

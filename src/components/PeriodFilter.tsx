@@ -10,6 +10,7 @@ interface PeriodFilterProps {
   value: PeriodFilterValue;
   onChange: (newValue: PeriodFilterValue) => void;
   className?: string;
+  align?: 'left' | 'right';
 }
 
 const MONTH_NAMES = [
@@ -31,6 +32,7 @@ export const PeriodFilter: React.FC<PeriodFilterProps> = ({
   value,
   onChange,
   className = '',
+  align = 'left',
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -163,7 +165,11 @@ export const PeriodFilter: React.FC<PeriodFilterProps> = ({
 
       {/* Popover / Dropdown com Seletor Detalhado */}
       {isOpen && (
-        <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl z-50 animate-fade-in space-y-3.5">
+        <div
+          className={`absolute top-full ${
+            align === 'right' ? 'right-0' : 'left-0'
+          } mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl z-50 animate-fade-in space-y-3.5`}
+        >
           
           {/* Cabeçalho do Dropdown */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">

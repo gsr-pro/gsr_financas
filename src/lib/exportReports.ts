@@ -9,25 +9,35 @@ export interface ExportReportOptions {
   workspaceName: string;
   workspaceType: string;
   periodLabel: string;
+  periodDateRange?: string;
   userEmail?: string | null;
   userName?: string | null;
 }
 
+const getWorkspaceTypeLabel = (type: string): string => {
+  if (type === 'obra') return 'Ambiente de Obra & Construção';
+  if (type === 'negocio') return 'Ambiente de Negócio & PME';
+  return 'Finanças Pessoais';
+};
+
 /**
- * Exporta a lista de lançamentos para planilha Excel (.xlsx) com formatação executiva
+ * Exporta a lista de lançamentos para planilha Excel (.xlsx) com formatação executiva,
+ * auto-filtro nativo, logo/marca estruturada, totais consolidados e período em destaque.
  */
 export const exportToExcel = ({
   despesas,
   workspaceName,
   workspaceType,
   periodLabel,
+  periodDateRange,
   userEmail,
   userName,
 }: ExportReportOptions): void => {
   const now = new Date();
   const dataEmissao = now.toLocaleString('pt-BR');
+  const typeLabel = getWorkspaceTypeLabel(workspaceType);
 
-  // Cálculos de totais
+  // Cálculos consolidados
   const totalGeral = despesas.reduce((acc, d) => acc + Number(d.valor || 0), 0);
   const totalPago = despesas
     .filter((d) => d.status_pagamento === 'Pago')
@@ -36,32 +46,44 @@ export const exportToExcel = ({
     .filter((d) => d.status_pagamento === 'Pendente')
     .reduce((acc, d) => acc + Number(d.valor || 0), 0);
 
-  // Montagem da estrutura em matriz de células (AOA)
+  const fullPeriodText = periodDateRange
+    ? `${periodLabel} (${periodDateRange})`
+    : periodLabel;
+
+  // Matriz de dados da planilha
   const rows: (string | number)[][] = [
-    ['GSR FINANÇAS - GESTÃO FINANCEIRA FACILITADA | RELATÓRIO DE AUDITORIA'],
-    [`Projeto / Workspace: ${workspaceName} (${workspaceType === 'obra' ? 'Ambiente de Obra' : workspaceType === 'negocio' ? 'Ambiente de Negócio' : 'Finanças Pessoais'})`],
-    [`Período de Referência: ${periodLabel} | Emitido em: ${dataEmissao}`],
-    [`Responsável: ${userName || userEmail || 'Usuário do Sistema'}`],
+    // Linha 1: Marca & Logo Tipográfica
+    ['◆ GSR FINANÇAS • GESTÃO FINANCEIRA INTELIGENTE & AUDITORIA'],
+    // Linha 2: Subtítulo Corporativo
+    ['RELATÓRIO EXECUTIVO DE AUDITORIA E MOVIMENTAÇÃO FINANCEIRA'],
+    // Linha 3: Metadados Projeto & Status
+    ['Projeto / Ambiente:', `${workspaceName} (${typeLabel})`, '', '', 'Status do Relatório:', 'Consolidado e Auditado', '', ''],
+    // Linha 4: Período Exportado em Destaque & Data de Emissão
+    ['Período Exportado:', fullPeriodText, '', '', 'Data de Emissão:', dataEmissao, '', ''],
+    // Linha 5: Responsável & Plataforma
+    ['Responsável / Emissor:', userName || userEmail || 'Usuário do Sistema', '', '', 'Plataforma:', 'GSR Finanças SaaS', '', ''],
+    // Linha 6: Linha em branco
+    [],
+    // Linha 7: Títulos dos Cards de Indicadores
+    ['TOTAL GERAL', '', 'TOTAL QUITADO (PAGO)', '', 'TOTAL PENDENTE (A PAGAR)', '', 'QUANTIDADE DE ITENS', ''],
+    // Linha 8: Valores dos Cards de Indicadores
+    [totalGeral, '', totalPago, '', totalPendente, '', `${despesas.length} lançamento(s)`, ''],
+    // Linha 9: Linha em branco
+    [],
+    // Linha 10: Cabeçalho Formatado da Tabela de Lançamentos
     [
-      `Total Geral: ${formatCurrency(totalGeral)}`,
-      `Total Quitado: ${formatCurrency(totalPago)}`,
-      `Total Pendente: ${formatCurrency(totalPendente)}`,
-      `Qtd. Itens: ${despesas.length}`,
-    ],
-    [], // Linha em branco
-    [
-      'Data',
-      'Tipo',
-      'Categoria',
-      'Descrição',
-      'Valor (R$)',
-      'Status de Pagamento',
-      'Possui Comprovante',
-      'Observações',
+      'DATA',
+      'TIPO',
+      'CATEGORIA',
+      'DESCRIÇÃO DO LANÇAMENTO',
+      'VALOR (R$)',
+      'STATUS DE PAGAMENTO',
+      'POSSUI COMPROVANTE',
+      'OBSERVAÇÕES',
     ],
   ];
 
-  // Adiciona as linhas de dados
+  // Adiciona as linhas de dados (iniciando na linha 11 do Excel)
   despesas.forEach((item) => {
     const isReceita =
       item.tipo_movimentacao === 'receita' || item.descricao.startsWith('[RECEITA]');
@@ -79,13 +101,14 @@ export const exportToExcel = ({
     ]);
   });
 
-  // Linha final com somatório
+  // Linhas finais com totalização estruturada
   rows.push([]);
+  const totalRowIndex = rows.length + 1; // 1-indexed
   rows.push([
-    'TOTAL GERAL',
+    'TOTAL GERAL CONSOLIDADO',
     '',
     '',
-    `${despesas.length} lançamento(s)`,
+    `${despesas.length} lançamento(s) listados`,
     totalGeral,
     `Quitado: ${formatCurrency(totalPago)}`,
     `Pendente: ${formatCurrency(totalPendente)}`,
@@ -96,19 +119,102 @@ export const exportToExcel = ({
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
-  // Largura estimada das colunas
-  ws['!cols'] = [
-    { wch: 14 }, // Data
-    { wch: 12 }, // Tipo
-    { wch: 22 }, // Categoria
-    { wch: 40 }, // Descrição
-    { wch: 16 }, // Valor
-    { wch: 20 }, // Status
-    { wch: 18 }, // Comprovante
-    { wch: 35 }, // Observações
+  // 1. Definição de Merges (Fusão de Células Executiva)
+  ws['!merges'] = [
+    // Banner e títulos superiores
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // A1:H1 (Título da Marca)
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // A2:H2 (Subtítulo do Relatório)
+    // Metadados
+    { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } }, // B3:D3 (Nome do Workspace)
+    { s: { r: 2, c: 5 }, e: { r: 2, c: 7 } }, // F3:H3 (Status)
+    { s: { r: 3, c: 1 }, e: { r: 3, c: 3 } }, // B4:D4 (Período Exportado)
+    { s: { r: 3, c: 5 }, e: { r: 3, c: 7 } }, // F4:H4 (Emissão)
+    { s: { r: 4, c: 1 }, e: { r: 4, c: 3 } }, // B5:D5 (Responsável)
+    { s: { r: 4, c: 5 }, e: { r: 4, c: 7 } }, // F5:H5 (Plataforma)
+    // Cards de Indicadores
+    { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } }, // A7:B7 (Label Total Geral)
+    { s: { r: 6, c: 2 }, e: { r: 6, c: 3 } }, // C7:D7 (Label Quitado)
+    { s: { r: 6, c: 4 }, e: { r: 6, c: 5 } }, // E7:F7 (Label Pendente)
+    { s: { r: 6, c: 6 }, e: { r: 6, c: 7 } }, // G7:H7 (Label Qtd)
+    { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } }, // A8:B8 (Val Total Geral)
+    { s: { r: 7, c: 2 }, e: { r: 7, c: 3 } }, // C8:D8 (Val Quitado)
+    { s: { r: 7, c: 4 }, e: { r: 7, c: 5 } }, // E8:F8 (Val Pendente)
+    { s: { r: 7, c: 6 }, e: { r: 7, c: 7 } }, // G8:H8 (Val Qtd)
+    // Linha final totalizadora
+    { s: { r: totalRowIndex - 1, c: 0 }, e: { r: totalRowIndex - 1, c: 2 } }, // A:C (Label Total Geral)
   ];
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Lançamentos GSR');
+  // 2. Alturas das Linhas para Espaçamento Elegante
+  const rowHeights: { hpt: number }[] = [
+    { hpt: 28 }, // 1: Título marca
+    { hpt: 22 }, // 2: Subtítulo
+    { hpt: 18 }, // 3: Projeto
+    { hpt: 20 }, // 4: Período (destaque)
+    { hpt: 18 }, // 5: Responsável
+    { hpt: 10 }, // 6: Espaçador
+    { hpt: 16 }, // 7: Header Cards
+    { hpt: 24 }, // 8: Valores Cards
+    { hpt: 12 }, // 9: Espaçador
+    { hpt: 26 }, // 10: Cabeçalho da tabela
+  ];
+
+  for (let i = 0; i < despesas.length; i++) {
+    rowHeights.push({ hpt: 20 });
+  }
+  rowHeights.push({ hpt: 10 }); // Espaçador pré-total
+  rowHeights.push({ hpt: 24 }); // Totalizador
+
+  ws['!rows'] = rowHeights;
+
+  // 3. Larguras Ideais das Colunas para Nunca Cortar Texto
+  ws['!cols'] = [
+    { wch: 14 }, // Data
+    { wch: 13 }, // Tipo
+    { wch: 26 }, // Categoria
+    { wch: 44 }, // Descrição
+    { wch: 18 }, // Valor (R$)
+    { wch: 22 }, // Status
+    { wch: 18 }, // Comprovante
+    { wch: 38 }, // Observações
+  ];
+
+  // 4. Formatação Numérica Nativa do Excel (R$ #,##0.00)
+  // Formata os cartões de totais
+  if (ws['A8']) {
+    ws['A8'].t = 'n';
+    ws['A8'].z = '"R$" #,##0.00';
+  }
+  if (ws['C8']) {
+    ws['C8'].t = 'n';
+    ws['C8'].z = '"R$" #,##0.00';
+  }
+  if (ws['E8']) {
+    ws['E8'].t = 'n';
+    ws['E8'].z = '"R$" #,##0.00';
+  }
+
+  // Formata a coluna E (Valor) de todos os lançamentos
+  for (let r = 11; r <= 10 + despesas.length; r++) {
+    const cellRef = `E${r}`;
+    if (ws[cellRef]) {
+      ws[cellRef].t = 'n';
+      ws[cellRef].z = '"R$" #,##0.00';
+    }
+  }
+
+  // Formata o valor na linha final de somatório
+  const totalValRef = `E${totalRowIndex}`;
+  if (ws[totalValRef]) {
+    ws[totalValRef].t = 'n';
+    ws[totalValRef].z = '"R$" #,##0.00';
+  }
+
+  // 5. Auto-filtro Nativo do Excel no Cabeçalho da Tabela
+  if (despesas.length > 0) {
+    ws['!autofilter'] = { ref: `A10:H${10 + despesas.length}` };
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Extrato Consolidado');
 
   // Nome do arquivo sanitizado
   const sanitizedName = workspaceName.toLowerCase().replace(/[^a-z0-9]/gi, '_');
@@ -120,12 +226,14 @@ export const exportToExcel = ({
 
 /**
  * Exporta a lista de lançamentos para PDF executivo de alta definição
+ * com logotipo vetorial, período em destaque proeminente e rodapé corporativo
  */
 export const exportToPDF = ({
   despesas,
   workspaceName,
   workspaceType,
   periodLabel,
+  periodDateRange,
   userEmail,
   userName,
 }: ExportReportOptions): void => {
@@ -137,6 +245,7 @@ export const exportToPDF = ({
 
   const now = new Date();
   const dataEmissao = now.toLocaleString('pt-BR');
+  const typeLabel = getWorkspaceTypeLabel(workspaceType);
 
   // Cálculos de totais
   const totalGeral = despesas.reduce((acc, d) => acc + Number(d.valor || 0), 0);
@@ -148,7 +257,7 @@ export const exportToPDF = ({
     .reduce((acc, d) => acc + Number(d.valor || 0), 0);
 
   // =========================================================================
-  // 1. CABEÇALHO DO DOCUMENTO
+  // 1. CABEÇALHO DO DOCUMENTO COM LOGOMARCA VETORIAL GSR
   // =========================================================================
   // Faixa superior decorativa escura
   doc.setFillColor(15, 23, 42); // slate-900
@@ -158,16 +267,36 @@ export const exportToPDF = ({
   doc.setFillColor(16, 185, 129); // emerald-500
   doc.rect(0, 0, 210, 2.5, 'F');
 
-  // Logotipo / Marca "GSR FINANÇAS"
+  // Logotipo Vetorial Isométrico GSR Finanças (Alta Definição)
+  // Face superior (losango verde esmeralda)
+  doc.setFillColor(16, 185, 129);
+  doc.triangle(24, 8, 31, 12, 24, 16, 'F');
+  doc.triangle(24, 8, 17, 12, 24, 16, 'F');
+
+  // Face lateral esquerda
+  doc.setFillColor(5, 150, 105);
+  doc.triangle(17, 12, 24, 16, 24, 23, 'F');
+  doc.triangle(17, 12, 17, 19, 24, 23, 'F');
+
+  // Face lateral direita
+  doc.setFillColor(4, 120, 87);
+  doc.triangle(31, 12, 24, 16, 24, 23, 'F');
+  doc.triangle(31, 12, 31, 19, 24, 23, 'F');
+
+  // Ponto de destaque no ápice estrutural
+  doc.setFillColor(245, 158, 11); // amber-500
+  doc.circle(24, 8, 0.9, 'F');
+
+  // Tipografia da Marca
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text('GSR FINANÇAS', 14, 14);
+  doc.text('GSR FINANÇAS', 36, 15);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(52, 211, 153); // emerald-400
-  doc.text('GESTÃO FINANCEIRA FACILITADA', 14, 19);
+  doc.text('GESTÃO FINANCEIRA INTELIGENTE & AUDITORIA', 36, 20);
 
   // Título e Emissão no lado direito
   doc.setFont('helvetica', 'bold');
@@ -181,28 +310,52 @@ export const exportToPDF = ({
   doc.text(`Emissão: ${dataEmissao}`, 196, 19, { align: 'right' });
 
   // =========================================================================
-  // 2. METADADOS E CONTEXTO DO PROJETO
+  // 2. CARD EXECUTIVO EM DESTAQUE: PERÍODO EXPORTADO E METADADOS
   // =========================================================================
-  doc.setTextColor(30, 41, 59); // slate-800
-  doc.setFontSize(9);
+  const metaBoxY = 37;
+  const metaBoxHeight = 16;
+  doc.setFillColor(241, 245, 249); // slate-100
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.roundedRect(14, metaBoxY, 182, metaBoxHeight, 2, 2, 'FD');
+
+  // Friso lateral esmeralda no card
+  doc.setFillColor(16, 185, 129);
+  doc.roundedRect(14, metaBoxY, 3, metaBoxHeight, 1, 1, 'F');
+
+  // Linha 1 do card: Projeto e Responsável
   doc.setFont('helvetica', 'bold');
-  doc.text(`Projeto: ${workspaceName}`, 14, 40);
+  doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
+  doc.text('PROJETO / AMBIENTE:', 20, metaBoxY + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text(`${workspaceName} (${typeLabel})`, 54, metaBoxY + 5.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139); // slate-500
-  doc.text(
-    `Tipo: ${workspaceType === 'obra' ? 'Ambiente de Obra & Reformas' : 'Finanças Pessoais'}   |   Período: ${periodLabel}`,
-    14,
-    45
-  );
-  if (userName || userEmail) {
-    doc.text(`Responsável: ${userName || userEmail}`, 14, 50);
-  }
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Responsável: ${userName || userEmail || 'Usuário do Sistema'}`, 140, metaBoxY + 5.5);
+
+  // Linha 2 do card: Período Exportado em DESTAQUE MAIÚSCULO
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(16, 185, 129); // emerald-600
+  doc.text('PERÍODO EXPORTADO:', 20, metaBoxY + 11.5);
+
+  const fullPeriodPdf = periodDateRange
+    ? `${periodLabel} [ ${periodDateRange} ]`
+    : periodLabel;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42); // slate-900
+  doc.text(fullPeriodPdf, 54, metaBoxY + 11.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Total: ${despesas.length} lançamento(s)`, 140, metaBoxY + 11.5);
 
   // =========================================================================
   // 3. CARDS DE RESUMO FINANCEIRO (KPIs)
   // =========================================================================
-  const cardY = 55;
+  const cardY = 57;
   const cardHeight = 16;
   const cardWidth = 58;
 
@@ -243,7 +396,7 @@ export const exportToPDF = ({
   doc.text(formatCurrency(totalPendente), 142, cardY + 12);
 
   // =========================================================================
-  // 4. TABELA DE LANÇAMENTOS (AUTOTABLE)
+  // 4. TABELA DE LANÇAMENTOS (AUTOTABLE COM TOTAIS NO FOOTER)
   // =========================================================================
   const tableData = despesas.map((item) => {
     const isReceita =
@@ -265,6 +418,17 @@ export const exportToPDF = ({
     startY: cardY + cardHeight + 6,
     head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Status', 'Recibo']],
     body: tableData,
+    foot: [
+      [
+        'TOTAL',
+        '',
+        '',
+        `${despesas.length} lançamento(s) listados`,
+        formatCurrency(totalGeral),
+        `Quitado: ${formatCurrency(totalPago)}`,
+        '',
+      ],
+    ],
     theme: 'grid',
     styles: {
       font: 'helvetica',
@@ -280,6 +444,12 @@ export const exportToPDF = ({
       fontStyle: 'bold',
       fontSize: 8,
       halign: 'left',
+    },
+    footStyles: {
+      fillColor: [241, 245, 249],
+      textColor: [15, 23, 42],
+      fontStyle: 'bold',
+      fontSize: 8,
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252],
@@ -305,7 +475,7 @@ export const exportToPDF = ({
       doc.line(14, 287, 196, 287);
 
       doc.text(
-        'GSR Finanças • Relatório emitido para simples conferência e auditoria interna.',
+        `GSR Finanças • Relatório de Auditoria • Período: ${periodLabel}`,
         14,
         292
       );
