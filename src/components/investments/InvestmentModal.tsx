@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { InvestimentoItem, TipoInvestimento } from '../../types/app';
 import type { Json } from '../../types/database.types';
+import { parseBrazilianNumber, formatCurrencyInput } from '../../lib/formatters';
 import {
   X,
   PiggyBank,
@@ -41,7 +42,7 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
   const [nome, setNome] = useState<string>(investmentToEdit?.nome || '');
   const [tipo, setTipo] = useState<TipoInvestimento>(investmentToEdit?.tipo || 'CDB');
   const [instituicao, setInstituicao] = useState<string>(investmentToEdit?.instituicao || '');
-  const [valor, setValor] = useState<string>(investmentToEdit ? String(investmentToEdit.valor) : '');
+  const [valor, setValor] = useState<string>(investmentToEdit ? formatCurrencyInput(investmentToEdit.valor) : '');
   const [rentabilidade, setRentabilidade] = useState<string>(investmentToEdit?.rentabilidade || '');
   
   const [loading, setLoading] = useState<boolean>(false);
@@ -53,7 +54,7 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    const parsedValor = parseFloat(valor.replace(',', '.'));
+    const parsedValor = parseBrazilianNumber(valor);
     if (isNaN(parsedValor) || parsedValor < 0) {
       setError('Informe um valor de investimento válido.');
       return;
@@ -265,10 +266,16 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
               </label>
               <input
                 type="text"
+                inputMode="decimal"
                 required
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
-                placeholder="Ex: 5000,00"
+                onBlur={() => {
+                  if (valor.trim()) {
+                    setValor(formatCurrencyInput(valor));
+                  }
+                }}
+                placeholder="0,00"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
               />
             </div>

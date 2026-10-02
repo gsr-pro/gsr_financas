@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { WorkspaceRow, WorkspaceType, TipoImovel } from '../../types/app';
+import { parseBrazilianNumber, formatCurrencyInput } from '../../lib/formatters';
 import {
   X,
   Building2,
@@ -60,9 +61,9 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
       setTipoImovel((workspaceToEdit.tipo_imovel as TipoImovel) || 'terreno');
       setDimensoes(workspaceToEdit.dimensoes_terreno || '');
       setValorAquisicao(
-        workspaceToEdit.valor_aquisicao !== undefined && workspaceToEdit.valor_aquisicao !== null
-          ? String(workspaceToEdit.valor_aquisicao)
-          : '0'
+        workspaceToEdit.valor_aquisicao !== undefined && workspaceToEdit.valor_aquisicao !== null && Number(workspaceToEdit.valor_aquisicao) > 0
+          ? formatCurrencyInput(workspaceToEdit.valor_aquisicao)
+          : ''
       );
       setDataAquisicao(workspaceToEdit.data_aquisicao || '');
       setLocalizacao(workspaceToEdit.localizacao || '');
@@ -71,7 +72,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
       setTipo(currentEnvironment);
       setTipoImovel('terreno');
       setDimensoes('');
-      setValorAquisicao('0');
+      setValorAquisicao('');
       setDataAquisicao('');
       setLocalizacao('');
     }
@@ -91,7 +92,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
       setLoading(true);
       setError(null);
 
-      const parsedValor = parseFloat(valorAquisicao.replace(',', '.')) || 0;
+      const parsedValor = parseBrazilianNumber(valorAquisicao);
 
       const details: Partial<WorkspaceRow> = {
         tipo,
@@ -300,13 +301,17 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                     <span>Valor de Aquisição (R$)</span>
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0,00"
                     value={valorAquisicao}
                     onChange={(e) => setValorAquisicao(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    onBlur={() => {
+                      if (valorAquisicao.trim()) {
+                        setValorAquisicao(formatCurrencyInput(valorAquisicao));
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-mono"
                   />
                 </div>
               </div>

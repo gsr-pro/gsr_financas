@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { InvestimentoItem, TipoInvestimento } from '../../types/app';
 import type { Json } from '../../types/database.types';
-import { formatCurrency } from '../../lib/formatters';
+import { formatCurrency, formatPercent } from '../../lib/formatters';
 import { InvestmentModal } from './InvestmentModal';
 import { supabase } from '../../lib/supabaseClient';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -167,7 +167,7 @@ export const InvestmentDashboard: React.FC<InvestmentDashboardProps> = ({
                       key={t}
                       style={{ width: `${pct}%` }}
                       className={`h-full ${colorConfig.bg.replace('/15', '')} transition-all`}
-                      title={`${t}: ${formatCurrency(amount)} (${pct.toFixed(1)}%)`}
+                      title={`${t}: ${formatCurrency(amount)} (${formatPercent(pct, 1)})`}
                     />
                   );
                 })}
@@ -183,7 +183,7 @@ export const InvestmentDashboard: React.FC<InvestmentDashboardProps> = ({
                       <div className={`w-2 h-2 rounded-full ${colorConfig.text.replace('text-', 'bg-')}`} />
                       <span className="text-slate-300 font-medium">{t}:</span>
                       <span className="font-mono text-white font-bold">{formatCurrency(amount)}</span>
-                      <span className="text-slate-500 font-mono">({pct.toFixed(0)}%)</span>
+                      <span className="text-slate-500 font-mono">({formatPercent(pct, 0)})</span>
                     </div>
                   );
                 })}

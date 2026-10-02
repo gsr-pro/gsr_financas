@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatCurrency } from '../lib/formatters';
+import { formatCurrency, formatPercent } from '../lib/formatters';
 
 interface CategoryItem {
   name: string;
@@ -33,7 +33,7 @@ export const CategoryProgress: React.FC<CategoryProgressProps> = ({
                 key={cat.name}
                 style={{ width: `${percentage}%` }}
                 className={`${cat.color} transition-all duration-500`}
-                title={`${cat.name}: ${percentage.toFixed(1)}%`}
+                title={`${cat.name}: ${formatPercent(percentage, 1)}`}
               />
             );
           })}
@@ -57,7 +57,7 @@ export const CategoryProgress: React.FC<CategoryProgressProps> = ({
                   {formatCurrency(cat.amount)}
                 </span>
                 <span className="text-[11px] font-mono text-slate-500 w-11 text-right">
-                  {percentage.toFixed(0)}%
+                  {formatPercent(percentage, 0)}
                 </span>
               </div>
             </div>

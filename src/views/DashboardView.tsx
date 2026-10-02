@@ -6,7 +6,7 @@ import { MetricCard } from '../components/MetricCard';
 import { CategoryProgress } from '../components/CategoryProgress';
 import { DashboardSkeleton } from '../components/LoadingSkeleton';
 import { InvestmentDashboard } from '../components/investments/InvestmentDashboard';
-import { formatCurrency, formatDate, getCategoryBadgeStyle } from '../lib/formatters';
+import { formatCurrency, formatPercent, formatDate, getCategoryBadgeStyle } from '../lib/formatters';
 import {
   Trees,
   FileText,
@@ -446,7 +446,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div>
                 <span className="text-xs font-medium text-slate-400 block">Margem Líquida</span>
                 <span className="text-lg font-black text-indigo-400 font-mono">
-                  {totalReceitas > 0 ? `${((saldoLiquido / totalReceitas) * 100).toFixed(1)}%` : '0.0%'}
+                  {totalReceitas > 0 ? formatPercent((saldoLiquido / totalReceitas) * 100, 1) : '0,0%'}
                 </span>
                 <span className="text-[10px] text-slate-500 block mt-0.5">
                   {totalReceitas > 0

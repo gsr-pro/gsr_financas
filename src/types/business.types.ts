@@ -37,3 +37,23 @@ export interface ProdutoPrecificacao {
   ponto_equilibrio_unidades?: number;
   criado_em: string;
 }
+
+export interface InsumoSimulacaoState {
+  id: string;
+  nome: string;
+  quantidade: number;
+  unidade_medida: UnidadeMedida;
+  custo_unitario: number;
+}
+
+export interface SimulacaoPrecificacaoSalva {
+  id: string;
+  nome: string;
+  insumos: InsumoSimulacaoState[];
+  horasTrabalho: number;
+  valorHoraMaoObra: number;
+  custosFixosRateados: number;
+  margemDesejada: number;
+  custoFixoMensal: number;
+  updated_at: string;
+}

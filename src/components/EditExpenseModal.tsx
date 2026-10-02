@@ -4,6 +4,7 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { CreateCategoryModal } from './category/CreateCategoryModal';
 import type { DespesaRow, StatusPagamento, TipoMovimentacao } from '../types/app';
 import type { Database } from '../types/database.types';
+import { parseBrazilianNumber, formatCurrencyInput } from '../lib/formatters';
 import {
   X,
   Calendar,
@@ -75,7 +76,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setCategoria(expense.categoria);
       const cleanDesc = expense.descricao.replace(/^\[RECEITA\]\s*/i, '');
       setDescricao(cleanDesc);
-      setValor(expense.valor.toString().replace('.', ','));
+      setValor(formatCurrencyInput(expense.valor));
       setStatusPagamento(expense.status_pagamento);
       setObservacoes(expense.observacoes || '');
       setExistingFotoUrl(expense.foto_comprovante_url || null);
@@ -123,7 +124,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const parsedValor = parseFloat(valor.replace(',', '.'));
+    const parsedValor = parseBrazilianNumber(valor);
     if (isNaN(parsedValor) || parsedValor <= 0) {
       setErrorMessage('Informe um valor numérico válido maior que zero.');
       return;
@@ -440,7 +441,12 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 placeholder="0,00"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                onBlur={() => {
+                  if (valor.trim()) {
+                    setValor(formatCurrencyInput(valor));
+                  }
+                }}
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all font-mono"
               />
             </div>
           </div>
