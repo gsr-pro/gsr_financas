@@ -50,9 +50,9 @@ const DEFAULT_WORKSPACES_CONFIG: Record<
 > = {
   obra: {
     nome: 'Controle de Obra Principal',
-    valor_aquisicao: 50000.0,
+    valor_aquisicao: 0.0,
     tipo_imovel: 'terreno',
-    dimensoes_terreno: 'Terreno Principal',
+    dimensoes_terreno: null,
   },
   pessoal: {
     nome: 'Minhas Finanças Pessoais',

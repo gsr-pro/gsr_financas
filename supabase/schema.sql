@@ -115,9 +115,9 @@ with metricas as (
     from public.despesas
 )
 select
-    50000.00::numeric(12, 2) as valor_aquisicao_terreno,
-    '10/04/2022'::text as data_aquisicao_terreno,
-    '10x50m (500m²)'::text as dimensoes_terreno,
+    0.00::numeric(12, 2) as valor_aquisicao_terreno,
+    null::text as data_aquisicao_terreno,
+    null::text as dimensoes_terreno,
     m.total_materiais,
     m.total_mao_de_obra,
     m.total_documentacao,
@@ -126,7 +126,7 @@ select
     m.total_pago,
     m.total_pendente,
     m.total_despesas,
-    (50000.00 + m.total_despesas)::numeric(12, 2) as custo_total_geral,
+    m.total_despesas::numeric(12, 2) as custo_total_geral,
     m.total_lancamentos
 from metricas m;
 
@@ -557,7 +557,7 @@ begin
     -- 1. Garante que existam os 3 ambientes nativos de forma atômica
     if not exists (select 1 from public.workspaces where user_id = p_user_id and tipo = 'obra') then
         insert into public.workspaces (user_id, nome, tipo, is_default, valor_aquisicao, dimensoes_terreno)
-        values (p_user_id, 'Controle de Obra Principal', 'obra', true, 50000.00, 'Terreno Principal');
+        values (p_user_id, 'Controle de Obra Principal', 'obra', true, 0.00, null);
     end if;
 
     if not exists (select 1 from public.workspaces where user_id = p_user_id and tipo = 'pessoal') then
