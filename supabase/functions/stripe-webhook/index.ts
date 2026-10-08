@@ -39,7 +39,8 @@ serve(async (req: Request) => {
 
   try {
     const body = await req.text();
-    event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
+    // No Deno/Edge Runtime com SubtleCrypto, a validação de assinatura DEVE ser assíncrona
+    event = await stripe.webhooks.constructEventAsync(body, signature, endpointSecret);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Falha na validação do webhook';
     console.error(`Erro ao validar evento Stripe: ${message}`);
@@ -81,13 +82,37 @@ serve(async (req: Request) => {
           }
         }
 
+        // Se houver subscriptionId, buscamos os dados completos da assinatura no Stripe
+        let currentPeriodEnd = new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString();
+        let stripePriceId: string | null = null;
+        let subscriptionItemNickname = '';
+        let subscriptionPriceMetadataPlan = '';
+
+        if (subscriptionId) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            if (sub.current_period_end) {
+              currentPeriodEnd = new Date(sub.current_period_end * 1000).toISOString();
+            }
+            const firstItem = sub.items?.data?.[0];
+            stripePriceId = firstItem?.price?.id || null;
+            subscriptionItemNickname = (firstItem?.price?.nickname || '').toLowerCase();
+            subscriptionPriceMetadataPlan = (firstItem?.price?.metadata?.plan || '').toLowerCase();
+          } catch (fetchSubErr) {
+            console.warn('[Stripe Webhook] Aviso ao obter detalhes da assinatura:', fetchSubErr);
+          }
+        }
+
         // Determina se o plano é 'business' ou 'lite'
         const metaTier = (session.metadata?.tier || '').toLowerCase();
         const metaPlan = (session.metadata?.plan || '').toLowerCase();
         const isBusiness =
           metaTier === 'business' ||
           metaPlan.includes('business') ||
-          (session.amount_total !== null && session.amount_total >= 2000); // R$ 20,00+ = Business
+          subscriptionItemNickname.includes('business') ||
+          subscriptionPriceMetadataPlan.includes('business') ||
+          (stripePriceId && (stripePriceId.includes('1ULvH') || stripePriceId.includes('1ULvI'))) ||
+          (session.amount_total !== null && session.amount_total >= 2000);
 
         const planTier = isBusiness ? 'business' : 'lite';
 
@@ -98,9 +123,10 @@ serve(async (req: Request) => {
               user_id: userId,
               stripe_customer_id: customerId || null,
               stripe_subscription_id: subscriptionId || null,
+              stripe_price_id: stripePriceId || null,
               plan_tier: planTier,
               status: 'active',
-              current_period_end: new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString(),
+              current_period_end: currentPeriodEnd,
               updated_at: new Date().toISOString(),
             }, { onConflict: 'user_id' });
 
@@ -129,10 +155,22 @@ serve(async (req: Request) => {
 
         // Determina tier baseado nos itens do plano se disponível
         const priceId = subscription.items?.data?.[0]?.price?.id || '';
+        const nickname = (subscription.items?.data?.[0]?.price?.nickname || '').toLowerCase();
+        const metaPlan = (subscription.items?.data?.[0]?.price?.metadata?.plan || '').toLowerCase();
+
         let planTier: 'lite' | 'business' | undefined;
-        if (priceId.includes('1ULvH') || priceId.includes('business')) {
+        if (
+          priceId.includes('1ULvH') ||
+          priceId.includes('1ULvI') ||
+          nickname.includes('business') ||
+          metaPlan.includes('business')
+        ) {
           planTier = 'business';
-        } else if (priceId.includes('1ULUV') || priceId.includes('lite')) {
+        } else if (
+          priceId.includes('1ULU') ||
+          nickname.includes('lite') ||
+          metaPlan.includes('lite')
+        ) {
           planTier = 'lite';
         }
 
@@ -145,6 +183,10 @@ serve(async (req: Request) => {
 
         if (planTier) {
           updateData.plan_tier = planTier;
+        }
+
+        if (priceId) {
+          updateData.stripe_price_id = priceId;
         }
 
         const { error: updateErr } = await supabaseAdmin
