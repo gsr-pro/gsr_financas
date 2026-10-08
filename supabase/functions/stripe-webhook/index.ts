@@ -1,21 +1,38 @@
-// Supabase Edge Function: stripe-webhook
+// @ts-nocheck
+// Supabase Edge Function: stripe-webhook (Runtime: Deno)
 // Sincroniza assinaturas e pagamentos da Stripe diretamente no banco PostgreSQL do Supabase
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
+// Declaração de ambient types para compatibilidade com IDEs fora do ambiente Deno
+declare const Deno: {
+  env: {
+    get: (key: string) => string | undefined;
+  };
+};
+
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || 'whsec_bm7DYsOh9cKwKKRkP2JXZLuWd7pWKkRL';
 
-serve(async (req) => {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   const signature = req.headers.get('stripe-signature');
 
-  if (!signature || !endpointSecret) {
-    return new Response('Webhook Secret ou assinatura ausente.', { status: 400 });
+  if (!signature) {
+    return new Response('Assinatura do Stripe ausente.', { status: 400 });
   }
 
   let event: Stripe.Event;
@@ -25,34 +42,76 @@ serve(async (req) => {
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Falha na validação do webhook';
+    console.error(`Erro ao validar evento Stripe: ${message}`);
     return new Response(`Erro de webhook: ${message}`, { status: 400 });
   }
 
   // Instancia client do Supabase com service_role_key para gravar ignorando RLS
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL') as string,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string
-  );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://qluewnanniwhcjlgvjof.supabase.co';
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+  if (!supabaseServiceKey) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY não configurada no ambiente.');
+    return new Response('Configuração interna ausente', { status: 500 });
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id;
+        let userId = session.client_reference_id;
         const subscriptionId = session.subscription as string;
         const customerId = session.customer as string;
+        const userEmail = session.customer_details?.email || session.customer_email;
+
+        console.log(`[Stripe Webhook] checkout.session.completed recebido para cliente: ${userEmail}, ref: ${userId}`);
+
+        // Fallback: se client_reference_id não veio, localiza o usuário pelo e-mail
+        if (!userId && userEmail) {
+          const { data: perfisUser } = await supabaseAdmin
+            .from('perfis')
+            .select('id')
+            .ilike('email', userEmail.trim())
+            .maybeSingle();
+
+          if (perfisUser?.id) {
+            userId = perfisUser.id;
+          }
+        }
+
+        // Determina se o plano é 'business' ou 'lite'
+        const metaTier = (session.metadata?.tier || '').toLowerCase();
+        const metaPlan = (session.metadata?.plan || '').toLowerCase();
+        const isBusiness =
+          metaTier === 'business' ||
+          metaPlan.includes('business') ||
+          (session.amount_total !== null && session.amount_total >= 2000); // R$ 20,00+ = Business
+
+        const planTier = isBusiness ? 'business' : 'lite';
 
         if (userId) {
-          await supabaseAdmin
+          const { error: upsertErr } = await supabaseAdmin
             .from('subscriptions')
             .upsert({
               user_id: userId,
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
-              plan_tier: 'obra',
+              stripe_customer_id: customerId || null,
+              stripe_subscription_id: subscriptionId || null,
+              plan_tier: planTier,
               status: 'active',
+              current_period_end: new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString(),
               updated_at: new Date().toISOString(),
             }, { onConflict: 'user_id' });
+
+          if (upsertErr) {
+            console.error('[Stripe Webhook] Erro ao gravar assinatura no Supabase:', upsertErr);
+            throw upsertErr;
+          }
+
+          console.log(`[Stripe Webhook] Assinatura ativada com sucesso para usuário: ${userId}, plano: ${planTier}`);
+        } else {
+          console.warn('[Stripe Webhook] Usuário não identificado para a sessão:', session.id);
         }
         break;
       }
@@ -60,18 +119,42 @@ serve(async (req) => {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
-        const status = subscription.status === 'active' ? 'active' : subscription.status === 'past_due' ? 'past_due' : 'canceled';
+        const status = subscription.status === 'active'
+          ? 'active'
+          : subscription.status === 'past_due'
+          ? 'past_due'
+          : 'canceled';
+
         const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-        await supabaseAdmin
+        // Determina tier baseado nos itens do plano se disponível
+        const priceId = subscription.items?.data?.[0]?.price?.id || '';
+        let planTier: 'lite' | 'business' | undefined;
+        if (priceId.includes('1ULvH') || priceId.includes('business')) {
+          planTier = 'business';
+        } else if (priceId.includes('1ULUV') || priceId.includes('lite')) {
+          planTier = 'lite';
+        }
+
+        const updateData: Record<string, unknown> = {
+          status,
+          current_period_end: currentPeriodEnd,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          updated_at: new Date().toISOString(),
+        };
+
+        if (planTier) {
+          updateData.plan_tier = planTier;
+        }
+
+        const { error: updateErr } = await supabaseAdmin
           .from('subscriptions')
-          .update({
-            status,
-            current_period_end: currentPeriodEnd,
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('stripe_customer_id', customerId);
+
+        if (updateErr) {
+          console.error('[Stripe Webhook] Erro ao atualizar subscription:', updateErr);
+        }
         break;
       }
 
@@ -90,17 +173,18 @@ serve(async (req) => {
       }
 
       default:
-        console.log(`Evento ignorado: ${event.type}`);
+        console.log(`[Stripe Webhook] Evento ignorado: ${event.type}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Erro ao processar webhook';
+    console.error('[Stripe Webhook] Erro de execução:', msg);
     return new Response(JSON.stringify({ error: msg }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }

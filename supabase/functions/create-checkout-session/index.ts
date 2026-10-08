@@ -1,4 +1,5 @@
-// Supabase Edge Function: create-checkout-session
+// @ts-nocheck
+// Supabase Edge Function: create-checkout-session (Runtime: Deno)
 // Cria uma sessão de checkout do Stripe com suporte a cupom de 50% nos 2 primeiros meses
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';

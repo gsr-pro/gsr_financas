@@ -15,6 +15,7 @@ import {
   Briefcase,
   Layers,
   FileDown,
+  RefreshCw,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { exportCommercialPlansPDF } from '../../lib/exportCommercialPlansPDF';
@@ -34,13 +35,23 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
   onSelectPlan,
   isInline = false,
 }) => {
-  const { startCheckout } = useSubscription();
+  const { startCheckout, refreshSubscription } = useSubscription();
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('year');
   const [submittingTier, setSubmittingTier] = useState<SubscriptionTier | null>(null);
   const [mobileActivePlan, setMobileActivePlan] = useState<'all' | 'lite' | 'business'>('all');
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   const litePlan = PLANS.lite;
   const businessPlan = PLANS.business;
+
+  const handleVerifyPayment = async () => {
+    setIsVerifying(true);
+    try {
+      await refreshSubscription();
+    } finally {
+      setTimeout(() => setIsVerifying(false), 800);
+    }
+  };
 
   // Extrai categorias únicas de recursos comparativos
   const comparisonCategories = Array.from(
@@ -622,12 +633,24 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center space-x-4 pt-1 sm:pt-0">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 pt-1 sm:pt-0">
+            {reason !== 'landing_page' && (
+              <button
+                type="button"
+                onClick={handleVerifyPayment}
+                disabled={isVerifying}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-500/40 text-[11px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                title="Sincronizar status da assinatura com o provedor de pagamentos"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
+                <span>{isVerifying ? 'Verificando...' : 'Já realizou o pagamento? Sincronizar'}</span>
+              </button>
+            )}
             {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="hover:underline text-slate-400 hover:text-white cursor-pointer"
+                className="hover:underline text-slate-400 hover:text-white cursor-pointer text-xs"
               >
                 {reason === 'trial_expired' ? 'Fechar' : 'Voltar'}
               </button>
@@ -636,7 +659,7 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center space-x-1 text-rose-400 hover:underline cursor-pointer"
+                className="flex items-center space-x-1 text-rose-400 hover:underline cursor-pointer text-xs"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sair da conta</span>

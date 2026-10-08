@@ -96,11 +96,24 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('checkout') === 'success' || searchParams.get('session_id')) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    const hasCheckoutSuccess = searchParams.get('checkout') === 'success' || Boolean(searchParams.get('session_id'));
 
-    fetchSubscription();
+    if (hasCheckoutSuccess) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Busca imediatamente e agenda retentativas para cobrir a latência de processamento do webhook
+      fetchSubscription();
+      const t1 = setTimeout(fetchSubscription, 1500);
+      const t2 = setTimeout(fetchSubscription, 3500);
+      const t3 = setTimeout(fetchSubscription, 6000);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    } else {
+      fetchSubscription();
+    }
 
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
