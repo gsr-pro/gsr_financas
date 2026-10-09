@@ -148,13 +148,13 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
 
           {/* Seletor de Faturamento: Mensal vs Anual (100% Responsivo no Celular) */}
           <div className="pt-2 flex items-center justify-center w-full">
-            <div className="p-1 rounded-2xl bg-slate-950 border border-slate-800 grid grid-cols-2 w-full max-w-xs sm:max-w-sm shadow-inner">
+            <div className="p-1 rounded-2xl bg-slate-950 border border-slate-800 grid grid-cols-2 w-full max-w-xs sm:max-w-sm shadow-inner plan-toggle-track">
               <button
                 type="button"
                 onClick={() => setBillingInterval('month')}
                 className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
                   billingInterval === 'month'
-                    ? 'bg-slate-800 text-white shadow-sm'
+                    ? 'bg-slate-800 text-white shadow-sm plan-toggle-btn-active-month'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -165,12 +165,18 @@ export const PaywallView: React.FC<PaywallViewProps> = ({
                 onClick={() => setBillingInterval('year')}
                 className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 text-center ${
                   billingInterval === 'year'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <span>Anual</span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-slate-950/80 text-emerald-300">
+                <span
+                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all ${
+                    billingInterval === 'year'
+                      ? 'plan-interval-badge-active'
+                      : 'plan-interval-badge-inactive'
+                  }`}
+                >
                   2 Meses OFF
                 </span>
               </button>

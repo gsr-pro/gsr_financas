@@ -21,22 +21,37 @@ interface WorkspaceContextType {
     updates: Partial<WorkspaceRow>
   ) => Promise<WorkspaceRow>;
   deleteWorkspace: (workspaceId: string) => Promise<void>;
-  createCustomCategory: (nome: string, cor?: string) => Promise<CategoriaRow>;
+  createCustomCategory: (
+    nome: string,
+    cor?: string,
+    tipoMovimentacao?: 'despesa' | 'receita'
+  ) => Promise<CategoriaRow>;
+  updateCustomCategory: (
+    id: string,
+    updates: { nome?: string; cor?: string; tipo_movimentacao?: 'despesa' | 'receita' }
+  ) => Promise<CategoriaRow>;
+  deleteCustomCategory: (id: string) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
   refreshCategories: () => Promise<void>;
 }
 
 const DEFAULT_BUSINESS_CATEGORIES: CategoriaRow[] = [
-  { id: 'cat-neg-1', nome: 'Insumos & Matéria-Prima', tipo_ambiente: 'negocio', cor: '#6366F1', icone: 'Boxes', user_id: null, created_at: '' },
-  { id: 'cat-neg-2', nome: 'Embalagens', tipo_ambiente: 'negocio', cor: '#8B5CF6', icone: 'Package', user_id: null, created_at: '' },
-  { id: 'cat-neg-3', nome: 'Custos Fixos / Operacional', tipo_ambiente: 'negocio', cor: '#F59E0B', icone: 'Building', user_id: null, created_at: '' },
-  { id: 'cat-neg-4', nome: 'Equipamentos & Ferramentas', tipo_ambiente: 'negocio', cor: '#3B82F6', icone: 'Wrench', user_id: null, created_at: '' },
-  { id: 'cat-neg-5', nome: 'Marketing & Anúncios', tipo_ambiente: 'negocio', cor: '#EC4899', icone: 'Megaphone', user_id: null, created_at: '' },
-  { id: 'cat-neg-6', nome: 'Logística & Frete', tipo_ambiente: 'negocio', cor: '#06B6D4', icone: 'Truck', user_id: null, created_at: '' },
-  { id: 'cat-neg-7', nome: 'Impostos & Tributos', tipo_ambiente: 'negocio', cor: '#EF4444', icone: 'Receipt', user_id: null, created_at: '' },
-  { id: 'cat-neg-8', nome: 'Pró-Labore & Equipe', tipo_ambiente: 'negocio', cor: '#10B981', icone: 'Users', user_id: null, created_at: '' },
-  { id: 'cat-neg-9', nome: 'Serviços Terceirizados', tipo_ambiente: 'negocio', cor: '#14B8A6', icone: 'Briefcase', user_id: null, created_at: '' },
-  { id: 'cat-neg-10', nome: 'Outros Custos', tipo_ambiente: 'negocio', cor: '#64748B', icone: 'Tag', user_id: null, created_at: '' },
+  // Despesas
+  { id: 'cat-neg-1', nome: 'Insumos & Matéria-Prima', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#6366F1', icone: 'Boxes', user_id: null, created_at: '' },
+  { id: 'cat-neg-2', nome: 'Embalagens', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#8B5CF6', icone: 'Package', user_id: null, created_at: '' },
+  { id: 'cat-neg-3', nome: 'Custos Fixos / Operacional', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#F59E0B', icone: 'Building', user_id: null, created_at: '' },
+  { id: 'cat-neg-4', nome: 'Equipamentos & Ferramentas', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#3B82F6', icone: 'Wrench', user_id: null, created_at: '' },
+  { id: 'cat-neg-5', nome: 'Marketing & Anúncios', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#EC4899', icone: 'Megaphone', user_id: null, created_at: '' },
+  { id: 'cat-neg-6', nome: 'Logística & Frete', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#06B6D4', icone: 'Truck', user_id: null, created_at: '' },
+  { id: 'cat-neg-7', nome: 'Impostos & Tributos', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#EF4444', icone: 'Receipt', user_id: null, created_at: '' },
+  { id: 'cat-neg-8', nome: 'Pró-Labore & Equipe', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#10B981', icone: 'Users', user_id: null, created_at: '' },
+  { id: 'cat-neg-9', nome: 'Serviços Terceirizados', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#14B8A6', icone: 'Briefcase', user_id: null, created_at: '' },
+  { id: 'cat-neg-10', nome: 'Outros Custos', tipo_ambiente: 'negocio', tipo_movimentacao: 'despesa', cor: '#64748B', icone: 'Tag', user_id: null, created_at: '' },
+  // Receitas
+  { id: 'cat-neg-11', nome: 'Venda de Produtos', tipo_ambiente: 'negocio', tipo_movimentacao: 'receita', cor: '#10B981', icone: 'ShoppingBag', user_id: null, created_at: '' },
+  { id: 'cat-neg-12', nome: 'Prestação de Serviços', tipo_ambiente: 'negocio', tipo_movimentacao: 'receita', cor: '#06B6D4', icone: 'Briefcase', user_id: null, created_at: '' },
+  { id: 'cat-neg-13', nome: 'Contratos Recorrentes', tipo_ambiente: 'negocio', tipo_movimentacao: 'receita', cor: '#8B5CF6', icone: 'Repeat', user_id: null, created_at: '' },
+  { id: 'cat-neg-14', nome: 'Comissões & Bonificações', tipo_ambiente: 'negocio', tipo_movimentacao: 'receita', cor: '#F59E0B', icone: 'Award', user_id: null, created_at: '' },
 ];
 
 const DEFAULT_WORKSPACES_CONFIG: Record<
@@ -471,13 +486,23 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [workspaces, currentWorkspace, currentEnvironment, persistActiveWorkspace]
   );
 
-  // Cria uma categoria customizada na hora (com o tenant_id do usuário)
+  // Cria uma categoria customizada na hora (com o tenant_id do usuário e tipo_movimentacao)
   const createCustomCategory = useCallback(
-    async (nome: string, cor?: string): Promise<CategoriaRow> => {
+    async (
+      nome: string,
+      cor?: string,
+      tipoMovimentacao: 'despesa' | 'receita' = 'despesa'
+    ): Promise<CategoriaRow> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado.');
 
-      const hexColor = cor || (currentEnvironment === 'obra' ? '#10B981' : '#3B82F6');
+      const hexColor =
+        cor ||
+        (tipoMovimentacao === 'receita'
+          ? '#10B981'
+          : currentEnvironment === 'obra'
+          ? '#10B981'
+          : '#3B82F6');
 
       const { data, error } = await supabase
         .from('categorias')
@@ -485,8 +510,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           user_id: user.id,
           nome: nome.trim(),
           tipo_ambiente: currentEnvironment,
+          tipo_movimentacao: tipoMovimentacao,
           cor: hexColor,
-          icone: 'Tag',
+          icone: tipoMovimentacao === 'receita' ? 'TrendingUp' : 'Tag',
         })
         .select()
         .single();
@@ -498,6 +524,57 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return created;
     },
     [currentEnvironment]
+  );
+
+  // Atualiza uma categoria criada pelo próprio usuário
+  const updateCustomCategory = useCallback(
+    async (
+      id: string,
+      updates: { nome?: string; cor?: string; tipo_movimentacao?: 'despesa' | 'receita' }
+    ): Promise<CategoriaRow> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await supabase
+        .from('categorias')
+        .update({
+          ...updates,
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error || !data) throw error || new Error('Falha ao atualizar categoria ou permissão negada.');
+
+      const updated = data as CategoriaRow;
+      setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      return updated;
+    },
+    []
+  );
+
+  // Exclui uma categoria criada pelo usuário (salvaguarda: nunca exclui categorias nativas globais)
+  const deleteCustomCategory = useCallback(
+    async (id: string): Promise<void> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const target = categories.find((c) => c.id === id);
+      if (!target?.user_id) {
+        throw new Error('Categorias padrão do sistema não podem ser excluídas.');
+      }
+
+      const { error } = await supabase
+        .from('categorias')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+    },
+    [categories]
   );
 
   return (
@@ -515,6 +592,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateWorkspace,
         deleteWorkspace,
         createCustomCategory,
+        updateCustomCategory,
+        deleteCustomCategory,
         refreshWorkspaces: fetchWorkspaces,
         refreshCategories: fetchCategories,
       }}

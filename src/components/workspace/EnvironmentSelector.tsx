@@ -97,12 +97,12 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
       <button
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className={`flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-sm transition-all group ${
+        className={`flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 shadow-sm transition-all group theme-environment-trigger ${
           fullWidth ? 'w-full justify-between' : 'max-w-full'
         }`}
         title="Clique para alternar entre Obra, Negócio ou Finanças Pessoais"
       >
-        <div className="flex items-center space-x-2 min-w-0">
+        <div className="flex items-center space-x-2 min-w-0 flex-1">
           {/* Ícone e Badge do Tipo de Ambiente */}
           <span
             className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex-shrink-0 ${
@@ -124,11 +124,11 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
           </span>
 
           {/* Nome do Projeto / Ambiente em Destaque */}
-          <div className="text-left flex flex-col justify-center min-w-0">
+          <div className="text-left flex flex-col justify-center min-w-0 flex-1">
             <span
-              className={`text-xs font-bold text-white group-hover:text-emerald-300 transition-colors leading-tight ${
+              className={`text-xs font-bold text-[var(--text-primary)] theme-environment-title group-hover:text-emerald-500 transition-colors leading-tight ${
                 fullWidth
-                  ? 'truncate max-w-[140px] sm:max-w-[170px]'
+                  ? 'truncate block max-w-[150px] sm:max-w-[185px]'
                   : 'max-w-[70px] min-[360px]:max-w-[95px] min-[390px]:max-w-[125px] sm:max-w-[190px] truncate'
               }`}
             >
@@ -144,7 +144,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
 
         {/* Seta do Dropdown */}
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform duration-200 flex-shrink-0 ${
+          className={`w-3.5 h-3.5 text-slate-400 group-hover:text-[var(--text-primary)] transition-transform duration-200 flex-shrink-0 ${
             dropdownOpen ? 'rotate-180' : ''
           }`}
         />
@@ -155,7 +155,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
         <div
           className={`absolute top-full left-0 mt-2 ${
             fullWidth ? 'w-full' : 'w-[calc(100vw-1.5rem)] max-w-xs sm:w-80'
-          } bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-2xl z-50 animate-fade-in space-y-3`}
+          } bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-2xl z-50 animate-fade-in space-y-3 theme-environment-dropdown`}
         >
           
           {/* Seletor de Modo / Tipo (Obra vs Pessoal vs Negócio) */}
@@ -165,7 +165,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
               <span className="text-[9px] text-slate-500">3 Ambientes Nativos</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800">
+            <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800 theme-environment-type-pills">
               <button
                 type="button"
                 onClick={() => handleSwitchType('obra')}
@@ -231,12 +231,12 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
                       onClick={() => handleSelect(w.id)}
                       className={`w-full text-left p-2 rounded-xl text-xs flex items-center justify-between transition-all ${
                         isSelected
-                          ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30'
-                          : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'
+                          ? 'bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30'
+                          : 'text-[var(--text-primary)] hover:bg-slate-800/80 border border-transparent'
                       }`}
                     >
                       <div className="truncate mr-2">
-                        <span className="block truncate font-semibold">{w.nome}</span>
+                        <span className="block truncate font-semibold text-[var(--text-primary)]">{w.nome}</span>
                         {w.tipo === 'obra' && w.dimensoes_terreno && (
                           <span className="text-[10px] text-slate-400 block truncate">
                             {w.dimensoes_terreno}
@@ -262,7 +262,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
           {creatingNew ? (
             <form onSubmit={handleCreateWorkspace} className="pt-2 border-t border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-white flex items-center space-x-1">
+                <span className="text-[11px] font-bold text-[var(--text-primary)] flex items-center space-x-1">
                   <FolderPlus className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Novo Projeto</span>
                 </span>

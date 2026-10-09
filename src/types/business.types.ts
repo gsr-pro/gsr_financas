@@ -57,3 +57,28 @@ export interface SimulacaoPrecificacaoSalva {
   custoFixoMensal: number;
   updated_at: string;
 }
+
+export type TipoNegocio = 'comercio' | 'servico' | 'producao';
+
+export type UnidadeEstoque = 'un' | 'cx' | 'kg' | 'g' | 'l' | 'ml' | 'm' | 'par';
+
+export interface EstoqueItemRow {
+  id: string;
+  user_id: string;
+  workspace_id?: string | null;
+  nome: string;
+  sku?: string | null;
+  categoria?: string | null;
+  unidade_medida: string;
+  quantidade_atual: number;
+  estoque_minimo: number;
+  custo_unitario: number;
+  preco_venda: number;
+  fornecedor?: string | null;
+  localizacao?: string | null;
+  observacoes?: string | null;
+  tipo_negocio?: TipoNegocio | null;
+  created_at: string;
+  updated_at: string;
+}
+

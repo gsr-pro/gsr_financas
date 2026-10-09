@@ -25,6 +25,14 @@ export type CategoriaDespesa = string;
 
 export type TipoMovimentacao = 'despesa' | 'receita';
 
+export type FormaPagamento =
+  | 'pix'
+  | 'credito'
+  | 'debito'
+  | 'dinheiro'
+  | 'boleto'
+  | 'transferencia';
+
 export type TipoInvestimento =
   | 'CDB'
   | 'Poupança'

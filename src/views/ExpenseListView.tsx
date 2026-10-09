@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
 import type { DespesaRow } from '../types/app';
-import { formatCurrency, formatDate, getCategoryBadgeStyle } from '../lib/formatters';
+import { formatCurrency, formatDate, getCategoryBadgeStyle, formatFormaPagamento } from '../lib/formatters';
 import { ComprovanteModal } from '../components/ComprovanteModal';
 import { ListSkeleton } from '../components/LoadingSkeleton';
 import { EmptyState } from '../components/EmptyState';
@@ -18,8 +18,10 @@ import {
   TrendingUp,
   TrendingDown,
   FileDown,
+  Tag,
 } from 'lucide-react';
 import { EditExpenseModal } from '../components/EditExpenseModal';
+import { ManageCategoriesModal } from '../components/category/ManageCategoriesModal';
 import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
 import { ExportReportModal } from '../components/export/ExportReportModal';
 
@@ -56,6 +58,7 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
   // Modal de Comprovante e Modal de Edição
   const [activeComprovante, setActiveComprovante] = useState<{ url: string; descricao: string } | null>(null);
   const [editingExpense, setEditingExpense] = useState<DespesaRow | null>(null);
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState<boolean>(false);
 
   // Exclusão
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -323,8 +326,18 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
           )}
         </div>
 
-        {/* Pílulas de Categoria Horizontais */}
+        {/* Pílulas de Categoria Horizontais com Acesso a Gestão */}
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setManageCategoriesOpen(true)}
+            className="px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 border border-slate-800 hover:border-slate-700 flex items-center space-x-1.5 transition-all flex-shrink-0 cursor-pointer"
+            title="Gerenciar categorias (Criar, Editar ou Excluir)"
+          >
+            <Tag className="w-3 h-3 text-emerald-400" />
+            <span>Gerenciar</span>
+          </button>
+
           {categoriasFiltro.map((cat) => (
             <button
               key={cat}
@@ -381,8 +394,8 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
               >
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {/* Badge Receita / Despesa no ambiente pessoal */}
-                    {currentEnvironment === 'pessoal' && (
+                    {/* Badge Receita / Despesa nos ambientes pessoal e negócio */}
+                    {currentEnvironment !== 'obra' && (
                       isReceita ? (
                         <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                           <TrendingUp className="w-3 h-3 text-emerald-400" />
@@ -399,6 +412,14 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getCategoryBadgeStyle(item.categoria)}`}>
                       {item.categoria}
                     </span>
+
+                    {/* Badge Forma de Pagamento */}
+                    {item.forma_pagamento && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/60 uppercase">
+                        {formatFormaPagamento(item.forma_pagamento)}
+                      </span>
+                    )}
+
                     <span className="text-[11px] font-mono text-slate-400">
                       {formatDate(item.data_gasto)}
                     </span>
@@ -431,7 +452,7 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                     >
                       {isReceita
                         ? `+ ${formatCurrency(item.valor)}`
-                        : currentEnvironment === 'pessoal'
+                        : currentEnvironment !== 'obra'
                         ? `- ${formatCurrency(item.valor)}`
                         : formatCurrency(item.valor)}
                     </span>
@@ -510,6 +531,15 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
         workspaceType={currentEnvironment}
         userEmail={currentUser.email}
         userName={currentUser.name}
+      />
+
+      {/* Modal de Gestão Completa de Categorias (CRUD) */}
+      <ManageCategoriesModal
+        isOpen={manageCategoriesOpen}
+        onClose={() => {
+          setManageCategoriesOpen(false);
+          fetchDespesas();
+        }}
       />
     </div>
   );

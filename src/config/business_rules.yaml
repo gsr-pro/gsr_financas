@@ -1,0 +1,120 @@
+# ==============================================================================
+# REGRAS DE NEGÓCIO DECLARATIVAS - GSR FINANÇAS
+# Este arquivo é a fonte da verdade conceitual para Vibecoding e parametrização.
+# ==============================================================================
+
+version: "1.0.0"
+updated_at: "2026-10-08"
+
+# ------------------------------------------------------------------------------
+# Formas de Pagamento Homologadas (Pessoal & Negócio)
+# ------------------------------------------------------------------------------
+payment_methods:
+  - id: "pix"
+    label: "Pix"
+    short_label: "Pix"
+    description: "Transferência instantânea via Banco Central"
+    enabled: true
+
+  - id: "credito"
+    label: "Cartão de Crédito"
+    short_label: "Crédito"
+    description: "Pagamento à vista ou parcelado no cartão"
+    enabled: true
+
+  - id: "debito"
+    label: "Cartão de Débito"
+    short_label: "Débito"
+    description: "Débito em conta corrente"
+    enabled: true
+
+  - id: "dinheiro"
+    label: "Dinheiro"
+    short_label: "Dinheiro"
+    description: "Espécie / Cédulas"
+    enabled: true
+
+  - id: "boleto"
+    label: "Boleto Bancário"
+    short_label: "Boleto"
+    description: "Cobrança via compensação bancária"
+    enabled: true
+
+  - id: "transferencia"
+    label: "Transferência Bancária"
+    short_label: "TED/DOC"
+    description: "Transferência bancária tradicional"
+    enabled: true
+
+# ------------------------------------------------------------------------------
+# Segmentos de Negócio & PME (Diferenciação Comércio vs Serviço)
+# ------------------------------------------------------------------------------
+business_sectors:
+  comercio:
+    id: "comercio"
+    label: "Comércio / Varejo"
+    badge: "Comércio"
+    description: "Foco em mercadorias para revenda, produtos acabados e giro de estoque."
+    default_stock_min: 5
+    highlight_stock: true
+    recommended_kpis:
+      - "Giro de Estoque"
+      - "CMV (Custo de Mercadoria Vendida)"
+      - "Margem Bruta por Produto"
+
+  servico:
+    id: "servico"
+    label: "Prestação de Serviços"
+    badge: "Serviço"
+    description: "Foco em horas de trabalho, mão de obra e insumos para prestação de serviços."
+    default_stock_min: 2
+    highlight_stock: false
+    recommended_kpis:
+      - "Valor Hora / Mão de Obra"
+      - "Insumos Aplicados por Ordem de Serviço"
+      - "Margem Líquida Operacional"
+
+  producao:
+    id: "producao"
+    label: "Produção / Insumos"
+    badge: "Produção & Insumos"
+    description: "Insumos, matéria-prima e ingredientes para produção e fabricação própria (ex: hambúrguer artesanal, confeitaria, manufatura)."
+    default_stock_min: 5
+    highlight_stock: true
+    recommended_kpis:
+      - "Custo Imobilizado em Insumos"
+      - "Ponto de Reposição de Matéria-Prima"
+      - "Giro de Insumos Críticos"
+
+# ------------------------------------------------------------------------------
+# Tipos de Imóveis & Especificações Técnicas de Obra
+# ------------------------------------------------------------------------------
+property_types:
+  terreno: "Terreno / Lote"
+  casa: "Casa Residencial"
+  apartamento: "Apartamento"
+  chacara: "Chácara / Sítio"
+  comercial: "Ponto Comercial"
+  reforma: "Reforma"
+  outro: "Projeto"
+
+# ------------------------------------------------------------------------------
+# Unidades de Medida de Estoque
+# ------------------------------------------------------------------------------
+stock_units:
+  - value: "un"
+    label: "Unidade (un)"
+  - value: "cx"
+    label: "Caixa (cx)"
+  - value: "kg"
+    label: "Quilograma (kg)"
+  - value: "g"
+    label: "Grama (g)"
+  - value: "l"
+    label: "Litro (l)"
+  - value: "ml"
+    label: "Mililitro (ml)"
+  - value: "m"
+    label: "Metro (m)"
+  - value: "par"
+    label: "Par (par)"

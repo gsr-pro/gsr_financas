@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { CreateCategoryModal } from './category/CreateCategoryModal';
@@ -20,6 +20,7 @@ import {
   Plus,
   TrendingUp,
   TrendingDown,
+  CreditCard,
 } from 'lucide-react';
 
 interface EditExpenseModalProps {
@@ -39,6 +40,18 @@ const DEFAULT_RECEITA_CATEGORIES = [
   'Outras Receitas',
 ];
 
+const DEFAULT_NEGOCIO_RECEITA_CATEGORIES = [
+  'Venda de Produtos',
+  'Prestação de Serviços',
+  'Contratos Recorrentes',
+  'Comissões & Bonificações',
+  'Outras Receitas',
+];
+
+import { PAYMENT_METHODS } from '../config/businessRules';
+
+const FORMAS_PAGAMENTO = PAYMENT_METHODS.filter((m) => m.enabled);
+
 export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   expense,
   isOpen,
@@ -53,6 +66,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   const [descricao, setDescricao] = useState<string>('');
   const [valor, setValor] = useState<string>('');
   const [statusPagamento, setStatusPagamento] = useState<StatusPagamento>('Pago');
+  const [formaPagamento, setFormaPagamento] = useState<string>('pix');
   const [observacoes, setObservacoes] = useState<string>('');
   const [existingFotoUrl, setExistingFotoUrl] = useState<string | null>(null);
 
@@ -78,6 +92,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setDescricao(cleanDesc);
       setValor(formatCurrencyInput(expense.valor));
       setStatusPagamento(expense.status_pagamento);
+      setFormaPagamento(expense.forma_pagamento || 'pix');
       setObservacoes(expense.observacoes || '');
       setExistingFotoUrl(expense.foto_comprovante_url || null);
       setFile(null);
@@ -86,6 +101,46 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setSuccessMessage(null);
     }
   }, [expense, isOpen]);
+
+  // Lista de categorias filtradas estritamente pelo tipo de movimentação escolhido
+  const availableCategories = useMemo(() => {
+    if (tipoMovimentacao === 'receita') {
+      const dbReceitas = categories.filter(
+        (c) => c.tipo_movimentacao === 'receita' || c.tipo_movimentacao === 'ambos'
+      );
+      if (dbReceitas.length > 0) return dbReceitas;
+      const defaultList = currentEnvironment === 'negocio'
+        ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
+        : DEFAULT_RECEITA_CATEGORIES;
+      return defaultList.map((name) => ({
+        id: `rec-${name}`,
+        nome: name,
+        cor: '#10B981',
+        tipo_ambiente: currentEnvironment,
+        tipo_movimentacao: 'receita' as const,
+        user_id: null,
+        icone: 'TrendingUp',
+        created_at: '',
+      }));
+    }
+    const dbDespesas = categories.filter(
+      (c) => c.tipo_movimentacao === 'despesa' || c.tipo_movimentacao === 'ambos' || !c.tipo_movimentacao
+    );
+    if (dbDespesas.length > 0) return dbDespesas;
+    return categories;
+  }, [tipoMovimentacao, currentEnvironment, categories]);
+
+  const handleToggleTipo = (novoTipo: 'despesa' | 'receita') => {
+    setTipoMovimentacao(novoTipo);
+    const validCats = categories.filter((c) =>
+      novoTipo === 'receita'
+        ? c.tipo_movimentacao === 'receita' || c.tipo_movimentacao === 'ambos'
+        : c.tipo_movimentacao === 'despesa' || c.tipo_movimentacao === 'ambos' || !c.tipo_movimentacao
+    );
+    if (validCats.length > 0 && !validCats.some((c) => c.nome === categoria)) {
+      setCategoria(validCats[0].nome);
+    }
+  };
 
   if (!isOpen || !expense) return null;
 
@@ -164,63 +219,33 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       }
 
       type DespesaUpdate = Database['public']['Tables']['despesas']['Update'];
+      const effectiveTipo: TipoMovimentacao = currentEnvironment === 'obra' ? 'despesa' : tipoMovimentacao;
+
       const updatePayload: DespesaUpdate = {
         data_gasto: dataGasto,
         categoria: categoria,
         descricao: descricao.trim(),
         valor: parsedValor,
         status_pagamento: statusPagamento,
+        tipo_movimentacao: effectiveTipo,
+        forma_pagamento: currentEnvironment !== 'obra' ? formaPagamento : null,
         foto_comprovante_url: finalFotoUrl,
         observacoes: observacoes.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
-      if (currentEnvironment === 'pessoal') {
-        updatePayload.tipo_movimentacao = tipoMovimentacao;
-      }
+      const { data, error: updateError } = await supabase
+        .from('despesas')
+        .update(updatePayload)
+        .eq('id', expense.id)
+        .select()
+        .single();
 
-      let data: DespesaRow | null = null;
-      let updateError: unknown = null;
-
-      try {
-        const res = await supabase
-          .from('despesas')
-          .update(updatePayload)
-          .eq('id', expense.id)
-          .select()
-          .single();
-        data = res.data as DespesaRow;
-        updateError = res.error;
-      } catch (err) {
-        updateError = err;
-      }
-
-      if (updateError && String((updateError as { message?: string }).message || '').includes('tipo_movimentacao')) {
-        const fallbackDesc = tipoMovimentacao === 'receita'
-          ? `[RECEITA] ${descricao.trim()}`
-          : descricao.trim();
-        const cleanPayload: DespesaUpdate = {
-          ...updatePayload,
-          descricao: fallbackDesc,
-        };
-        delete cleanPayload.tipo_movimentacao;
-
-        const fallbackRes = await supabase
-          .from('despesas')
-          .update(cleanPayload)
-          .eq('id', expense.id)
-          .select()
-          .single();
-
-        if (fallbackRes.error) throw fallbackRes.error;
-        data = fallbackRes.data as DespesaRow;
-      } else if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       setSuccessMessage('Lançamento atualizado com sucesso!');
       setTimeout(() => {
-        if (data) onSuccess(data);
+        if (data) onSuccess(data as DespesaRow);
         onClose();
       }, 700);
     } catch (err: unknown) {
@@ -270,8 +295,8 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Seletor de Tipo no ambiente pessoal */}
-          {currentEnvironment === 'pessoal' && (
+          {/* Seletor de Tipo nos ambientes Pessoal e Negócio */}
+          {currentEnvironment !== 'obra' && (
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Tipo de Movimentação
@@ -279,12 +304,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setTipoMovimentacao('despesa');
-                    if (DEFAULT_RECEITA_CATEGORIES.includes(categoria)) {
-                      setCategoria(categories[0]?.nome || 'Moradia');
-                    }
-                  }}
+                  onClick={() => handleToggleTipo('despesa')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border flex items-center justify-center space-x-1.5 transition-all ${
                     tipoMovimentacao === 'despesa'
                       ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 ring-1 ring-rose-500/40 shadow-sm'
@@ -297,10 +317,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setTipoMovimentacao('receita');
-                    setCategoria(DEFAULT_RECEITA_CATEGORIES[0]);
-                  }}
+                  onClick={() => handleToggleTipo('receita')}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border flex items-center justify-center space-x-1.5 transition-all ${
                     tipoMovimentacao === 'receita'
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/40 shadow-sm'
@@ -322,53 +339,35 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <span>Categoria</span>
               </label>
 
-              {tipoMovimentacao !== 'receita' && (
-                <button
-                  type="button"
-                  onClick={() => setIsCategoryModalOpen(true)}
-                  className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 transition-colors"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>+ Nova Categoria</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Nova Categoria</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {currentEnvironment === 'pessoal' && tipoMovimentacao === 'receita'
-                ? DEFAULT_RECEITA_CATEGORIES.map((catNome) => (
-                    <button
-                      key={catNome}
-                      type="button"
-                      onClick={() => setCategoria(catNome)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all flex items-center space-x-1.5 ${
-                        categoria === catNome
-                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-semibold ring-1 ring-emerald-400/40 shadow-sm'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                      }`}
-                    >
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 bg-emerald-400" />
-                      <span className="truncate">{catNome}</span>
-                    </button>
-                  ))
-                : categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setCategoria(cat.nome)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all flex items-center space-x-1.5 ${
-                        categoria === cat.nome
-                          ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-semibold ring-1 ring-emerald-400/40 shadow-sm'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                      }`}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: cat.cor || '#10B981' }}
-                      />
-                      <span className="truncate">{cat.nome}</span>
-                    </button>
-                  ))}
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat.id || cat.nome}
+                  type="button"
+                  onClick={() => setCategoria(cat.nome)}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all flex items-center space-x-1.5 ${
+                    categoria === cat.nome
+                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-semibold ring-1 ring-emerald-400/40 shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                  }`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.cor || (tipoMovimentacao === 'receita' ? '#10B981' : '#38BDF8') }}
+                  />
+                  <span className="truncate">{cat.nome}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -377,10 +376,8 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <FileText className="w-3.5 h-3.5 text-sky-400" />
               <span>
-                {currentEnvironment === 'pessoal'
-                  ? tipoMovimentacao === 'receita'
-                    ? 'Descrição da Receita'
-                    : 'Descrição da Despesa'
+                {currentEnvironment !== 'obra' && tipoMovimentacao === 'receita'
+                  ? 'Descrição da Receita'
                   : 'Descrição da Despesa'}
               </span>
             </label>
@@ -388,9 +385,9 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               type="text"
               required
               placeholder={
-                currentEnvironment === 'pessoal' && tipoMovimentacao === 'receita'
-                  ? 'Ex: Salário mensal, Rendimentos CDB...'
-                  : 'Ex: 50 sacos de areia média...'
+                currentEnvironment !== 'obra' && tipoMovimentacao === 'receita'
+                  ? 'Ex: Venda de produtos, Salário mensal, Rendimentos...'
+                  : 'Ex: 50 sacos de areia média, conta de luz...'
               }
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
@@ -425,12 +422,12 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* 4. Data do Lançamento (Posicionada após o Valor) */}
+          {/* 4. Data do Lançamento */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
               <span>
-                {currentEnvironment === 'pessoal' && tipoMovimentacao === 'receita'
+                {currentEnvironment !== 'obra' && tipoMovimentacao === 'receita'
                   ? 'Data da Receita'
                   : 'Data da Despesa'}
               </span>
@@ -483,6 +480,32 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             </div>
           </div>
 
+          {/* Forma de Pagamento nos ambientes Negócio e Pessoal */}
+          {currentEnvironment !== 'obra' && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-sky-400" />
+                <span>Forma de Pagamento</span>
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                {FORMAS_PAGAMENTO.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setFormaPagamento(item.id)}
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center transition-all cursor-pointer ${
+                      formaPagamento === item.id
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-300 ring-1 ring-sky-400/40 font-bold'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Comprovante */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
@@ -509,41 +532,39 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                   <button
                     type="button"
                     onClick={handleRemoveExistingPhoto}
-                    className="p-1 text-slate-400 hover:text-rose-400"
-                    title="Remover anexo"
+                    className="text-xs text-rose-400 hover:text-rose-300 font-semibold"
                   >
-                    <X className="w-4 h-4" />
+                    Remover
                   </button>
                 </div>
               </div>
             )}
 
-            {!previewUrl ? (
-              <label className="border-2 border-dashed border-slate-700/80 hover:border-emerald-400/80 rounded-2xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all bg-slate-950/40 hover:bg-slate-900/60 group">
-                <Upload className="w-5 h-5 text-slate-400 group-hover:text-emerald-400 mb-1 transition-colors" />
-                <span className="text-[11px] font-medium text-slate-300 group-hover:text-white">
-                  {existingFotoUrl ? 'Substituir comprovante' : 'Anexar novo comprovante'}
+            <div className="relative border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-2xl p-4 text-center transition-all bg-slate-950/50">
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="space-y-1 flex flex-col items-center">
+                <Upload className="w-6 h-6 text-slate-500" />
+                <span className="text-xs font-medium text-slate-300">
+                  {file ? file.name : existingFotoUrl ? 'Clique para substituir o comprovante' : 'Anexar comprovante (foto ou PDF)'}
                 </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
-            ) : (
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 max-w-xs mx-auto">
-                <img
-                  src={previewUrl}
-                  alt="Novo comprovante"
-                  className="w-full h-36 object-cover"
-                />
+                <span className="text-[10px] text-slate-500">Máximo 5MB (PNG, JPG, PDF)</span>
+              </div>
+            </div>
+
+            {previewUrl && (
+              <div className="mt-2 relative rounded-xl overflow-hidden border border-slate-800 w-24 h-24">
+                <img src={previewUrl} alt="Pré-visualização" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={handleRemoveNewFile}
-                  className="absolute top-2 right-2 p-1 bg-slate-950/80 hover:bg-rose-600 text-white rounded-full transition-colors"
+                  className="absolute top-1 right-1 p-1 bg-black/70 rounded-full text-white hover:bg-rose-600"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               </div>
             )}
@@ -552,30 +573,31 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           {/* Observações */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Observações Adicionais
+              Observações Adicionais (Opcional)
             </label>
             <textarea
               rows={2}
-              placeholder="Anotações sobre a despesa..."
+              placeholder="Anotações internas, dados do cliente ou fornecedor..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-none"
+              className="w-full px-3.5 py-2 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-none"
             />
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex items-center space-x-2 pt-2">
+          <div className="pt-2 flex items-center space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all"
+              disabled={loading}
+              className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all disabled:opacity-60"
+              className="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center justify-center space-x-1.5 transition-all disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -593,7 +615,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       <CreateCategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        onCreated={(newCat) => setCategoria(newCat)}
+        defaultTipoMovimentacao={tipoMovimentacao}
+        onCreated={(newCat) => {
+          setCategoria(newCat);
+        }}
       />
     </div>
   );

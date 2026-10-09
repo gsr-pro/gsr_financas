@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { Plus, X, Loader2, Tag, Check, Sparkles } from 'lucide-react';
+import { Plus, X, Loader2, Tag, Check, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface CreateCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated?: (categoryName: string) => void;
+  defaultTipoMovimentacao?: 'despesa' | 'receita';
 }
 
 const PALETTE = [
@@ -23,14 +24,33 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   isOpen,
   onClose,
   onCreated,
+  defaultTipoMovimentacao = 'despesa',
 }) => {
   const { currentEnvironment, createCustomCategory } = useWorkspace();
+  const [tipoMovimentacao, setTipoMovimentacao] = useState<'despesa' | 'receita'>(
+    currentEnvironment === 'obra' ? 'despesa' : defaultTipoMovimentacao
+  );
   const [nome, setNome] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>(
-    currentEnvironment === 'obra' ? '#10B981' : '#3B82F6'
+    tipoMovimentacao === 'receita'
+      ? '#10B981'
+      : currentEnvironment === 'obra'
+      ? '#10B981'
+      : '#3B82F6'
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sincroniza tipo inicial e cor toda vez que o modal é aberto
+  React.useEffect(() => {
+    if (isOpen) {
+      const initialTipo = currentEnvironment === 'obra' ? 'despesa' : defaultTipoMovimentacao;
+      setTipoMovimentacao(initialTipo);
+      setSelectedColor(initialTipo === 'receita' ? '#10B981' : currentEnvironment === 'obra' ? '#10B981' : '#3B82F6');
+      setNome('');
+      setError(null);
+    }
+  }, [isOpen, defaultTipoMovimentacao, currentEnvironment]);
 
   if (!isOpen) return null;
 
@@ -45,7 +65,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     setError(null);
 
     try {
-      const created = await createCustomCategory(nome.trim(), selectedColor);
+      const created = await createCustomCategory(nome.trim(), selectedColor, tipoMovimentacao);
       setNome('');
       onCreated?.(created.nome);
       onClose();
@@ -88,6 +108,48 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Seletor de Tipo (Despesa vs Receita) nos ambientes Pessoal e Negócio */}
+          {currentEnvironment !== 'obra' && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Classificação da Categoria
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTipoMovimentacao('despesa');
+                    if (selectedColor === '#10B981') setSelectedColor('#EF4444');
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold border flex items-center justify-center space-x-1.5 transition-all ${
+                    tipoMovimentacao === 'despesa'
+                      ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 ring-1 ring-rose-500/40 shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60'
+                  }`}
+                >
+                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Despesa (Saída)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTipoMovimentacao('receita');
+                    setSelectedColor('#10B981');
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold border flex items-center justify-center space-x-1.5 transition-all ${
+                    tipoMovimentacao === 'receita'
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/40 shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Receita (Entrada)</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Nome da Categoria
@@ -98,7 +160,11 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
                 type="text"
                 autoFocus
                 required
-                placeholder="Ex: Paisagismo, Elétrica, Mercado..."
+                placeholder={
+                  tipoMovimentacao === 'receita'
+                    ? 'Ex: Vendas Online, Comissões, Consultoria...'
+                    : 'Ex: Paisagismo, Elétrica, Mercado...'
+                }
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"

@@ -26,20 +26,15 @@ import {
   Calculator,
   Sparkles,
   Edit3,
+  Package,
 } from 'lucide-react';
 import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
 import { PricingCalculatorModal } from '../components/business/PricingCalculatorModal';
+import { EstoqueModal } from '../components/business/EstoqueModal';
 import { WorkspaceModal } from '../components/workspace/WorkspaceModal';
+import { PROPERTY_TYPES } from '../config/businessRules';
 
-const TIPO_IMOVEL_LABELS: Record<string, string> = {
-  terreno: 'Terreno / Lote',
-  casa: 'Casa Residencial',
-  apartamento: 'Apartamento',
-  chacara: 'Chácara / Sítio',
-  comercial: 'Ponto Comercial',
-  reforma: 'Reforma',
-  outro: 'Projeto',
-};
+const TIPO_IMOVEL_LABELS: Record<string, string> = PROPERTY_TYPES;
 
 interface DashboardViewProps {
   onNavigateToForm: () => void;
@@ -99,6 +94,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const isObra = currentEnvironment === 'obra';
   const isNegocio = currentEnvironment === 'negocio';
   const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
+  const [isEstoqueModalOpen, setIsEstoqueModalOpen] = useState<boolean>(false);
   const [isEditWorkspaceModalOpen, setIsEditWorkspaceModalOpen] = useState<boolean>(false);
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({
@@ -381,7 +377,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Card 1: Saldo Líquido (Receitas - Despesas) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-2 border-emerald-500/50 shadow-xl flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-2 border-emerald-500/50 shadow-xl flex flex-col justify-between theme-card-saldo">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
@@ -488,28 +484,54 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         />
       )}
 
-      {/* BANNER ESTRATÉGICO DE PRECIFICAÇÃO (Exclusivo para Negócio & PME) */}
+      {/* MÓDULOS ESTRATÉGICOS PME (Exclusivo para Negócio & PME) */}
       {isNegocio && (
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
-                Módulo PME
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-white">Calculadora de Precificação & Markup</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+          {/* Card 1: Calculadora de Precificação & CMV */}
+          <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl flex flex-col justify-between gap-4 theme-card-pme">
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  Submódulo PME
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white">Calculadora de Precificação & Markup</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Simule o preço de venda ideal com base nos insumos, mão de obra, embalagens e impostos para nunca vender no prejuízo.
+              </p>
             </div>
-            <p className="text-xs text-slate-400 max-w-xl">
-              Simule o preço de venda ideal com base nos insumos, mão de obra, embalagens e impostos para nunca vender no prejuízo.
-            </p>
+            <button
+              type="button"
+              onClick={() => setIsPricingModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer self-start"
+            >
+              <Calculator className="w-4 h-4" />
+              <span>Calcular Preço de Venda</span>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsPricingModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer self-start sm:self-center flex-shrink-0"
-          >
-            <Calculator className="w-4 h-4" />
-            <span>Calcular Preço de Venda</span>
-          </button>
+
+          {/* Card 2: Controle de Estoque (Comércio & Serviços) */}
+          <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-900 border border-emerald-500/30 shadow-xl flex flex-col justify-between gap-4 theme-card-estoque">
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  Submódulo Estoque
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white">Controle de Estoque & Mercadorias</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Acompanhe o capital imobilizado, alertas de reposição mínima e controle de mercadorias (Comércio), insumos (Produção) ou peças (Serviços).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsEstoqueModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer self-start"
+            >
+              <Package className="w-4 h-4" />
+              <span>Gerenciar Estoque & Insumos</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -689,6 +711,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <PricingCalculatorModal
         isOpen={isPricingModalOpen}
         onClose={() => setIsPricingModalOpen(false)}
+      />
+
+      {/* Modal de Controle de Estoque PME */}
+      <EstoqueModal
+        isOpen={isEstoqueModalOpen}
+        onClose={() => setIsEstoqueModalOpen(false)}
       />
 
       {/* Modal de Edição Rápida do Workspace / Imóvel da Obra */}

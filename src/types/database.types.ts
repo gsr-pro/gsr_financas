@@ -18,12 +18,13 @@ export type Database = {
           created_at: string
           data_gasto: string
           descricao: string
+          forma_pagamento: string | null
           foto_comprovante_url: string | null
           id: string
           observacoes: string | null
           status_pagamento: Database["public"]["Enums"]["status_pagamento"]
           tipo_ambiente: 'obra' | 'pessoal' | 'negocio'
-          tipo_movimentacao?: 'despesa' | 'receita'
+          tipo_movimentacao: 'despesa' | 'receita'
           updated_at: string
           user_id: string
           valor: number
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string
           data_gasto?: string
           descricao: string
+          forma_pagamento?: string | null
           foto_comprovante_url?: string | null
           id?: string
           observacoes?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           created_at?: string
           data_gasto?: string
           descricao?: string
+          forma_pagamento?: string | null
           foto_comprovante_url?: string | null
           id?: string
           observacoes?: string | null
@@ -134,6 +137,7 @@ export type Database = {
           id: string
           nome: string
           tipo_ambiente: 'obra' | 'pessoal' | 'geral' | 'negocio'
+          tipo_movimentacao?: 'despesa' | 'receita' | 'ambos'
           user_id: string | null
         }
         Insert: {
@@ -143,6 +147,7 @@ export type Database = {
           id?: string
           nome: string
           tipo_ambiente: 'obra' | 'pessoal' | 'geral' | 'negocio'
+          tipo_movimentacao?: 'despesa' | 'receita' | 'ambos'
           user_id?: string | null
         }
         Update: {
@@ -152,6 +157,7 @@ export type Database = {
           id?: string
           nome?: string
           tipo_ambiente?: 'obra' | 'pessoal' | 'geral' | 'negocio'
+          tipo_movimentacao?: 'despesa' | 'receita' | 'ambos'
           user_id?: string | null
         }
         Relationships: []
@@ -267,6 +273,105 @@ export type Database = {
           user_id?: string
           valor?: number
           workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      estoque_itens: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          custo_unitario: number
+          estoque_minimo: number
+          fornecedor: string | null
+          id: string
+          localizacao: string | null
+          nome: string
+          observacoes: string | null
+          preco_venda: number
+          quantidade_atual: number
+          sku: string | null
+          tipo_negocio: 'comercio' | 'servico' | 'producao'
+          unidade_medida: string
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          custo_unitario?: number
+          estoque_minimo?: number
+          fornecedor?: string | null
+          id?: string
+          localizacao?: string | null
+          nome: string
+          observacoes?: string | null
+          preco_venda?: number
+          quantidade_atual?: number
+          sku?: string | null
+          tipo_negocio?: 'comercio' | 'servico' | 'producao'
+          unidade_medida?: string
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          custo_unitario?: number
+          estoque_minimo?: number
+          fornecedor?: string | null
+          id?: string
+          localizacao?: string | null
+          nome?: string
+          observacoes?: string | null
+          preco_venda?: number
+          quantidade_atual?: number
+          sku?: string | null
+          tipo_negocio?: 'comercio' | 'servico' | 'producao'
+          unidade_medida?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      cancellation_feedbacks: {
+        Row: {
+          id: string
+          user_id: string
+          subscription_id: string | null
+          plan_tier: string
+          reason_id: string
+          reason_label: string
+          feedback_text: string | null
+          retention_offered: boolean | null
+          retention_accepted: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subscription_id?: string | null
+          plan_tier: string
+          reason_id: string
+          reason_label: string
+          feedback_text?: string | null
+          retention_offered?: boolean | null
+          retention_accepted?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subscription_id?: string | null
+          plan_tier?: string
+          reason_id?: string
+          reason_label?: string
+          feedback_text?: string | null
+          retention_offered?: boolean | null
+          retention_accepted?: boolean | null
+          created_at?: string
         }
         Relationships: []
       }

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import type { Subscription, SubscriptionTier, BillingInterval } from '../types/subscription.types';
+import type { Subscription, SubscriptionTier, BillingInterval, CancellationFeedbackPayload } from '../types/subscription.types';
 import type { WorkspaceType } from '../types/app';
 import { PLANS } from '../config/plans';
 
@@ -18,6 +18,8 @@ interface SubscriptionContextType {
   currentPlanTier: SubscriptionTier;
   refreshSubscription: () => Promise<void>;
   startCheckout: (priceId: string, interval: BillingInterval, tier?: SubscriptionTier) => Promise<void>;
+  cancelSubscription: (payload: CancellationFeedbackPayload) => Promise<{ success: boolean; error?: string }>;
+  reactivateSubscription: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -254,6 +256,104 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // Cancelamento de Assinatura com Diagnóstico & Auditoria
+  const cancelSubscription = async (
+    payload: CancellationFeedbackPayload
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('Usuário não autenticado.');
+      }
+
+      // 1. Grava o feedback do cancelamento para diagnóstico e métricas
+      const { error: feedbackError } = await supabase
+        .from('cancellation_feedbacks')
+        .insert({
+          user_id: user.id,
+          subscription_id: subscription?.id !== 'auth-trial' ? subscription?.id : null,
+          plan_tier: subscription?.plan_tier || 'lite',
+          reason_id: payload.reasonId,
+          reason_label: payload.reasonLabel,
+          feedback_text: payload.feedbackText?.trim() || null,
+          retention_offered: payload.retentionOffered ?? false,
+          retention_accepted: payload.retentionAccepted ?? false,
+        });
+
+      if (feedbackError) {
+        console.warn('Aviso: falha ao registrar feedback de cancelamento:', feedbackError.message);
+      }
+
+      // 2. Se o usuário aceitou a oferta de retenção, não cancelamos a assinatura
+      if (payload.retentionAccepted) {
+        return { success: true };
+      }
+
+      // 3. Marca cancelamento no final do período corrente
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          cancel_at_period_end: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setSubscription((prev) =>
+        prev ? { ...prev, cancel_at_period_end: true, updated_at: new Date().toISOString() } : null
+      );
+
+      await fetchSubscription();
+      return { success: true };
+    } catch (err: unknown) {
+      console.error('Erro ao cancelar assinatura:', err);
+      const message = err instanceof Error ? err.message : 'Falha ao processar cancelamento.';
+      return { success: false, error: message };
+    }
+  };
+
+  // Reativação da Assinatura (reverte cancel_at_period_end)
+  const reactivateSubscription = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('Usuário não autenticado.');
+      }
+
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          cancel_at_period_end: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setSubscription((prev) =>
+        prev ? { ...prev, cancel_at_period_end: false, updated_at: new Date().toISOString() } : null
+      );
+
+      await fetchSubscription();
+      return { success: true };
+    } catch (err: unknown) {
+      console.error('Erro ao reativar assinatura:', err);
+      const message = err instanceof Error ? err.message : 'Falha ao reativar assinatura.';
+      return { success: false, error: message };
+    }
+  };
+
   return (
     <SubscriptionContext.Provider
       value={{
@@ -270,6 +370,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         currentPlanTier,
         refreshSubscription: fetchSubscription,
         startCheckout,
+        cancelSubscription,
+        reactivateSubscription,
       }}
     >
       {children}

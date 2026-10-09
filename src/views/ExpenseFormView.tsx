@@ -22,6 +22,7 @@ import {
   TrendingUp,
   TrendingDown,
   Repeat,
+  CreditCard,
 } from 'lucide-react';
 
 interface ExpenseFormViewProps {
@@ -42,10 +43,13 @@ const DEFAULT_NEGOCIO_RECEITA_CATEGORIES = [
   'Venda de Produtos',
   'Prestação de Serviços',
   'Contratos Recorrentes',
-  'Comissões',
-  'Reembolsos & Bonificações',
+  'Comissões & Bonificações',
   'Outras Receitas',
 ];
+
+import { PAYMENT_METHODS } from '../config/businessRules';
+
+const FORMAS_PAGAMENTO = PAYMENT_METHODS.filter((m) => m.enabled);
 
 export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) => {
   const { currentEnvironment, currentWorkspace, workspaces, categories } = useWorkspace();
@@ -58,6 +62,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
   const [descricao, setDescricao] = useState<string>('');
   const [valor, setValor] = useState<string>('');
   const [statusPagamento, setStatusPagamento] = useState<StatusPagamento>('Pago');
+  const [formaPagamento, setFormaPagamento] = useState<string>('pix');
   const [observacoes, setObservacoes] = useState<string>('');
 
   // Recorrência
@@ -77,28 +82,72 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
   const [success, setSuccess] = useState<boolean>(false);
   const [successMessageText, setSuccessMessageText] = useState<string>('');
 
-  // Ajusta a categoria default ao alternar ambiente ou tipo de movimentação
+  // Lista de categorias estritamente filtradas de acordo com a área escolhida (Receita vs Despesa)
+  const availableCategories = useMemo(() => {
+    if (tipoMovimentacao === 'receita') {
+      const dbReceitas = categories.filter(
+        (c) => c.tipo_movimentacao === 'receita' || c.tipo_movimentacao === 'ambos'
+      );
+      if (dbReceitas.length > 0) return dbReceitas;
+
+      const defaultList = currentEnvironment === 'negocio'
+        ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
+        : DEFAULT_RECEITA_CATEGORIES;
+      return defaultList.map((name) => ({
+        id: `rec-${name}`,
+        nome: name,
+        cor: '#10B981',
+        tipo_ambiente: currentEnvironment,
+        tipo_movimentacao: 'receita' as const,
+        user_id: null,
+        icone: 'TrendingUp',
+        created_at: '',
+      }));
+    }
+
+    // Modo Despesas: estritamente categorias que NÃO são receita
+    const dbDespesas = categories.filter(
+      (c) => c.tipo_movimentacao === 'despesa' || c.tipo_movimentacao === 'ambos' || !c.tipo_movimentacao
+    );
+    if (dbDespesas.length > 0) return dbDespesas;
+    return categories;
+  }, [tipoMovimentacao, currentEnvironment, categories]);
+
+  // Alterna o tipo de movimentação e recalcula imediatamente a categoria ativa
+  const handleToggleTipoMovimentacao = (novoTipo: 'despesa' | 'receita') => {
+    setTipoMovimentacao(novoTipo);
+    const validCats = categories.filter((c) =>
+      novoTipo === 'receita'
+        ? c.tipo_movimentacao === 'receita' || c.tipo_movimentacao === 'ambos'
+        : c.tipo_movimentacao === 'despesa' || c.tipo_movimentacao === 'ambos' || !c.tipo_movimentacao
+    );
+
+    if (validCats.length > 0) {
+      setCategoria(validCats[0].nome);
+    } else {
+      const fallbackList = novoTipo === 'receita'
+        ? (currentEnvironment === 'negocio' ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES : DEFAULT_RECEITA_CATEGORIES)
+        : (currentEnvironment === 'negocio' ? ['Insumos & Matéria-Prima', 'Custos Fixos / Operacional'] : ['Alimentação & Mercado', 'Moradia & Contas']);
+      setCategoria(fallbackList[0]);
+    }
+  };
+
+  // Garante que a categoria selecionada seja sempre válida no rol atual
   useEffect(() => {
     if (currentEnvironment === 'obra') {
       setTipoMovimentacao('despesa');
-      if (categories.length > 0) {
-        setCategoria(categories[0].nome);
-      } else {
-        setCategoria('Materiais');
+      if (availableCategories.length > 0 && !availableCategories.some((c) => c.nome === categoria)) {
+        setCategoria(availableCategories[0]?.nome || 'Materiais');
       }
     } else {
-      if (tipoMovimentacao === 'receita') {
-        const defaultList = currentEnvironment === 'negocio'
-          ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
-          : DEFAULT_RECEITA_CATEGORIES;
-        setCategoria(defaultList[0]);
-      } else if (categories.length > 0) {
-        setCategoria(categories[0].nome);
-      } else {
-        setCategoria(currentEnvironment === 'negocio' ? 'Insumos & Matéria-Prima' : 'Moradia');
+      if (availableCategories.length > 0) {
+        const exists = availableCategories.some((c) => c.nome === categoria);
+        if (!exists) {
+          setCategoria(availableCategories[0].nome);
+        }
       }
     }
-  }, [currentEnvironment, tipoMovimentacao, categories]);
+  }, [currentEnvironment, tipoMovimentacao, availableCategories, categoria]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -182,6 +231,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
       const baseDate = new Date(dataGasto + 'T12:00:00');
 
       const rowsToInsert = [];
+      const effectiveTipo: TipoMovimentacao = currentEnvironment === 'obra' ? 'despesa' : tipoMovimentacao;
+
       for (let i = 0; i < count; i++) {
         const itemDate = new Date(baseDate);
         itemDate.setMonth(itemDate.getMonth() + i);
@@ -204,7 +255,8 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
           user_id: user.id,
           workspace_id: safeWorkspaceId,
           tipo_ambiente: currentEnvironment,
-          tipo_movimentacao: tipoMovimentacao,
+          tipo_movimentacao: effectiveTipo,
+          forma_pagamento: currentEnvironment !== 'obra' ? formaPagamento : null,
           data_gasto: dateStr,
           categoria: categoria,
           descricao: itemDesc,
@@ -215,36 +267,14 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
         });
       }
 
-      // Inserção com fallback defensivo para retrocompatibilidade
-      let insertError = null;
-      try {
-        const { error } = await supabase.from('despesas').insert(rowsToInsert);
-        insertError = error;
-      } catch (err) {
-        insertError = err;
-      }
-
-      // Se der erro por ausência da coluna tipo_movimentacao, realiza fallback transparente
-      if (insertError && String((insertError as { message?: string }).message || '').includes('tipo_movimentacao')) {
-        const fallbackRows = rowsToInsert.map((r) => {
-          const { tipo_movimentacao: _, ...rest } = r;
-          const prefix = tipoMovimentacao === 'receita' ? '[RECEITA] ' : '';
-          return {
-            ...rest,
-            descricao: `${prefix}${r.descricao}`,
-          };
-        });
-        const { error: fallbackError } = await supabase.from('despesas').insert(fallbackRows);
-        if (fallbackError) throw fallbackError;
-      } else if (insertError) {
-        throw insertError;
-      }
+      const { error: insertError } = await supabase.from('despesas').insert(rowsToInsert);
+      if (insertError) throw insertError;
 
       setSuccess(true);
       setSuccessMessageText(
         count > 1
           ? `${count} lançamentos mensais programados com sucesso!`
-          : `${tipoMovimentacao === 'receita' ? 'Receita' : 'Despesa'} registrada com sucesso!`
+          : `${effectiveTipo === 'receita' ? 'Receita' : 'Despesa'} registrada com sucesso!`
       );
       setDescricao('');
       setValor('');
@@ -263,17 +293,6 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
       setLoading(false);
     }
   };
-
-  // Lista de categorias a exibir dependendo se é receita ou despesa
-  const availableCategories = useMemo(() => {
-    if (tipoMovimentacao === 'receita') {
-      const receitaList = currentEnvironment === 'negocio'
-        ? DEFAULT_NEGOCIO_RECEITA_CATEGORIES
-        : DEFAULT_RECEITA_CATEGORIES;
-      return receitaList.map((name) => ({ id: name, nome: name, cor: '#10B981' }));
-    }
-    return categories;
-  }, [tipoMovimentacao, currentEnvironment, categories]);
 
   return (
     <div className="space-y-4 pb-24 animate-fade-in text-slate-100 max-w-2xl mx-auto">
@@ -319,11 +338,11 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-5">
             <button
               type="button"
-              onClick={() => setTipoMovimentacao('despesa')}
-              className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+              onClick={() => handleToggleTipoMovimentacao('despesa')}
+              className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
                 tipoMovimentacao === 'despesa'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 shadow-md ring-1 ring-rose-500/30'
+                  : 'text-slate-400 hover:text-rose-400 hover:bg-slate-900/50'
               }`}
             >
               <TrendingDown className="w-4 h-4 text-rose-400" />
@@ -332,11 +351,11 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
 
             <button
               type="button"
-              onClick={() => setTipoMovimentacao('receita')}
-              className={`py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+              onClick={() => handleToggleTipoMovimentacao('receita')}
+              className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
                 tipoMovimentacao === 'receita'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-md ring-1 ring-emerald-500/30'
+                  : 'text-slate-400 hover:text-emerald-400 hover:bg-slate-900/50'
               }`}
             >
               <TrendingUp className="w-4 h-4 text-emerald-400" />
@@ -371,22 +390,20 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                 <span>Categoria</span>
               </label>
 
-              {tipoMovimentacao === 'despesa' && (
-                <button
-                  type="button"
-                  onClick={() => setIsCategoryModalOpen(true)}
-                  className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>+ Nova Categoria</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Nova Categoria</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {availableCategories.map((cat) => (
                 <button
-                  key={cat.id}
+                  key={cat.id || cat.nome}
                   type="button"
                   onClick={() => setCategoria(cat.nome)}
                   className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all flex items-center space-x-2 cursor-pointer ${
@@ -455,16 +472,12 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                     setValor(formatCurrencyInput(valor));
                   }
                 }}
-                className={`w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all font-mono ${
-                  tipoMovimentacao === 'receita'
-                    ? 'text-emerald-400 focus:ring-emerald-400 focus:border-emerald-400'
-                    : 'text-white focus:ring-emerald-400 focus:border-emerald-400'
-                }`}
+                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-sm font-bold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all font-mono"
               />
             </div>
           </div>
 
-          {/* 4. Data do Lançamento (Posicionada após o Valor) */}
+          {/* 4. Data do Lançamento */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
@@ -519,6 +532,33 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
               </button>
             </div>
           </div>
+
+          {/* 5. Forma de Pagamento (Ambiente Negócio e Pessoal) */}
+          {currentEnvironment !== 'obra' && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-sky-400" />
+                <span>Forma de Pagamento</span>
+              </label>
+
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                {FORMAS_PAGAMENTO.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setFormaPagamento(item.id)}
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center transition-all cursor-pointer ${
+                      formaPagamento === item.id
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-300 ring-1 ring-sky-400/40 font-bold'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bloco de Recorrência / Parcelamento Programado */}
           <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3">
@@ -580,22 +620,22 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
                     min="2"
                     max="60"
                     value={mesesRecorrencia}
-                    onChange={(e) => setMesesRecorrencia(Math.max(2, Math.min(60, parseInt(e.target.value) || 2)))}
-                    className="w-24 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm font-bold text-emerald-400 font-mono focus:outline-none focus:border-emerald-500 text-center"
+                    onChange={(e) => setMesesRecorrencia(Math.max(2, Math.min(60, Number(e.target.value))))}
+                    className="w-24 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-emerald-400 font-mono text-center focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   />
-                  <p className="text-[11px] text-slate-400 leading-tight">
-                    Serão gerados <strong>{mesesRecorrencia} lançamentos automáticos</strong> (1 por mês). O mês atual segue o status acima; os meses futuros serão criados como "Pendente".
-                  </p>
+                  <span className="text-xs text-slate-400">
+                    Serão gerados {mesesRecorrencia} lançamentos mensais com a mesma descrição e valor.
+                  </span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Upload de Comprovante */}
+          {/* Anexar Comprovante / Foto */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center space-x-1.5">
               <Upload className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Comprovante / Recibo (Opcional)</span>
+              <span>Foto do Recibo / Comprovante (Opcional)</span>
             </label>
 
             {!previewUrl ? (
@@ -681,6 +721,7 @@ export const ExpenseFormView: React.FC<ExpenseFormViewProps> = ({ onSuccess }) =
       <CreateCategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
+        defaultTipoMovimentacao={tipoMovimentacao}
         onCreated={(newCat) => setCategoria(newCat)}
       />
     </div>

@@ -10,10 +10,12 @@ import {
   Clock,
   Sparkles,
   Calculator,
+  Package,
 } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { EnvironmentSelector } from './workspace/EnvironmentSelector';
 import { PricingCalculatorModal } from './business/PricingCalculatorModal';
+import { EstoqueModal } from './business/EstoqueModal';
 import { useSubscription } from '../context/SubscriptionContext';
 import type { TabType } from '../types/app';
 
@@ -38,6 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { isTrialing, trialDaysRemaining } = useSubscription();
   const [isCalculatorOpen, setIsCalculatorOpen] = useState<boolean>(false);
+  const [isEstoqueOpen, setIsEstoqueOpen] = useState<boolean>(false);
 
   // Fecha o drawer ao pressionar a tecla ESC
   useEffect(() => {
@@ -191,26 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </button>
 
-                {/* 4. Configurações & Ambientes */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectTab('configuracoes')}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
-                    currentTab === 'configuracoes'
-                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Settings className={`w-4 h-4 ${currentTab === 'configuracoes' ? 'text-slate-950' : 'text-amber-400'}`} />
-                    <span>Ajustes & Configurações</span>
-                  </div>
-                  {currentTab === 'configuracoes' && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />
-                  )}
-                </button>
-
-                {/* 5. Calculadora de Precificação (Ficha Técnica & Markup) */}
+                {/* 4. Calculadora de Precificação (Ficha Técnica & Markup) */}
                 <button
                   type="button"
                   onClick={() => setIsCalculatorOpen(true)}
@@ -225,11 +209,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     PME
                   </span>
                 </button>
+
+                {/* 5. Controle de Estoque (PME / Negócio) */}
+                <button
+                  type="button"
+                  onClick={() => setIsEstoqueOpen(true)}
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer text-slate-300 hover:text-white hover:bg-slate-800/70 group"
+                  title="Abrir Controle de Estoque, Mercadorias e Insumos"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Package className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    <span>Controle de Estoque</span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    PME
+                  </span>
+                </button>
+
+                {/* 6. Configurações & Ambientes */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('configuracoes')}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
+                    currentTab === 'configuracoes'
+                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Settings className={`w-4 h-4 ${currentTab === 'configuracoes' ? 'text-slate-950' : 'text-amber-400'}`} />
+                    <span>Configurações & Ambientes</span>
+                  </div>
+                  {currentTab === 'configuracoes' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />
+                  )}
+                </button>
               </nav>
             </div>
 
             {/* Card Informativo do Plano / Período de Testes */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/90 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/90 space-y-2 theme-card-sidebar-plano">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-xs font-bold text-white">Plano Gestão Pro</span>
@@ -288,6 +307,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <PricingCalculatorModal
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
+      />
+
+      {/* Modal de Gestão de Estoque PME */}
+      <EstoqueModal
+        isOpen={isEstoqueOpen}
+        onClose={() => setIsEstoqueOpen(false)}
       />
     </div>
   );

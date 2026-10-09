@@ -46,3 +46,18 @@ export interface PlanDetails {
   yearlyPaymentLink?: string;
   features: PlanFeature[];
 }
+
+export interface CancellationReasonOption {
+  id: string;
+  label: string;
+  category: 'price' | 'usage' | 'features' | 'competitor' | 'pause' | 'support' | 'other';
+  retentionAction: 'discount' | 'support' | 'pause' | 'none';
+}
+
+export interface CancellationFeedbackPayload {
+  reasonId: string;
+  reasonLabel: string;
+  feedbackText?: string;
+  retentionOffered?: boolean;
+  retentionAccepted?: boolean;
+}

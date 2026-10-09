@@ -134,3 +134,14 @@ export const getCategoryBadgeStyle = (category: string): { bg: string; text: str
       return { bg: 'bg-slate-800', text: 'text-slate-300', border: 'border-slate-700' };
   }
 };
+
+import { FORMA_PAGAMENTO_MAP } from '../config/businessRules';
+
+export const FORMA_PAGAMENTO_LABELS: Record<string, string> = FORMA_PAGAMENTO_MAP;
+
+export const formatFormaPagamento = (forma: string | null | undefined): string => {
+  if (!forma) return '';
+  return FORMA_PAGAMENTO_MAP[forma.toLowerCase()] || forma;
+};
+
+

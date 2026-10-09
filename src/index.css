@@ -22,7 +22,8 @@
     overflow-x: hidden;
     position: relative;
     background-color: var(--bg-viewport, #050914);
-    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 
@@ -120,6 +121,48 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: #1E293B;
 }
 
+/* Seletor Mensal / Anual (Modo Escuro Padrão) */
+.plan-toggle-track {
+  background-color: #020617;
+  border-color: #1E293B;
+}
+.plan-toggle-btn-active-month {
+  background-color: #1E293B;
+  color: #FFFFFF;
+}
+.plan-interval-badge-active {
+  background-color: #022C22 !important;
+  color: #6EE7B7 !important;
+  border: 1px solid #059669 !important;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.plan-interval-badge-inactive {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Seletor de Ambientes & Projetos (Modo Escuro Padrão) */
+.theme-environment-trigger {
+  background-color: rgba(2, 6, 23, 0.85);
+  border-color: #1E293B;
+}
+.theme-environment-title {
+  color: #F8FAFC !important;
+}
+.theme-environment-dropdown {
+  background-color: #0F172A;
+  border-color: #1E293B;
+}
+.theme-environment-type-pills {
+  background-color: #020617;
+  border-color: #1E293B;
+}
+
 /* 2. MODO LEITURA: Prancheta Arquitetônica & Vellum de Engenharia */
 .theme-leitura {
   --bg-viewport: #F5F1E8;
@@ -160,6 +203,70 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: #FAF7F0;
 }
 
+/* Seletor Mensal / Anual (Modo Leitura) */
+.theme-leitura .plan-toggle-track {
+  background-color: #EAE5D9 !important;
+  border-color: #DDD4C4 !important;
+}
+.theme-leitura .plan-toggle-btn-active-month {
+  background-color: #FFFFFF !important;
+  color: #292524 !important;
+  box-shadow: 0 1px 3px rgba(41, 37, 36, 0.12) !important;
+  border: 1px solid #DDD4C4 !important;
+}
+.theme-leitura .plan-toggle-track button:not([class*="bg-gradient"]):not(.plan-toggle-btn-active-month) {
+  color: #57534E !important;
+}
+.theme-leitura .plan-toggle-track button:not([class*="bg-gradient"]):not(.plan-toggle-btn-active-month):hover {
+  color: #292524 !important;
+}
+.theme-leitura .plan-interval-badge-active,
+.theme-leitura button .plan-interval-badge-active,
+.theme-leitura button[class*="bg-gradient"] .plan-interval-badge-active {
+  background-color: #022C22 !important;
+  color: #6EE7B7 !important;
+  border: 1px solid #059669 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+.theme-leitura .plan-interval-badge-inactive {
+  background-color: #F0FDF4 !important;
+  color: #166534 !important;
+  border: 1px solid #BBF7D0 !important;
+}
+
+/* Seletor de Ambientes & Projetos (Modo Leitura) */
+.theme-leitura .theme-environment-trigger {
+  background-color: #FFFFFF !important;
+  border-color: #DDD4C4 !important;
+  box-shadow: 0 1px 3px rgba(41, 37, 36, 0.06) !important;
+}
+.theme-leitura .theme-environment-trigger:hover {
+  background-color: #FAF7F0 !important;
+  border-color: #C7BAA7 !important;
+}
+.theme-leitura .theme-environment-title,
+.theme-leitura .theme-environment-trigger .theme-environment-title {
+  color: #292524 !important;
+}
+.theme-leitura .theme-environment-dropdown {
+  background-color: #FAF7F0 !important;
+  border-color: #DDD4C4 !important;
+  box-shadow: 0 10px 25px -5px rgba(41, 37, 36, 0.12), 0 8px 10px -6px rgba(41, 37, 36, 0.08) !important;
+}
+.theme-leitura .theme-environment-type-pills {
+  background-color: #EFE8DC !important;
+  border-color: #DDD4C4 !important;
+}
+.theme-leitura .theme-environment-dropdown select,
+.theme-leitura .theme-environment-dropdown input {
+  background-color: #FFFFFF !important;
+  border-color: #DDD4C4 !important;
+  color: #292524 !important;
+}
+.theme-leitura .theme-environment-dropdown button:hover {
+  background-color: #EFE8DC !important;
+}
+
 /* 3. MODO CLARO: Studio Clean Executivo */
 .theme-claro {
   --bg-viewport: #F8FAFC;
@@ -198,6 +305,70 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 .theme-claro .theme-dropdown-item-hover:hover {
   background-color: #F1F5F9;
+}
+
+/* Seletor Mensal / Anual (Modo Claro) */
+.theme-claro .plan-toggle-track {
+  background-color: #E2E8F0 !important;
+  border-color: #CBD5E1 !important;
+}
+.theme-claro .plan-toggle-btn-active-month {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+  border: 1px solid #CBD5E1 !important;
+}
+.theme-claro .plan-toggle-track button:not([class*="bg-gradient"]):not(.plan-toggle-btn-active-month) {
+  color: #64748B !important;
+}
+.theme-claro .plan-toggle-track button:not([class*="bg-gradient"]):not(.plan-toggle-btn-active-month):hover {
+  color: #0F172A !important;
+}
+.theme-claro .plan-interval-badge-active,
+.theme-claro button .plan-interval-badge-active,
+.theme-claro button[class*="bg-gradient"] .plan-interval-badge-active {
+  background-color: #022C22 !important;
+  color: #6EE7B7 !important;
+  border: 1px solid #059669 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+.theme-claro .plan-interval-badge-inactive {
+  background-color: #ECFDF5 !important;
+  color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+}
+
+/* Seletor de Ambientes & Projetos (Modo Claro) */
+.theme-claro .theme-environment-trigger {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+.theme-claro .theme-environment-trigger:hover {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+.theme-claro .theme-environment-title,
+.theme-claro .theme-environment-trigger .theme-environment-title {
+  color: #0F172A !important;
+}
+.theme-claro .theme-environment-dropdown {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+}
+.theme-claro .theme-environment-type-pills {
+  background-color: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+}
+.theme-claro .theme-environment-dropdown select,
+.theme-claro .theme-environment-dropdown input {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+.theme-claro .theme-environment-dropdown button:hover {
+  background-color: #F1F5F9 !important;
 }
 
 /* ========================================================================= */
@@ -349,6 +520,119 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #6EE7B7 !important;
 }
 
+/* Anulação e adaptação universal de gradientes escuros em containers/cards no Modo Leitura */
+.theme-leitura [class*="bg-gradient-to-"][class*="from-slate-900"]:not(button):not(button *),
+.theme-leitura [class*="bg-gradient-to-"][class*="from-slate-950"]:not(button):not(button *),
+.theme-leitura [class*="bg-gradient-to-"][class*="from-indigo-950"]:not(button):not(button *),
+.theme-leitura [class*="bg-gradient-to-"][class*="from-emerald-950"]:not(button):not(button *),
+.theme-leitura [class*="bg-gradient-to-"][class*="from-teal-950"]:not(button):not(button *),
+.theme-leitura [class*="bg-gradient-to-"][class*="from-sky-950"]:not(button):not(button *) {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  border-color: #DDD4C4 !important;
+  color: #292524 !important;
+  box-shadow: 0 1px 4px rgba(41, 37, 36, 0.04) !important;
+}
+
+/* 1. Card Saldo Líquido do Período (Modo Leitura) */
+.theme-leitura .theme-card-saldo {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5FBF7 100%) !important;
+  border: 2px solid #86EFAC !important;
+  box-shadow: 0 4px 16px rgba(22, 101, 52, 0.08) !important;
+}
+.theme-leitura .theme-card-saldo .text-emerald-400 {
+  color: #166534 !important;
+}
+.theme-leitura .theme-card-saldo .text-rose-400 {
+  color: #9F1239 !important;
+}
+.theme-leitura .theme-card-saldo .text-slate-400 {
+  color: #57534E !important;
+}
+
+/* 2. Submódulo PME Calculadora de Precificação (Modo Leitura) */
+.theme-leitura .theme-card-pme {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F3FF 100%) !important;
+  border: 1px solid #DDD6FE !important;
+  box-shadow: 0 4px 16px rgba(55, 48, 163, 0.08) !important;
+}
+.theme-leitura .theme-card-pme span.text-white {
+  color: #292524 !important;
+}
+.theme-leitura .theme-card-pme p.text-slate-400 {
+  color: #44403C !important;
+}
+
+/* 3. Submódulo Estoque & Mercadorias (Modo Leitura) */
+.theme-leitura .theme-card-estoque {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%) !important;
+  border: 1px solid #BBF7D0 !important;
+  box-shadow: 0 4px 16px rgba(22, 101, 52, 0.08) !important;
+}
+.theme-leitura .theme-card-estoque span.text-white {
+  color: #292524 !important;
+}
+.theme-leitura .theme-card-estoque p.text-slate-400 {
+  color: #44403C !important;
+}
+
+/* 4. Cartão de Plano SaaS & Assinatura (Modo Leitura) */
+.theme-leitura .theme-card-plano,
+.theme-leitura .theme-card-sidebar-plano {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FAF7F0 100%) !important;
+  border: 1px solid #DDD4C4 !important;
+  box-shadow: 0 2px 8px rgba(41, 37, 36, 0.04) !important;
+}
+.theme-leitura .theme-card-plano .text-white,
+.theme-leitura .theme-card-sidebar-plano .text-white {
+  color: #292524 !important;
+}
+.theme-leitura .theme-card-plano p,
+.theme-leitura .theme-card-sidebar-plano p {
+  color: #57534E !important;
+}
+
+/* 5. Grid Blueprint & Landing Page (Modo Leitura) */
+.theme-leitura .bg-blueprint-grid {
+  background-color: #F8F5EE !important;
+  background-image: 
+    linear-gradient(rgba(22, 101, 52, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 101, 52, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(180, 83, 9, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 83, 9, 0.04) 1px, transparent 1px) !important;
+}
+.theme-leitura .bg-blueprint-grid .text-white {
+  color: #292524 !important;
+}
+.theme-leitura .bg-blueprint-grid h1,
+.theme-leitura .bg-blueprint-grid h2,
+.theme-leitura .bg-blueprint-grid h3 {
+  color: #292524 !important;
+}
+.theme-leitura .bg-blueprint-grid p.text-slate-300,
+.theme-leitura .bg-blueprint-grid p.text-slate-400 {
+  color: #44403C !important;
+}
+.theme-leitura .bg-clip-text {
+  background-image: linear-gradient(to right, #166534, #0f766e, #0369a1) !important;
+}
+.theme-leitura .blur-\[120px\],
+.theme-leitura .blur-\[140px\],
+.theme-leitura .blur-\[180px\] {
+  opacity: 0.3 !important;
+}
+
+.theme-leitura button.bg-indigo-600,
+.theme-leitura button.bg-emerald-600,
+.theme-leitura button.bg-rose-600 {
+  color: #FFFFFF !important;
+}
+.theme-leitura button.bg-indigo-600 *,
+.theme-leitura button.bg-emerald-600 *,
+.theme-leitura button.bg-rose-600 * {
+  color: #FFFFFF !important;
+}
+
 /* Tipografia Geral - Leitura Confortável */
 .theme-leitura h1:not(.theme-metric-highlight *):not(.theme-action-banner *),
 .theme-leitura h2:not(.theme-metric-highlight *):not(.theme-action-banner *),
@@ -426,7 +710,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .theme-leitura button[class*="bg-emerald-"]:not([class*="/"]):not(.hover\:) *,
 .theme-leitura button[class*="bg-rose-"]:not([class*="/"]):not(.hover\:) *,
 .theme-leitura button[class*="bg-indigo-"]:not([class*="/"]):not(.hover\:) *,
-.theme-leitura button[class*="bg-gradient"] *,
+.theme-leitura button[class*="bg-gradient"] *:not(.plan-interval-badge-active),
 .theme-leitura .theme-metric-highlight *,
 .theme-leitura .theme-action-banner * {
   color: #FFFFFF !important;
@@ -702,6 +986,136 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #6EE7B7 !important;
 }
 
+/* Anulação e adaptação universal de gradientes escuros em containers/cards no Modo Claro */
+.theme-claro [class*="bg-gradient-to-"][class*="from-slate-900"]:not(button):not(button *),
+.theme-claro [class*="bg-gradient-to-"][class*="from-slate-950"]:not(button):not(button *),
+.theme-claro [class*="bg-gradient-to-"][class*="from-indigo-950"]:not(button):not(button *),
+.theme-claro [class*="bg-gradient-to-"][class*="from-emerald-950"]:not(button):not(button *),
+.theme-claro [class*="bg-gradient-to-"][class*="from-teal-950"]:not(button):not(button *),
+.theme-claro [class*="bg-gradient-to-"][class*="from-sky-950"]:not(button):not(button *) {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-claro div[class*="from-indigo-950"]:not(button):not(button *) {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F7FF 100%) !important;
+  border-color: #C7D2FE !important;
+}
+.theme-claro div[class*="from-emerald-950"]:not(button):not(button *) {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%) !important;
+  border-color: #A7F3D0 !important;
+}
+
+/* 1. Card Saldo Líquido do Período (Modo Claro) */
+.theme-claro .theme-card-saldo {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%) !important;
+  border: 2px solid #86EFAC !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08) !important;
+}
+.theme-claro .theme-card-saldo .text-emerald-400 {
+  color: #047857 !important;
+}
+.theme-claro .theme-card-saldo .text-rose-400 {
+  color: #BE123C !important;
+}
+.theme-claro .theme-card-saldo .text-slate-400 {
+  color: #475569 !important;
+}
+
+/* 2. Submódulo PME Calculadora de Precificação (Modo Claro) */
+.theme-claro .theme-card-pme {
+  background: linear-gradient(135deg, #FFFFFF 0%, #EEF2FF 100%) !important;
+  border: 1px solid #C7D2FE !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.08) !important;
+}
+.theme-claro .theme-card-pme span.text-white {
+  color: #0F172A !important;
+}
+.theme-claro .theme-card-pme p.text-slate-400 {
+  color: #334155 !important;
+}
+
+/* 3. Submódulo Estoque & Mercadorias (Modo Claro) */
+.theme-claro .theme-card-estoque {
+  background: linear-gradient(135deg, #FFFFFF 0%, #ECFDF5 100%) !important;
+  border: 1px solid #A7F3D0 !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08) !important;
+}
+.theme-claro .theme-card-estoque span.text-white {
+  color: #0F172A !important;
+}
+.theme-claro .theme-card-estoque p.text-slate-400 {
+  color: #334155 !important;
+}
+
+/* 4. Cartão de Plano SaaS & Assinatura (Modo Claro) */
+.theme-claro .theme-card-plano,
+.theme-claro .theme-card-sidebar-plano {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+.theme-claro .theme-card-plano .text-white,
+.theme-claro .theme-card-sidebar-plano .text-white {
+  color: #0F172A !important;
+}
+.theme-claro .theme-card-plano p,
+.theme-claro .theme-card-sidebar-plano p {
+  color: #475569 !important;
+}
+
+/* 5. Grid Blueprint & Landing Page (Modo Claro) */
+.theme-claro .bg-blueprint-grid {
+  background-color: #F8FAFC !important;
+  background-image: 
+    linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px) !important;
+}
+.theme-claro .bg-blueprint-grid .text-white {
+  color: #0F172A !important;
+}
+.theme-claro .bg-blueprint-grid h1,
+.theme-claro .bg-blueprint-grid h2,
+.theme-claro .bg-blueprint-grid h3 {
+  color: #0F172A !important;
+}
+.theme-claro .bg-blueprint-grid p.text-slate-300,
+.theme-claro .bg-blueprint-grid p.text-slate-400 {
+  color: #334155 !important;
+}
+.theme-claro .bg-clip-text {
+  background-image: linear-gradient(to right, #059669, #0d9488, #0284c7) !important;
+}
+.theme-claro .blur-\[120px\],
+.theme-claro .blur-\[140px\],
+.theme-claro .blur-\[180px\] {
+  opacity: 0.3 !important;
+}
+
+.theme-claro button.bg-indigo-600,
+.theme-claro button.bg-emerald-600,
+.theme-claro button.bg-rose-600 {
+  color: #FFFFFF !important;
+}
+.theme-claro button.bg-indigo-600 *,
+.theme-claro button.bg-emerald-600 *,
+.theme-claro button.bg-rose-600 * {
+  color: #FFFFFF !important;
+}
+
+.theme-claro span[class*="bg-indigo-500\/"],
+.theme-claro span[class*="bg-emerald-500\/"],
+.theme-claro span[class*="bg-amber-500\/"],
+.theme-claro span[class*="bg-rose-500\/"],
+.theme-claro span[class*="bg-cyan-500\/"] {
+  font-weight: 700 !important;
+}
+
 /* Tipografia Geral - Contraste Executivo */
 .theme-claro h1:not(.theme-metric-highlight *):not(.theme-action-banner *),
 .theme-claro h2:not(.theme-metric-highlight *):not(.theme-action-banner *),
@@ -779,7 +1193,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .theme-claro button[class*="bg-emerald-"]:not([class*="/"]):not(.hover\:) *,
 .theme-claro button[class*="bg-rose-"]:not([class*="/"]):not(.hover\:) *,
 .theme-claro button[class*="bg-indigo-"]:not([class*="/"]):not(.hover\:) *,
-.theme-claro button[class*="bg-gradient"] *,
+.theme-claro button[class*="bg-gradient"] *:not(.plan-interval-badge-active),
 .theme-claro .theme-metric-highlight *,
 .theme-claro .theme-action-banner * {
   color: #FFFFFF !important;
