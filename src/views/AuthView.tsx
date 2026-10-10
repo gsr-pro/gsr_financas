@@ -1,17 +1,12 @@
-import React, { useState, useRef } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import React, { useState } from 'react';
 import { BrandLogo } from '../components/brand/BrandLogo';
 import { RemotionLogoShowcase } from '../components/remotion/RemotionLogoShowcase';
 import { RegisterModal } from '../components/auth/RegisterModal';
+import { LoginModal, type UserRole } from '../components/auth/LoginModal';
 import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import { PaywallView } from '../components/subscription/PaywallView';
 import {
   Lock,
-  Mail,
-  Loader2,
-  AlertCircle,
-  Eye,
-  EyeOff,
   Building2,
   Wallet,
   Briefcase,
@@ -24,64 +19,29 @@ import {
   FileDown,
   ShieldCheck,
   Zap,
-  ChevronDown,
   Sparkles,
-  KeyRound,
 } from 'lucide-react';
 import { exportCommercialPlansPDF } from '../lib/exportCommercialPlansPDF';
 
 interface AuthViewProps {
-  onAuthSuccess: () => void;
+  onAuthSuccess: (role?: UserRole) => void;
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [mobileLoginOpen, setMobileLoginOpen] = useState<boolean>(false);
+  const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const [activeLoginRole, setActiveLoginRole] = useState<UserRole>('usuario');
   const [registerModalOpen, setRegisterModalOpen] = useState<boolean>(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState<boolean>(false);
   const [plansModalOpen, setPlansModalOpen] = useState<boolean>(false);
 
-  const emailInputRef = useRef<HTMLInputElement>(null);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      onAuthSuccess();
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message === 'Invalid login credentials'
-            ? 'Credenciais inválidas. Verifique seu e-mail e senha.'
-            : err.message
-          : 'Falha na autenticação. Verifique os dados e tente novamente.';
-      setErrorMessage(message);
-    } finally {
-      setLoading(false);
-    }
+  const handleOpenLogin = (role: UserRole = 'usuario') => {
+    setActiveLoginRole(role);
+    setLoginModalOpen(true);
   };
 
-  const focusLoginInput = () => {
-    setMobileLoginOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      emailInputRef.current?.focus();
-    }, 300);
+  const handleOpenRegister = (role: UserRole = 'usuario') => {
+    setActiveLoginRole(role);
+    setRegisterModalOpen(true);
   };
 
   return (
@@ -92,227 +52,64 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
       <div className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-amber-500/5 blur-[180px] pointer-events-none" />
 
       {/* =================================================================== */}
-      {/* 1. TOP BAR / HEADER COM LOGIN SUPERIOR INTEGRADO                   */}
+      {/* 1. TOP BAR / HEADER MODERNO DA LANDING PAGE                         */}
       {/* =================================================================== */}
       <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/90 shadow-2xl transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           
           {/* Marca / Identidade: Gestão Financeira */}
-          <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
               <BrandLogo size={28} compact={true} animated={false} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-1.5">
-                <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">GSR</span>
-                <span className="text-sm sm:text-base font-extrabold text-emerald-400">Finanças</span>
+                <span className="text-base font-extrabold text-white tracking-tight">GSR</span>
+                <span className="text-base font-extrabold text-emerald-400">Finanças</span>
               </div>
               <p className="text-[10px] font-medium text-slate-400 tracking-wide hidden sm:block">
-                Gestão Financeira Facilitada • Obras, Pessoal e Negócios
-              </p>
-              <p className="text-[10px] font-medium text-slate-400 tracking-wide sm:hidden truncate">
-                Gestão Financeira Facilitada
+                Gestão Financeira Facilitada • Obras, Negócios & Escrituração Fiscal
               </p>
             </div>
           </div>
 
-          {/* Botão de Toggle para Mobile */}
-          <div className="lg:hidden flex items-center">
-            <button
-              onClick={() => setMobileLoginOpen(!mobileLoginOpen)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center space-x-1.5 active:scale-95 transition-all"
-            >
-              <span>Acessar Conta</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${mobileLoginOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
-
-          {/* Formulário de Login Superior Inline (Desktop) */}
-          <form
-            onSubmit={handleLogin}
-            className="hidden lg:flex items-center space-x-2.5"
-          >
-            {/* Campo E-mail */}
-            <div className="relative">
-              <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                ref={emailInputRef}
-                type="email"
-                required
-                placeholder="seu.email@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-56 pl-8 pr-3 py-1.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
-              />
-            </div>
-
-            {/* Campo Senha */}
-            <div className="relative">
-              <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="Sua senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-44 pl-8 pr-8 py-1.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-200"
-                tabIndex={-1}
-                aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-              >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-
-            {/* Link Esqueceu a Senha (Desktop) */}
+          {/* Links e Botões de Ação na Direita */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            
+            {/* Atalho para Área do Contador */}
             <button
               type="button"
-              onClick={() => setForgotPasswordModalOpen(true)}
-              className="text-[11px] text-slate-400 hover:text-amber-300 transition-colors whitespace-nowrap cursor-pointer hover:underline px-1"
-              title="Clique para recuperar sua senha"
+              onClick={() => handleOpenLogin('contador')}
+              className="hidden md:inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Acesso gratuito para contadores outorgados por clientes via e-mail"
             >
-              Esqueceu?
+              <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+              <span>Área do Contador ★</span>
             </button>
 
-            {/* Botão Entrar */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white rounded-xl text-xs font-bold border border-slate-700 flex items-center space-x-1.5 transition-all disabled:opacity-60 cursor-pointer"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                  <span>Entrando...</span>
-                </>
-              ) : (
-                <span>Entrar</span>
-              )}
-            </button>
-
-            {/* Botão Destacado: Criar Conta Gratuita */}
+            {/* Botão Acessar Sistema (Login) */}
             <button
               type="button"
-              onClick={() => setRegisterModalOpen(true)}
-              className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 flex items-center space-x-1.5 transition-all cursor-pointer active:scale-95"
+              onClick={() => handleOpenLogin('usuario')}
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer flex items-center space-x-1.5"
+            >
+              <Lock className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Acessar Sistema</span>
+            </button>
+
+            {/* Botão Começar 7 Dias Grátis */}
+            <button
+              type="button"
+              onClick={() => handleOpenRegister('usuario')}
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black shadow-md shadow-emerald-500/20 transition-all cursor-pointer active:scale-95 flex items-center space-x-1.5"
             >
               <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
-              <span>Criar Conta (7 Dias Grátis)</span>
+              <span className="hidden sm:inline">Começar 7 Dias Grátis</span>
+              <span className="sm:hidden">7 Dias Grátis</span>
             </button>
-          </form>
+          </div>
+
         </div>
-
-        {/* Gaveta Superior de Login para Mobile / Telas Menores */}
-        {mobileLoginOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-slate-900/98 p-4 animate-fade-in shadow-2xl space-y-3">
-            <form onSubmit={handleLogin} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                  E-mail de Acesso
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="seu.email@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[11px] font-semibold text-slate-300">
-                    Senha
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileLoginOpen(false);
-                      setForgotPasswordModalOpen(true);
-                    }}
-                    className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 hover:underline transition-colors"
-                  >
-                    Esqueceu a senha?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Sua senha"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-9 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400"
-                    aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-60 cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Entrando...</span>
-                    </>
-                  ) : (
-                    <span>Entrar</span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileLoginOpen(false);
-                    setRegisterModalOpen(true);
-                  }}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
-                  <span>7 Dias Grátis</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Mensagem de Erro Superior com Atalho para Recuperação */}
-        {errorMessage && (
-          <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2.5 flex flex-wrap items-center justify-center gap-2 text-rose-300 text-xs animate-fade-in text-center">
-            <div className="flex items-center space-x-1.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setForgotPasswordModalOpen(true)}
-              className="inline-flex items-center space-x-1 font-bold text-amber-300 hover:text-amber-200 underline underline-offset-2 transition-colors cursor-pointer ml-1"
-            >
-              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              <span>Esqueceu sua senha? Clique aqui para recuperar</span>
-            </button>
-          </div>
-        )}
       </header>
 
       {/* =================================================================== */}
@@ -328,29 +125,38 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
               {/* Badge de Destaque */}
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-inner">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
-                <span>Teste Gratuito de 7 Dias Liberado • Obra, Negócio & Pessoal</span>
+                <span>Teste Gratuito de 7 Dias • Obras, Negócios, Pessoal & Carnê-Leão</span>
               </div>
 
               {/* Título Principal */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                Gestão financeira facilitada para suas <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">obras, negócios e patrimônio.</span>
+                Gestão financeira facilitada para suas <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">obras, negócios e escrituração fiscal.</span>
               </h1>
 
               {/* Subtítulo */}
               <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                Diga adeus a planilhas confusas e prejuízos invisíveis. Centralize custos de construção, controle de insumos e precificação de produtos para pequenas empresas e finanças pessoais em um único painel inteligente.
+                Centralize custos de construção, controle de insumos e precificação de produtos para pequenas empresas, finanças pessoais e exportação automática para o Carnê-Leão Web e-CAC em um único painel inteligente.
               </p>
 
               {/* Ações / Botões Rápidos */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setRegisterModalOpen(true)}
+                  onClick={() => handleOpenRegister('usuario')}
                   className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center space-x-2 text-sm transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4 fill-slate-950" />
                   <span>Experimentar 7 Dias Grátis</span>
                   <ArrowRight className="w-4 h-4 text-slate-950" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenLogin('usuario')}
+                  className="w-full sm:w-auto px-5 py-3.5 bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-slate-200 hover:text-white font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer active:scale-95"
+                >
+                  <Lock className="w-4 h-4 text-emerald-400" />
+                  <span>Acessar Sistema</span>
                 </button>
 
                 <button
@@ -361,25 +167,48 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                       section.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="w-full sm:w-auto px-5 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 hover:text-white font-bold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-3.5 bg-slate-900/60 hover:bg-slate-800/60 border border-slate-800 text-slate-400 hover:text-slate-200 font-semibold rounded-2xl flex items-center justify-center space-x-2 text-sm transition-all cursor-pointer"
                 >
-                  <span>Ver Planos & Recursos</span>
-                  <ArrowDown className="w-4 h-4 text-slate-400" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => exportCommercialPlansPDF()}
-                  className="w-full sm:w-auto px-4 py-3.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-200 hover:text-emerald-300 font-bold rounded-2xl flex items-center justify-center space-x-2 text-xs sm:text-sm transition-all cursor-pointer shadow-md active:scale-95"
-                  title="Baixar material comercial em PDF dos planos para apresentação"
-                >
-                  <FileDown className="w-4 h-4 text-emerald-400" />
-                  <span>Baixar Material (PDF)</span>
+                  <span>Ver Planos</span>
+                  <ArrowDown className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
 
+              {/* Callout Especial: Área do Contador (Concessão por E-mail) */}
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">É Contador ou Escritório Contábil?</span>
+                    <span className="text-[11px] text-amber-200/90">
+                      Seu cliente concede acesso pelo seu <strong>e-mail</strong>. Acesse ou ative sua conta gratuita para auditar e exportar para o e-CAC.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 self-stretch sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenLogin('contador')}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 whitespace-nowrap text-center"
+                  >
+                    Entrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenRegister('contador')}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap text-center"
+                    title="Seu cliente já informou seu e-mail? Ative sua conta gratuita"
+                  >
+                    Primeiro Acesso
+                  </button>
+                </div>
+              </div>
+
               {/* Selos de Confiança Técnica */}
-              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400">
+              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400">
                 <div className="flex items-center space-x-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Segurança PostgreSQL RLS</span>
@@ -390,7 +219,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Exportação PDF & Excel</span>
+                  <span>Carnê-Leão Web Oficial</span>
                 </div>
               </div>
             </div>
@@ -404,7 +233,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
                     <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-300 font-semibold">
-                      Obra • Negócio • Pessoal
+                      Obra • Negócio • Pessoal • Fiscal
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
@@ -488,7 +317,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
                 </div>
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="text-[10px] font-mono uppercase font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">
-                    Novo • Ambiente Negócio
+                    Ambiente Negócio
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Gestão de Negócio & PME</h3>
@@ -561,14 +390,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Feature 1: Exportação PDF & Excel */}
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition-all space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            {/* Feature 1: Exportação Carnê-Leão e-CAC */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
-              <h4 className="text-sm font-bold text-white">Relatórios PDF & Excel</h4>
+              <h4 className="text-sm font-bold text-white">Carnê-Leão Web Oficial</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Exporte relatórios executivos de auditoria em PDF ou planilhas Excel (.xlsx) com a marca oficial GSR Finanças para contabilidade e sócios.
+                Exportação em lote de Rendimentos e Pagamentos (Livro Caixa) homologada no padrão oficial da Receita Federal (e-CAC).
               </p>
             </div>
 
@@ -595,8 +424,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
             </div>
 
             {/* Feature 4: Segurança Bancária PostgreSQL */}
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition-all space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition-all space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <h4 className="text-sm font-bold text-white">Segurança PostgreSQL RLS</h4>
@@ -608,8 +437,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         </section>
 
         {/* =================================================================== */}
-        {/* =================================================================== */}
-        {/* 4. PLANOS E MODELO 7-DAY FREE TRIAL                                */}
+        {/* 5. PLANOS E MODELO 7-DAY FREE TRIAL                                */}
         {/* =================================================================== */}
         <section id="planos" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-slate-800/80 scroll-mt-12">
 
@@ -645,29 +473,41 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
           <PaywallView
             reason="landing_page"
             isInline={true}
-            onSelectPlan={() => setRegisterModalOpen(true)}
+            onSelectPlan={() => handleOpenRegister('usuario')}
           />
 
-          <div className="mt-8 text-center">
-            <span className="text-xs text-slate-400">Já possui uma conta ativa? </span>
-            <button
-              type="button"
-              onClick={focusLoginInput}
-              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors cursor-pointer"
-            >
-              Fazer Login
-            </button>
+          <div className="mt-8 text-center space-y-2">
+            <div>
+              <span className="text-xs text-slate-400">Já possui uma conta ativa? </span>
+              <button
+                type="button"
+                onClick={() => handleOpenLogin('usuario')}
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors cursor-pointer"
+              >
+                Acessar o Sistema
+              </button>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500">É profissional contábil outorgado por cliente? </span>
+              <button
+                type="button"
+                onClick={() => handleOpenLogin('contador')}
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+              >
+                Acessar Área do Contador (Concessão por E-mail)
+              </button>
+            </div>
           </div>
         </section>
       </main>
 
       {/* =================================================================== */}
-      {/* 5. RODAPÉ INSTITUCIONAL & ENGENHARIA DE SEGURANÇA                   */}
+      {/* 6. RODAPÉ INSTITUCIONAL & ENGENHARIA DE SEGURANÇA                   */}
       {/* =================================================================== */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-slate-400">Gestão Financeira</span>
+            <span className="font-semibold text-slate-400">GSR Finanças SaaS</span>
             <span>•</span>
             <span>Segurança Supabase Auth & PostgreSQL RLS</span>
           </div>
@@ -677,26 +517,36 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
             <span>•</span>
             <span>Criptografia AES-256</span>
             <span>•</span>
-            <span>Conformidade LGPD</span>
+            <span>Conformidade e-CAC & LGPD</span>
           </div>
         </div>
       </footer>
+
+      {/* Modal de Login com Persona (Usuário vs Contador) */}
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onSuccess={(role) => onAuthSuccess(role)}
+        initialRole={activeLoginRole}
+        onOpenRegister={(role) => handleOpenRegister(role)}
+        onOpenForgotPassword={() => setForgotPasswordModalOpen(true)}
+      />
 
       {/* Modal de Cadastro com 7 Dias Grátis */}
       <RegisterModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
-        onSuccess={onAuthSuccess}
+        onSuccess={(role) => onAuthSuccess(role)}
+        initialRole={activeLoginRole}
       />
 
       {/* Modal de Recuperação de Senha */}
       <ForgotPasswordModal
         isOpen={forgotPasswordModalOpen}
         onClose={() => setForgotPasswordModalOpen(false)}
-        initialEmail={email}
       />
 
-      {/* Modal de Planos idêntico ao de Configurações */}
+      {/* Modal de Planos */}
       {plansModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fade-in">
           <PaywallView
@@ -704,7 +554,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
             onClose={() => setPlansModalOpen(false)}
             onSelectPlan={() => {
               setPlansModalOpen(false);
-              setRegisterModalOpen(true);
+              handleOpenRegister('usuario');
             }}
           />
         </div>

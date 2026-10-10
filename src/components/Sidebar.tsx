@@ -11,11 +11,13 @@ import {
   Sparkles,
   Calculator,
   Package,
+  Lock,
 } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { EnvironmentSelector } from './workspace/EnvironmentSelector';
 import { PricingCalculatorModal } from './business/PricingCalculatorModal';
 import { EstoqueModal } from './business/EstoqueModal';
+import { PaywallView } from './subscription/PaywallView';
 import { useSubscription } from '../context/SubscriptionContext';
 import type { TabType } from '../types/app';
 
@@ -38,9 +40,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userName,
   onLogout,
 }) => {
-  const { isTrialing, trialDaysRemaining } = useSubscription();
+  const { isTrialing, trialDaysRemaining, canAccessNegocio, currentPlanTier } = useSubscription();
   const [isCalculatorOpen, setIsCalculatorOpen] = useState<boolean>(false);
   const [isEstoqueOpen, setIsEstoqueOpen] = useState<boolean>(false);
+  const [paywallFeatureName, setPaywallFeatureName] = useState<string | null>(null);
 
   // Fecha o drawer ao pressionar a tecla ESC
   useEffect(() => {
@@ -197,33 +200,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* 4. Calculadora de Precificação (Ficha Técnica & Markup) */}
                 <button
                   type="button"
-                  onClick={() => setIsCalculatorOpen(true)}
+                  onClick={() => {
+                    if (canAccessNegocio) {
+                      setIsCalculatorOpen(true);
+                    } else {
+                      setPaywallFeatureName('Calculadora de Preço & CMV');
+                    }
+                  }}
                   className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer text-slate-300 hover:text-white hover:bg-slate-800/70 group"
-                  title="Abrir Calculadora de Precificação e Ficha Técnica de Produtos"
+                  title={!canAccessNegocio ? 'Disponível no Plano Gestão de Obras & Negócios 🔒' : 'Abrir Calculadora de Precificação e Ficha Técnica de Produtos'}
                 >
                   <div className="flex items-center space-x-3">
                     <Calculator className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
                     <span>Calculadora de Preço & CMV</span>
                   </div>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    PME
-                  </span>
+                  <div className="flex items-center space-x-1">
+                    {!canAccessNegocio && <Lock className="w-3 h-3 text-amber-400" />}
+                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                      !canAccessNegocio
+                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                        : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                    }`}>
+                      {!canAccessNegocio ? 'PRO' : 'PME'}
+                    </span>
+                  </div>
                 </button>
 
                 {/* 5. Controle de Estoque (PME / Negócio) */}
                 <button
                   type="button"
-                  onClick={() => setIsEstoqueOpen(true)}
+                  onClick={() => {
+                    if (canAccessNegocio) {
+                      setIsEstoqueOpen(true);
+                    } else {
+                      setPaywallFeatureName('Controle de Estoque & Insumos');
+                    }
+                  }}
                   className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer text-slate-300 hover:text-white hover:bg-slate-800/70 group"
-                  title="Abrir Controle de Estoque, Mercadorias e Insumos"
+                  title={!canAccessNegocio ? 'Disponível no Plano Gestão de Obras & Negócios 🔒' : 'Abrir Controle de Estoque, Mercadorias e Insumos'}
                 >
                   <div className="flex items-center space-x-3">
                     <Package className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                     <span>Controle de Estoque</span>
                   </div>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    PME
-                  </span>
+                  <div className="flex items-center space-x-1">
+                    {!canAccessNegocio && <Lock className="w-3 h-3 text-amber-400" />}
+                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                      !canAccessNegocio
+                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    }`}>
+                      {!canAccessNegocio ? 'PRO' : 'PME'}
+                    </span>
+                  </div>
                 </button>
 
                 {/* 6. Configurações & Ambientes */}
@@ -251,7 +280,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/90 space-y-2 theme-card-sidebar-plano">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-xs font-bold text-white">Plano Gestão Pro</span>
+                <span className="text-xs font-bold text-white">
+                  {currentPlanTier === 'contador'
+                    ? 'Plano Contador + Carnê-Leão'
+                    : currentPlanTier === 'business'
+                    ? 'Plano Gestão Obras & Negócios'
+                    : 'Plano Controle Pessoal'}
+                </span>
               </div>
               {isTrialing ? (
                 <div className="space-y-1">
@@ -314,6 +349,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isOpen={isEstoqueOpen}
         onClose={() => setIsEstoqueOpen(false)}
       />
+
+      {/* Modal Paywall caso tente acessar recurso de Negócios sem plano compatível */}
+      {paywallFeatureName && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <PaywallView
+            reason="feature_locked"
+            lockedFeatureName={paywallFeatureName}
+            onClose={() => setPaywallFeatureName(null)}
+          />
+        </div>
+      )}
     </div>
   );
 };

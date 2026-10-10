@@ -9,8 +9,10 @@ import { ExpenseFormView } from './views/ExpenseFormView';
 import { ExpenseListView } from './views/ExpenseListView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
+import { ContadorWorkspaceView } from './views/ContadorWorkspaceView';
 import { SubscriptionGate } from './components/subscription/SubscriptionGate';
 import { ResetPasswordModal } from './components/auth/ResetPasswordModal';
+import type { UserRole } from './components/auth/LoginModal';
 import { Loader2 } from 'lucide-react';
 
 interface AuthUserData {
@@ -26,6 +28,13 @@ export const App: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState<boolean>(false);
+  const [userHasContadorProfile, setUserHasContadorProfile] = useState<boolean>(false);
+
+  // Persona ativa (Usuário/Empresa vs Contador)
+  const [activeRole, setActiveRole] = useState<UserRole>(() => {
+    const saved = localStorage.getItem('gsr_active_role');
+    return saved === 'contador' ? 'contador' : 'usuario';
+  });
 
   // Detecta se a URL contém token de recuperação de senha ao carregar
   useEffect(() => {
@@ -82,6 +91,22 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // Consulta o tipo de perfil no banco para oferecer alternância suave
+  useEffect(() => {
+    if (sessionUser?.email) {
+      supabase
+        .from('perfis')
+        .select('tipo_perfil')
+        .eq('email', sessionUser.email)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.tipo_perfil === 'contador') {
+            setUserHasContadorProfile(true);
+          }
+        });
+    }
+  }, [sessionUser]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSessionUser(null);
@@ -112,11 +137,19 @@ export const App: React.FC = () => {
     );
   }
 
-  // Se não autenticado, renderiza a Landing Page SaaS com Login Superior integrado
+  // Se não autenticado, renderiza a Landing Page SaaS com Login e Cadastro Dedicados
   if (!sessionUser) {
     return (
       <>
-        <AuthView onAuthSuccess={() => setRefreshTrigger((prev) => prev + 1)} />
+        <AuthView
+          onAuthSuccess={(role?: UserRole) => {
+            if (role) {
+              setActiveRole(role);
+              localStorage.setItem('gsr_active_role', role);
+            }
+            setRefreshTrigger((prev) => prev + 1);
+          }}
+        />
         <ResetPasswordModal
           isOpen={resetPasswordOpen}
           onClose={() => setResetPasswordOpen(false)}
@@ -126,6 +159,24 @@ export const App: React.FC = () => {
     );
   }
 
+  // =========================================================================
+  // PERSONA CONTADOR: Renderiza diretamente o Workspace Multi-Cliente
+  // =========================================================================
+  if (activeRole === 'contador') {
+    return (
+      <ContadorWorkspaceView
+        onSwitchToUserView={() => {
+          setActiveRole('usuario');
+          localStorage.setItem('gsr_active_role', 'usuario');
+        }}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // =========================================================================
+  // PERSONA USUÁRIO / EMPRESA: Renderiza o App tradicional (Obra, Pessoal e Negócio)
+  // =========================================================================
   return (
     <SubscriptionGate>
       <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--bg-viewport)] text-[var(--text-primary)] flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-300">
@@ -140,9 +191,17 @@ export const App: React.FC = () => {
           currentTab={currentTab}
           onChangeTab={setCurrentTab}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+          onSwitchToContadorView={
+            userHasContadorProfile
+              ? () => {
+                  setActiveRole('contador');
+                  localStorage.setItem('gsr_active_role', 'contador');
+                }
+              : undefined
+          }
         />
 
-        {/* Menu Lateral Retrátil (Sidebar Drawer) */}
+        {/* Menu Lateral Retrátil (Sidebar Drawer) Focado 100% no Usuário Comum */}
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}

@@ -29,6 +29,14 @@ export type Database = {
           user_id: string
           valor: number
           workspace_id: string | null
+          cpf_cnpj_participante?: string | null
+          nome_participante?: string | null
+          codigo_rendimento_carne_leao?: string | null
+          is_dedutivel_livro_caixa?: boolean | null
+          codigo_deducao_carne_leao?: string | null
+          tem_comprovante?: boolean | null
+          nome_original_arquivo?: string | null
+          inconsistencias_fiscais?: Json | null
         }
         Insert: {
           categoria: string
@@ -46,6 +54,14 @@ export type Database = {
           user_id: string
           valor: number
           workspace_id?: string | null
+          cpf_cnpj_participante?: string | null
+          nome_participante?: string | null
+          codigo_rendimento_carne_leao?: string | null
+          is_dedutivel_livro_caixa?: boolean | null
+          codigo_deducao_carne_leao?: string | null
+          tem_comprovante?: boolean | null
+          nome_original_arquivo?: string | null
+          inconsistencias_fiscais?: Json | null
         }
         Update: {
           categoria?: string
@@ -63,6 +79,14 @@ export type Database = {
           user_id?: string
           valor?: number
           workspace_id?: string | null
+          cpf_cnpj_participante?: string | null
+          nome_participante?: string | null
+          codigo_rendimento_carne_leao?: string | null
+          is_dedutivel_livro_caixa?: boolean | null
+          codigo_deducao_carne_leao?: string | null
+          tem_comprovante?: boolean | null
+          nome_original_arquivo?: string | null
+          inconsistencias_fiscais?: Json | null
         }
         Relationships: [
           {
@@ -171,6 +195,12 @@ export type Database = {
           role: string
           tema_preferido: 'leitura' | 'escuro' | 'claro'
           updated_at: string
+          cpf_cnpj?: string | null
+          tipo_perfil?: 'cliente' | 'contador' | 'ambos'
+          ocupacao_principal?: string | null
+          registro_profissional?: string | null
+          crc_numero?: string | null
+          telefone_whatsapp?: string | null
         }
         Insert: {
           created_at?: string
@@ -180,6 +210,12 @@ export type Database = {
           role?: string
           tema_preferido?: 'leitura' | 'escuro' | 'claro'
           updated_at?: string
+          cpf_cnpj?: string | null
+          tipo_perfil?: 'cliente' | 'contador' | 'ambos'
+          ocupacao_principal?: string | null
+          registro_profissional?: string | null
+          crc_numero?: string | null
+          telefone_whatsapp?: string | null
         }
         Update: {
           created_at?: string
@@ -189,6 +225,12 @@ export type Database = {
           role?: string
           tema_preferido?: 'leitura' | 'escuro' | 'claro'
           updated_at?: string
+          cpf_cnpj?: string | null
+          tipo_perfil?: 'cliente' | 'contador' | 'ambos'
+          ocupacao_principal?: string | null
+          registro_profissional?: string | null
+          crc_numero?: string | null
+          telefone_whatsapp?: string | null
         }
         Relationships: []
       }
@@ -198,7 +240,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           id: string
-          plan_tier: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
+          plan_tier: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business' | 'contador'
           status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -212,7 +254,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
-          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
+          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business' | 'contador'
           status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -226,7 +268,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
-          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business'
+          plan_tier?: 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business' | 'contador'
           status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -372,6 +414,51 @@ export type Database = {
           retention_offered?: boolean | null
           retention_accepted?: boolean | null
           created_at?: string
+        }
+        Relationships: []
+      }
+      contador_vinculos: {
+        Row: {
+          id: string
+          cliente_id: string
+          contador_email: string
+          contador_id: string | null
+          status: 'pendente' | 'ativo' | 'revogado' | 'recusado'
+          permissao: 'leitura' | 'auditoria_completa'
+          observacoes: string | null
+          convidado_em: string
+          respondido_em: string | null
+          revogado_em: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          cliente_id: string
+          contador_email: string
+          contador_id?: string | null
+          status?: 'pendente' | 'ativo' | 'revogado' | 'recusado'
+          permissao?: 'leitura' | 'auditoria_completa'
+          observacoes?: string | null
+          convidado_em?: string
+          respondido_em?: string | null
+          revogado_em?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          cliente_id?: string
+          contador_email?: string
+          contador_id?: string | null
+          status?: 'pendente' | 'ativo' | 'revogado' | 'recusado'
+          permissao?: 'leitura' | 'auditoria_completa'
+          observacoes?: string | null
+          convidado_em?: string
+          respondido_em?: string | null
+          revogado_em?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

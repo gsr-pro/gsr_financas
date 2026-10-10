@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkspace } from '../context/WorkspaceContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { CreateCategoryModal } from './category/CreateCategoryModal';
 import type { DespesaRow, StatusPagamento, TipoMovimentacao } from '../types/app';
 import type { Database } from '../types/database.types';
@@ -21,7 +22,12 @@ import {
   TrendingUp,
   TrendingDown,
   CreditCard,
+  ShieldCheck,
+  UserCheck,
+  Sparkles,
 } from 'lucide-react';
+import { formatarDocumentoDinamico, validarDocumentoFiscal } from '../lib/fiscalValidators';
+import { comprimirComprovante } from '../lib/imageCompressor';
 
 interface EditExpenseModalProps {
   expense: DespesaRow | null;
@@ -59,6 +65,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   onSuccess,
 }) => {
   const { categories, currentEnvironment } = useWorkspace();
+  const { canAccessFiscal } = useSubscription();
 
   const [tipoMovimentacao, setTipoMovimentacao] = useState<TipoMovimentacao>('despesa');
   const [dataGasto, setDataGasto] = useState<string>('');
@@ -69,6 +76,12 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   const [formaPagamento, setFormaPagamento] = useState<string>('pix');
   const [observacoes, setObservacoes] = useState<string>('');
   const [existingFotoUrl, setExistingFotoUrl] = useState<string | null>(null);
+
+  // Campos fiscais
+  const [cpfParticipante, setCpfParticipante] = useState<string>('');
+  const [nomeParticipante, setNomeParticipante] = useState<string>('');
+  const [isDedutivel, setIsDedutivel] = useState<boolean>(false);
+  const [compressing, setCompressing] = useState<boolean>(false);
 
   // Modal para inclusão dinâmica de categorias
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
@@ -95,6 +108,9 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setFormaPagamento(expense.forma_pagamento || 'pix');
       setObservacoes(expense.observacoes || '');
       setExistingFotoUrl(expense.foto_comprovante_url || null);
+      setCpfParticipante((expense as any).cpf_cnpj_participante || '');
+      setNomeParticipante((expense as any).nome_participante || '');
+      setIsDedutivel(Boolean((expense as any).is_dedutivel_livro_caixa));
       setFile(null);
       setPreviewUrl(null);
       setErrorMessage(null);
@@ -144,24 +160,41 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
   if (!isOpen || !expense) return null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
 
-    if (selected.size > 5 * 1024 * 1024) {
-      setErrorMessage('O arquivo excede o limite máximo de 5MB.');
+    if (selected.size > 15 * 1024 * 1024) {
+      setErrorMessage('O arquivo excede o limite máximo de 15MB.');
       return;
     }
 
-    setFile(selected);
-    if (selected.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(selected);
-    } else {
-      setPreviewUrl(null);
+    try {
+      setCompressing(true);
+      const result = await comprimirComprovante(selected);
+      setFile(result.file);
+      if (result.file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(result.file);
+      } else {
+        setPreviewUrl(null);
+      }
+    } catch {
+      setFile(selected);
+      if (selected.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(selected);
+      } else {
+        setPreviewUrl(null);
+      }
+    } finally {
+      setCompressing(false);
     }
   };
 
@@ -231,6 +264,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
         forma_pagamento: currentEnvironment !== 'obra' ? formaPagamento : null,
         foto_comprovante_url: finalFotoUrl,
         observacoes: observacoes.trim() || null,
+        cpf_cnpj_participante: cpfParticipante.trim() || null,
+        nome_participante: nomeParticipante.trim() || null,
+        is_dedutivel_livro_caixa: isDedutivel,
+        tem_comprovante: Boolean(finalFotoUrl),
         updated_at: new Date().toISOString(),
       };
 
@@ -480,6 +517,101 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             </div>
           </div>
 
+          {/* Seção Fiscal: Carnê-Leão Web & Livro Caixa (Apenas no Plano Contador + Carnê-Leão nos ambientes Pessoal e Negócio) */}
+          {canAccessFiscal && currentEnvironment !== 'obra' && (
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-amber-500/30 space-y-3 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-white">
+                    Compliance Fiscal • Carnê-Leão Web (e-CAC)
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+                  Receita Federal
+                </span>
+              </div>
+
+              {tipoMovimentacao === 'receita' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>CPF / CNPJ do Contratante</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={cpfParticipante}
+                        onChange={(e) => setCpfParticipante(formatarDocumentoDinamico(e.target.value))}
+                        placeholder="000.000.000-00"
+                        maxLength={18}
+                        className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono font-bold text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                      />
+                      {cpfParticipante && (
+                        <span className="absolute right-2.5 top-2.5">
+                          {validarDocumentoFiscal(cpfParticipante) ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-rose-400" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">
+                      Obrigatório no Carnê-Leão para prestadores autônomos.
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      Nome do Contratante / Tomador
+                    </label>
+                    <input
+                      type="text"
+                      value={nomeParticipante}
+                      onChange={(e) => setNomeParticipante(e.target.value)}
+                      placeholder="Ex: Carlos (Dono da Obra)"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-semibold text-white block">
+                        Dedutível no Livro Caixa? (Abate no IRPF)
+                      </span>
+                      <span className="text-[11px] text-slate-400 block">
+                        Despesas de custeio necessárias à atividade (Art. 104 do RIR/2018).
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-3">
+                      <input
+                        type="checkbox"
+                        checked={isDedutivel}
+                        onChange={(e) => setIsDedutivel(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                  </div>
+
+                  {isDedutivel && (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-2 text-[11px] text-emerald-300 animate-fade-in">
+                      <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>
+                        Este valor reduzirá diretamente a base de cálculo do Carnê-Leão e do DARF mensal.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Forma de Pagamento nos ambientes Negócio e Pessoal */}
           {currentEnvironment !== 'obra' && (
             <div>
@@ -550,7 +682,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               <div className="space-y-1 flex flex-col items-center">
                 <Upload className="w-6 h-6 text-slate-500" />
                 <span className="text-xs font-medium text-slate-300">
-                  {file ? file.name : existingFotoUrl ? 'Clique para substituir o comprovante' : 'Anexar comprovante (foto ou PDF)'}
+                  {compressing ? 'Otimizando comprovante...' : file ? file.name : existingFotoUrl ? 'Clique para substituir o comprovante' : 'Anexar comprovante (foto ou PDF)'}
                 </span>
                 <span className="text-[10px] text-slate-500">Máximo 5MB (PNG, JPG, PDF)</span>
               </div>

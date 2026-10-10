@@ -14,6 +14,7 @@ interface SubscriptionContextType {
   isPaywallActive: boolean;
   canManageObra: boolean;
   canAccessNegocio: boolean;
+  canAccessFiscal: boolean;
   canAccessEnvironment: (env: WorkspaceType) => boolean;
   currentPlanTier: SubscriptionTier;
   refreshSubscription: () => Promise<void>;
@@ -139,6 +140,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isPaywallActive,
     canManageObra,
     canAccessNegocio,
+    canAccessFiscal,
     canAccessEnvironment,
     currentPlanTier,
   } = useMemo(() => {
@@ -151,6 +153,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isPaywallActive: true,
         canManageObra: false,
         canAccessNegocio: false,
+        canAccessFiscal: false,
         canAccessEnvironment: () => false,
         currentPlanTier: 'lite' as SubscriptionTier,
       };
@@ -168,15 +171,21 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const isPaywallBlocked = !accessAllowed;
 
     // Regra de Ouro do Modelo SaaS:
-    // 1. Durante o Trial (7 dias): acesso aos 3 ambientes liberado para experimentação completa.
+    // 1. Durante o Trial (7 dias): acesso a todos os ambientes e módulos fiscais liberado para experimentação completa.
     // 2. Pós-Trial / Assinatura Ativa:
-    //    - Plano Lite: Acesso a 2 Ambientes (Obra e Pessoal).
-    //    - Plano Business: Acesso a 3 Ambientes (Obra, Pessoal e Negócio).
+    //    - Plano Controle Pessoal (antigo Lite): Acesso a Obras e Pessoal.
+    //    - Plano Gestão de Obras & Negócios (antigo Business): Acesso a Obras, Pessoal e Negócio (PME).
+    //    - Plano Contador + Carnê-Leão: Acesso total (Obras, Pessoal, Negócio + Carnê-Leão Oficial + Workspace Contador).
     const hasBusinessPlan =
-      subscription.plan_tier === 'business' || subscription.plan_tier === 'negocio';
+      subscription.plan_tier === 'business' ||
+      subscription.plan_tier === 'negocio' ||
+      subscription.plan_tier === 'contador';
+
+    const hasContadorPlan = subscription.plan_tier === 'contador';
 
     const negocioAllowed = isWithinTrial || (isActive && hasBusinessPlan);
     const obraAllowed = isWithinTrial || isActive;
+    const fiscalAllowed = isWithinTrial || (isActive && hasContadorPlan);
 
     const envChecker = (env: WorkspaceType): boolean => {
       if (isWithinTrial) return true;
@@ -193,12 +202,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       isPaywallActive: isPaywallBlocked,
       canManageObra: obraAllowed,
       canAccessNegocio: negocioAllowed,
+      canAccessFiscal: fiscalAllowed,
       canAccessEnvironment: envChecker,
       currentPlanTier: subscription.plan_tier,
     };
   }, [subscription]);
 
-  // Checkout Dinâmico com suporte aos planos Lite e Business
+  // Checkout Dinâmico com suporte aos planos Pessoal, Obras & Negócios e Contador
   const startCheckout = async (
     priceId: string,
     interval: BillingInterval,
@@ -208,7 +218,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado.');
 
-      const targetPlan = PLANS[tier] || (priceId.includes('1ULvH') ? PLANS.business : PLANS.lite);
+      const targetPlan = PLANS[tier] || (tier === 'contador' ? PLANS.contador : priceId.includes('1ULvH') ? PLANS.business : PLANS.lite);
 
       // Tentativa 1: Supabase Edge Function
       try {
@@ -216,6 +226,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
           body: {
             priceId,
             interval,
+            tier,
             couponId: interval === 'month' ? targetPlan.promoCouponId : undefined,
             userId: user.id,
             email: user.email,
@@ -366,6 +377,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isPaywallActive,
         canManageObra,
         canAccessNegocio,
+        canAccessFiscal,
         canAccessEnvironment,
         currentPlanTier,
         refreshSubscription: fetchSubscription,

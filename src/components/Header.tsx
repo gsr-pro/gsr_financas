@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, LogOut, RefreshCw, Plus, LayoutDashboard, ReceiptText, Settings } from 'lucide-react';
+import { Menu, LogOut, RefreshCw, Plus, LayoutDashboard, ReceiptText, Settings, Briefcase } from 'lucide-react';
 import { BrandLogo } from './brand/BrandLogo';
 import { ThemeSelector } from './ThemeSelector';
 import type { TabType } from '../types/app';
@@ -13,6 +13,7 @@ interface HeaderProps {
   currentTab: TabType;
   onChangeTab: (tab: TabType) => void;
   onOpenSidebar: () => void;
+  onSwitchToContadorView?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentTab,
   onChangeTab,
   onOpenSidebar,
+  onSwitchToContadorView,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md transition-colors duration-300 w-full max-w-full">
@@ -132,6 +134,19 @@ export const Header: React.FC<HeaderProps> = ({
               className="p-1.5 rounded-xl border border-transparent text-slate-300 hover:text-white hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 theme-icon-btn cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
+            </button>
+          )}
+
+          {/* Alternar para Workspace do Contador se habilitado */}
+          {onSwitchToContadorView && (
+            <button
+              type="button"
+              onClick={onSwitchToContadorView}
+              className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Alternar para o Workspace do Contador"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+              <span>Workspace Contador</span>
             </button>
           )}
 

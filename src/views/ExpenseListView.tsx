@@ -19,7 +19,11 @@ import {
   TrendingDown,
   FileDown,
   Tag,
+  ShieldCheck,
 } from 'lucide-react';
+import { useSubscription } from '../context/SubscriptionContext';
+import { MalhaFinaModal } from '../components/fiscal/MalhaFinaModal';
+import { PaywallView } from '../components/subscription/PaywallView';
 import { EditExpenseModal } from '../components/EditExpenseModal';
 import { ManageCategoriesModal } from '../components/category/ManageCategoriesModal';
 import { PeriodFilter, type PeriodFilterValue } from '../components/PeriodFilter';
@@ -54,6 +58,11 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
   // Modal de Exportação
   const [exportModalOpen, setExportModalOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string }>({});
+
+  // Plano e Módulo Fiscal (Plano Contador + Carnê-Leão)
+  const { canAccessFiscal } = useSubscription();
+  const [malhaFinaOpen, setMalhaFinaOpen] = useState<boolean>(false);
+  const [paywallOpen, setPaywallOpen] = useState<boolean>(false);
 
   // Modal de Comprovante e Modal de Edição
   const [activeComprovante, setActiveComprovante] = useState<{ url: string; descricao: string } | null>(null);
@@ -251,17 +260,36 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80">
         <PeriodFilter value={periodFilter} onChange={setPeriodFilter} />
 
-        {/* Botão de Exportação Executiva com Seleção Avançada de Período & Formato */}
-        <button
-          type="button"
-          onClick={() => setExportModalOpen(true)}
-          disabled={despesas.length === 0}
-          className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 hover:text-white transition-all disabled:opacity-40 cursor-pointer shadow-sm active:scale-95 flex-shrink-0"
-          title="Exportar dados com seleção de formato e período específico"
-        >
-          <FileDown className="w-4 h-4 text-emerald-400" />
-          <span>Exportar Relatório</span>
-        </button>
+        <div className="flex items-center space-x-2 flex-wrap">
+          {/* Botão Carnê-Leão Web com trava do Plano Business */}
+          <button
+            type="button"
+            onClick={() => {
+              if (canAccessFiscal) {
+                setMalhaFinaOpen(true);
+              } else {
+                setPaywallOpen(true);
+              }
+            }}
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-emerald-500/15 hover:from-amber-500/25 hover:to-emerald-500/25 border border-amber-500/30 text-xs font-bold text-amber-300 transition-all cursor-pointer shadow-sm active:scale-95 flex-shrink-0"
+            title="Validar dados e exportar para o Carnê-Leão Web (e-CAC)"
+          >
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span>Carnê-Leão Web 🦁</span>
+          </button>
+
+          {/* Botão de Exportação Executiva */}
+          <button
+            type="button"
+            onClick={() => setExportModalOpen(true)}
+            disabled={despesas.length === 0}
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 hover:text-white transition-all disabled:opacity-40 cursor-pointer shadow-sm active:scale-95 flex-shrink-0"
+            title="Exportar dados com seleção de formato e período específico"
+          >
+            <FileDown className="w-4 h-4 text-emerald-400" />
+            <span>Exportar Relatório</span>
+          </button>
+        </div>
       </div>
 
       {/* Filtro por Tipo de Movimentação (ambientes Pessoal e Negócio) */}
@@ -433,6 +461,25 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
                       {isPago ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                       <span>{item.status_pagamento}</span>
                     </span>
+
+                    {/* Tags Fiscais Carnê-Leão */}
+                    {Boolean((item as any).is_dedutivel_livro_caixa) && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+                        Livro Caixa
+                      </span>
+                    )}
+
+                    {(item as any).cpf_cnpj_participante ? (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        CPF: {(item as any).cpf_cnpj_participante}
+                      </span>
+                    ) : (
+                      isReceita && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
+                          ⚠️ Sem CPF
+                        </span>
+                      )
+                    )}
                   </div>
 
                   <h4 className="text-sm font-bold text-white truncate">{tituloLimpo}</h4>
@@ -541,6 +588,27 @@ export const ExpenseListView: React.FC<ExpenseListViewProps> = ({
           fetchDespesas();
         }}
       />
+      {/* Modal de Malha Fina Preventiva Carnê-Leão Web & Compliance */}
+      <MalhaFinaModal
+        isOpen={malhaFinaOpen}
+        onClose={() => setMalhaFinaOpen(false)}
+        lancamentos={filteredDespesas}
+        ano={periodFilter.year || new Date().getFullYear()}
+        mes={periodFilter.month || new Date().getMonth() + 1}
+        userName={currentUser.name}
+        onDespesaUpdated={fetchDespesas}
+      />
+
+      {/* Paywall Modal para Usuários Lite */}
+      {paywallOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <PaywallView
+            reason="feature_locked"
+            lockedFeatureName="Exportação Oficial para o Carnê-Leão Web & Malha Fina Preventiva"
+            onClose={() => setPaywallOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };

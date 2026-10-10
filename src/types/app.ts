@@ -9,6 +9,7 @@ export type DashboardTotaisRow = Database['public']['Views']['vw_dashboard_totai
 
 export type WorkspaceType = 'obra' | 'pessoal' | 'negocio';
 export * from './business.types';
+export * from './fiscal.types';
 export type TabType = 'dashboard' | 'novo' | 'historico' | 'configuracoes';
 export type ThemeMode = 'leitura' | 'escuro' | 'claro';
 

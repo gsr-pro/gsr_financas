@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business';
+export type SubscriptionTier = 'pessoal' | 'obra' | 'negocio' | 'lite' | 'business' | 'contador';
 
 export type SubscriptionStatus =
   | 'trialing'

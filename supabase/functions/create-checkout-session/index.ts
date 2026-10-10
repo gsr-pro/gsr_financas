@@ -20,7 +20,7 @@ serve(async (req) => {
   }
 
   try {
-    const { priceId, interval, couponId, userId, email, returnUrl } = await req.json();
+    const { priceId, interval, couponId, userId, email, returnUrl, tier } = await req.json();
 
     if (!priceId || !userId) {
       return new Response(
@@ -34,6 +34,8 @@ serve(async (req) => {
     if (interval === 'month' && couponId) {
       discounts.push({ coupon: couponId });
     }
+
+    const planTier = tier || 'lite';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -51,8 +53,14 @@ serve(async (req) => {
       subscription_data: {
         metadata: {
           user_id: userId,
-          plan: 'obra',
+          tier: planTier,
+          plan: planTier,
         },
+      },
+      metadata: {
+        user_id: userId,
+        tier: planTier,
+        plan: planTier,
       },
       success_url: `${returnUrl || 'http://localhost:5173'}?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
       cancel_url: `${returnUrl || 'http://localhost:5173'}?checkout=cancel`,

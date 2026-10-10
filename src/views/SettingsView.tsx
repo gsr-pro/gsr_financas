@@ -11,6 +11,7 @@ import { formatCurrency, formatDate } from '../lib/formatters';
 import type { WorkspaceRow } from '../types/app';
 import { PaywallView } from '../components/subscription/PaywallView';
 import { CancelSubscriptionModal } from '../components/subscription/CancelSubscriptionModal';
+import { ContadorAcessoCard } from '../components/fiscal/ContadorAcessoCard';
 import {
   Settings,
   Building2,
@@ -751,6 +752,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProfileUpdated }) 
           </div>
         </form>
       </section>
+
+      {/* 5. Acesso e Procuração do Contador / Auditoria Contábil */}
+      <ContadorAcessoCard />
 
       {/* Modais */}
       <CreateCategoryModal

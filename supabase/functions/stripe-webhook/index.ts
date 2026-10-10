@@ -103,18 +103,35 @@ serve(async (req: Request) => {
           }
         }
 
-        // Determina se o plano é 'business' ou 'lite'
+        // Determina se o plano é 'contador', 'business' ou 'lite'
         const metaTier = (session.metadata?.tier || '').toLowerCase();
         const metaPlan = (session.metadata?.plan || '').toLowerCase();
-        const isBusiness =
+        const totalAmount = session.amount_total ?? 0;
+
+        let planTier: 'contador' | 'business' | 'lite' = 'lite';
+        if (
+          metaTier === 'contador' ||
+          metaPlan.includes('contador') ||
+          subscriptionItemNickname.includes('contador') ||
+          subscriptionPriceMetadataPlan.includes('contador') ||
+          (stripePriceId && (stripePriceId.includes('contador') || stripePriceId.includes('4990') || stripePriceId.includes('1UOnn'))) ||
+          totalAmount >= 4000
+        ) {
+          planTier = 'contador';
+        } else if (
           metaTier === 'business' ||
+          metaTier === 'negocio' ||
           metaPlan.includes('business') ||
+          metaPlan.includes('negocio') ||
           subscriptionItemNickname.includes('business') ||
           subscriptionPriceMetadataPlan.includes('business') ||
-          (stripePriceId && (stripePriceId.includes('1ULvH') || stripePriceId.includes('1ULvI'))) ||
-          (session.amount_total !== null && session.amount_total >= 2000);
-
-        const planTier = isBusiness ? 'business' : 'lite';
+          (stripePriceId && (stripePriceId.includes('1ULvH') || stripePriceId.includes('1ULvI') || stripePriceId.includes('1495'))) ||
+          (totalAmount >= 1200 && totalAmount < 4000)
+        ) {
+          planTier = 'business';
+        } else {
+          planTier = 'lite';
+        }
 
         if (userId) {
           const { error: upsertErr } = await supabaseAdmin
@@ -153,23 +170,36 @@ serve(async (req: Request) => {
 
         const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-        // Determina tier baseado nos itens do plano se disponível
+        // Determina tier baseado nos itens do plano se disponível (Upgrade / Downgrade)
         const priceId = subscription.items?.data?.[0]?.price?.id || '';
         const nickname = (subscription.items?.data?.[0]?.price?.nickname || '').toLowerCase();
         const metaPlan = (subscription.items?.data?.[0]?.price?.metadata?.plan || '').toLowerCase();
 
-        let planTier: 'lite' | 'business' | undefined;
+        let planTier: 'contador' | 'business' | 'lite' | undefined;
         if (
+          priceId.includes('contador') ||
+          priceId.includes('4990') ||
+          priceId.includes('1UOnn') ||
+          nickname.includes('contador') ||
+          metaPlan.includes('contador')
+        ) {
+          planTier = 'contador';
+        } else if (
           priceId.includes('1ULvH') ||
           priceId.includes('1ULvI') ||
+          priceId.includes('1495') ||
           nickname.includes('business') ||
-          metaPlan.includes('business')
+          metaPlan.includes('business') ||
+          metaPlan.includes('negocio')
         ) {
           planTier = 'business';
         } else if (
           priceId.includes('1ULU') ||
+          priceId.includes('745') ||
           nickname.includes('lite') ||
-          metaPlan.includes('lite')
+          nickname.includes('pessoal') ||
+          metaPlan.includes('lite') ||
+          metaPlan.includes('pessoal')
         ) {
           planTier = 'lite';
         }

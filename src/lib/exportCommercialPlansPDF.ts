@@ -63,7 +63,8 @@ const drawGSRLogo = (doc: jsPDF, x: number, y: number, scale = 1): void => {
 
 /**
  * Gera e realiza o download do Material Comercial Executivo dos Planos e Recursos (PDF)
- * Desenvolvido especialmente para apresentações a clientes, sócios e uso do time comercial.
+ * Redesenhado em formato horizontal/estruturado (um plano abaixo do outro)
+ * para evitar qualquer sobreposição de texto e entregar uma experiência executiva de alto nível.
  */
 export const exportCommercialPlansPDF = (): void => {
   const doc = new jsPDF({
@@ -76,390 +77,567 @@ export const exportCommercialPlansPDF = (): void => {
   const dataAtual = now.toLocaleDateString('pt-BR');
   const lite = PLANS.lite;
   const business = PLANS.business;
+  const contador = PLANS.contador;
 
   // =========================================================================
-  // PÁGINA 1: APRESENTAÇÃO INSTITUCIONAL, AMBIENTES E RESUMO DOS PLANOS
+  // PÁGINA 1: CATÁLOGO EXECUTIVO DOS 3 PLANOS (UM ABAIXO DO OUTRO)
   // =========================================================================
 
-  // 1. Cabeçalho Corporativo Superior Escuro
+  // 1. Cabeçalho Corporativo Superior Escuro (32mm)
   doc.setFillColor(15, 23, 42); // slate-900
-  doc.rect(0, 0, 210, 34, 'F');
+  doc.rect(0, 0, 210, 32, 'F');
 
   // Faixa de destaque verde esmeralda no topo
   doc.setFillColor(16, 185, 129); // emerald-500
   doc.rect(0, 0, 210, 2.5, 'F');
 
   // Logotipo Vetorial Oficial
-  drawGSRLogo(doc, 14, 8, 1.15);
+  drawGSRLogo(doc, 14, 7, 1.15);
 
   // Tipografia da Marca
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(15);
   doc.setTextColor(255, 255, 255);
-  doc.text('GSR FINANÇAS', 36, 16);
+  doc.text('GSR FINANÇAS', 36, 15);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setTextColor(52, 211, 153); // emerald-400
-  doc.text('GESTÃO FINANCEIRA FACILITADA • OBRAS, NEGÓCIOS & PATRIMÔNIO', 36, 21);
+  doc.text('GESTÃO FINANCEIRA FACILITADA • OBRAS, NEGÓCIOS & ESCRITURAÇÃO FISCAL', 36, 20);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7.2);
   doc.setTextColor(148, 163, 184); // slate-400
-  doc.text('Material Comercial & Catálogo Oficial de Planos de Assinatura', 36, 26);
+  doc.text('Catálogo Oficial de Planos Comerciais e Cobertura de Recursos', 36, 25);
 
-  // Lado direito: Selo de Versão e 7 Dias Grátis
+  // Lado direito: Selo de Degustação 7 Dias Grátis
   doc.setFillColor(30, 41, 59); // slate-800
-  doc.roundedRect(142, 8, 54, 18, 2, 2, 'F');
+  doc.roundedRect(144, 7, 52, 17, 2, 2, 'F');
   doc.setDrawColor(16, 185, 129);
   doc.setLineWidth(0.3);
-  doc.roundedRect(142, 8, 54, 18, 2, 2, 'D');
+  doc.roundedRect(144, 7, 52, 17, 2, 2, 'D');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
   doc.setTextColor(245, 158, 11); // amber-500
-  doc.text('★ 7 DIAS GRÁTIS', 169, 13.5, { align: 'center' });
+  doc.text('★ 7 DIAS GRÁTIS', 170, 12.5, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.8);
   doc.setTextColor(226, 232, 240);
-  doc.text('Teste sem fidelidade', 169, 17.5, { align: 'center' });
-  doc.text(`Atualização: ${dataAtual}`, 169, 21.5, { align: 'center' });
+  doc.text('Teste sem fidelidade', 170, 16.5, { align: 'center' });
+  doc.text(`Emissão: ${dataAtual}`, 170, 20.5, { align: 'center' });
 
-  // 2. Título da Apresentação
-  let currentY = 41;
+  // 2. Faixa Informativa dos 3 Ambientes da Plataforma (y: 35 a 49)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
+  doc.setFontSize(10.5);
   doc.setTextColor(15, 23, 42); // slate-900
-  doc.text('1. Plataforma Unificada: Três Ecossistemas em um Só Aplicativo', 14, currentY);
-
-  currentY += 4.5;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(71, 85, 105); // slate-600
-  doc.text(
-    'O GSR Finanças foi desenvolvido para solucionar a fragmentação financeira de quem constrói, empreende e gerencia seu patrimônio pessoal.',
-    14,
-    currentY,
-    { maxWidth: 182 }
-  );
-
-  // 3. Os Três Ambientes Nativos (Cards Horizontais)
-  currentY += 8;
-  const colWidth = 58;
-  const cardHeight = 44;
-  const gap = 4;
-
-  // Card 1: Custo de Obra & Reformas
-  const x1 = 14;
-  doc.setFillColor(240, 253, 244); // emerald-50
-  doc.setDrawColor(167, 243, 208); // emerald-200
-  doc.roundedRect(x1, currentY, colWidth, cardHeight, 2, 2, 'FD');
-  doc.setFillColor(16, 185, 129); // emerald-500 friso
-  doc.rect(x1, currentY, colWidth, 2.5, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(6, 95, 70); // emerald-800
-  doc.text('AMBIENTE DE OBRA', x1 + 4, currentY + 7);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(15, 23, 42);
-  doc.text('Custos de Construção', x1 + 4, currentY + 12);
+  doc.text('Catálogo Comercial • Escolha o Plano Ideal para a sua Realidade', 14, 38.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(51, 65, 85);
-  const textObra = [
-    '• Aquisição de terreno/lote e valorização.',
-    '• Custo real da obra por m² construído.',
-    '• Controle de materiais e mão de obra.',
-    '• Anexo de notas fiscais e comprovantes.',
-    '• Total pago vs contas pendentes a pagar.',
-  ];
-  let bulletY = currentY + 17;
-  textObra.forEach((item) => {
-    doc.text(item, x1 + 4, bulletY, { maxWidth: colWidth - 8 });
-    bulletY += 4.5;
-  });
-
-  // Card 2: Negócios & PME
-  const x2 = x1 + colWidth + gap;
-  doc.setFillColor(238, 242, 255); // indigo-50
-  doc.setDrawColor(199, 210, 254); // indigo-200
-  doc.roundedRect(x2, currentY, colWidth, cardHeight, 2, 2, 'FD');
-  doc.setFillColor(99, 102, 241); // indigo-500 friso
-  doc.rect(x2, currentY, colWidth, 2.5, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(55, 48, 163); // indigo-800
-  doc.text('AMBIENTE DE NEGÓCIO', x2 + 4, currentY + 7);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(15, 23, 42);
-  doc.text('Gestão de PME & Insumos', x2 + 4, currentY + 12);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(51, 65, 85);
-  const textNegocio = [
-    '• Ficha técnica detalhada de insumos.',
-    '• Calculadora de Precificação & Markup.',
-    '• Ponto de equilíbrio (Break-Even).',
-    '• Cálculo de CMV e margem operacional.',
-    '• Separação de custos fixos e impostos.',
-  ];
-  bulletY = currentY + 17;
-  textNegocio.forEach((item) => {
-    doc.text(item, x2 + 4, bulletY, { maxWidth: colWidth - 8 });
-    bulletY += 4.5;
-  });
-
-  // Card 3: Finanças Pessoais
-  const x3 = x2 + colWidth + gap;
-  doc.setFillColor(236, 254, 255); // cyan-50
-  doc.setDrawColor(165, 243, 252); // cyan-200
-  doc.roundedRect(x3, currentY, colWidth, cardHeight, 2, 2, 'FD');
-  doc.setFillColor(6, 182, 212); // cyan-500 friso
-  doc.rect(x3, currentY, colWidth, 2.5, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(14, 116, 144); // cyan-800
-  doc.text('AMBIENTE PESSOAL', x3 + 4, currentY + 7);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(15, 23, 42);
-  doc.text('Patrimônio & Finanças', x3 + 4, currentY + 12);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(51, 65, 85);
-  const textPessoal = [
-    '• Controle de receitas, salários e contas.',
-    '• Painel de Investimentos e Poupança.',
-    '• Reserva de emergência e rendimentos.',
-    '• Categorias dinâmicas personalizáveis.',
-    '• Fluxo de caixa mensal e anual claro.',
-  ];
-  bulletY = currentY + 17;
-  textPessoal.forEach((item) => {
-    doc.text(item, x3 + 4, bulletY, { maxWidth: colWidth - 8 });
-    bulletY += 4.5;
-  });
-
-  // 4. Seção dos Planos de Assinatura
-  currentY += cardHeight + 8;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(15, 23, 42);
-  doc.text('2. Comparativo Executivo dos Planos Oficiais', 14, currentY);
-
-  currentY += 4.5;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
   doc.text(
-    'Escolha a modalidade que melhor se adapta à complexidade da sua operação. Ambos incluem 7 dias de avaliação gratuita.',
+    'Plataforma unificada com três ecossistemas nativos e módulo fiscal oficial. Sem burocracia e cancelamento com 1 clique.',
     14,
-    currentY,
-    { maxWidth: 182 }
+    42.5
   );
 
-  // Cards dos Planos: Lite vs Business
-  currentY += 7;
-  const planWidth = 89;
-  const planHeight = 110;
+  // 3 Mini-badges de Ambientes Nativos
+  const envCardW = 58;
+  const envY = 44.5;
+  const envH = 5.5;
 
-  // --- CARD PLANO LITE ---
-  const liteX = 14;
+  // Ambiente de Obra
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(167, 243, 208);
+  doc.roundedRect(14, envY, envCardW, envH, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
+  doc.setTextColor(6, 95, 70);
+  doc.text('OBRAS & REFORMAS:', 16.5, envY + 3.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text('Terrenos, mão de obra e m²', 42, envY + 3.8);
+
+  // Ambiente de Negócios
+  doc.setFillColor(238, 242, 255);
+  doc.setDrawColor(199, 210, 254);
+  doc.roundedRect(76, envY, envCardW, envH, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
+  doc.setTextColor(55, 48, 163);
+  doc.text('NEGÓCIOS & PME:', 78.5, envY + 3.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text('Ficha técnica, Markup e CMV', 101, envY + 3.8);
+
+  // Ambiente Pessoal & Fiscal
+  doc.setFillColor(254, 243, 199);
+  doc.setDrawColor(253, 230, 138);
+  doc.roundedRect(138, envY, envCardW, envH, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
+  doc.setTextColor(146, 64, 14);
+  doc.text('PESSOAL & FISCAL:', 140.5, envY + 3.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text('Carnê-Leão e-CAC e Hub CRC', 165, envY + 3.8);
+
+
+  // =========================================================================
+  // CARD 1: PLANO CONTROLE PESSOAL (HORIZONTAL, y: 53 a 120 - Altura: 67mm)
+  // =========================================================================
+  const card1Y = 53;
+  const card1H = 67;
+
+  // Fundo e borda do card
   doc.setFillColor(248, 250, 252); // slate-50
   doc.setDrawColor(203, 213, 225); // slate-300
-  doc.roundedRect(liteX, currentY, planWidth, planHeight, 3, 3, 'FD');
+  doc.setLineWidth(0.3);
+  doc.roundedRect(14, card1Y, 182, card1H, 2.5, 2.5, 'FD');
 
-  // Faixa topo Lite
-  doc.setFillColor(15, 23, 42); // slate-900
-  doc.roundedRect(liteX, currentY, planWidth, 18, 3, 3, 'F');
-  doc.rect(liteX, currentY + 14, planWidth, 4, 'F'); // remove canto inferior arredondado
-
-  // Badge Lite
+  // Friso vertical verde esmeralda à esquerda
   doc.setFillColor(16, 185, 129); // emerald-500
-  doc.roundedRect(liteX + 6, currentY + 3.5, 30, 4.5, 1, 1, 'F');
+  doc.rect(14, card1Y, 3, card1H, 'F');
+
+  // --- COLUNA DA ESQUERDA: Identidade e Preço (x: 20 a 74) ---
+  // Badge da Persona
+  doc.setFillColor(16, 185, 129);
+  doc.roundedRect(20, card1Y + 4, 30, 4.5, 1, 1, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
+  doc.setFontSize(6);
   doc.setTextColor(255, 255, 255);
-  doc.text('MAIS POPULAR', liteX + 21, currentY + 6.8, { align: 'center' });
+  doc.text('OBRAS & PESSOAL', 35, card1Y + 7.2, { align: 'center' });
 
   // Nome do Plano
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(255, 255, 255);
-  doc.text('Plano Lite', liteX + 6, currentY + 14);
-
-  // Preço Mensal / Anual Lite
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(12);
   doc.setTextColor(15, 23, 42);
-  doc.text(`R$ ${lite.monthlyPrice.toFixed(2).replace('.', ',')}`, liteX + 6, currentY + 28);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('/mês no plano mensal', liteX + 40, currentY + 27.5);
+  doc.text('Controle Pessoal', 20, card1Y + 14);
 
-  // Promoção de Boas-Vindas
-  doc.setFillColor(254, 243, 199); // amber-100
-  doc.roundedRect(liteX + 6, currentY + 31.5, planWidth - 12, 6, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Indivíduos, casais e reformas residenciais', 20, card1Y + 18);
+
+  // Preço Mensal com Destaque
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(15);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`R$ ${lite.monthlyPrice.toFixed(2).replace('.', ',')}`, 20, card1Y + 26);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('/mês', 46, card1Y + 25.5);
+
+  // Preço original tachado
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text('R$ 14,90', 56, card1Y + 25.5);
+  doc.setDrawColor(148, 163, 184);
+  doc.setLineWidth(0.3);
+  doc.line(56, card1Y + 24.5, 68, card1Y + 24.5);
+
+  // Selo Promocional 50% OFF
+  doc.setFillColor(254, 243, 199); // amber-100
+  doc.setDrawColor(253, 230, 138);
+  doc.roundedRect(20, card1Y + 29, 53, 5, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
   doc.setTextColor(180, 83, 9); // amber-700
-  doc.text(`PROMOÇÃO: R$ ${lite.promoMonthlyPrice?.toFixed(2).replace('.', ',')}/mês nos 2 primeiros meses`, liteX + 9, currentY + 35.8);
+  doc.text('★ 50% OFF nos 2 primeiros meses', 46.5, card1Y + 32.7, { align: 'center' });
 
   // Preço Anual
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(5, 150, 105); // emerald-600
-  doc.text(`Opção Anual: R$ ${lite.yearlyPrice.toFixed(2).replace('.', ',')} / ano (equivale a 2 meses grátis)`, liteX + 6, currentY + 42.5);
-
-  // Linha divisória
-  doc.setDrawColor(226, 232, 240);
-  doc.line(liteX + 6, currentY + 45.5, liteX + planWidth - 6, currentY + 45.5);
-
-  // Recursos do Plano Lite
-  doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
-  doc.setTextColor(30, 41, 59);
-  doc.text('O QUE ESTÁ INCLUSO NO LITE:', liteX + 6, currentY + 50.5);
-
-  const liteItems = [
-    '✓ 2 Ambientes: Custo de Obra + Finanças Pessoais',
-    '✓ Gestão de múltiplos projetos e obras ilimitadas',
-    '✓ Cálculo de custo real por metro quadrado (R$/m²)',
-    '✓ Acompanhamento de aquisição de terreno e evolução',
-    '✓ Anexo de recibos e notas fiscais no Storage',
-    '✓ Relatórios executivos em PDF e Excel (.xlsx)',
-    '✓ Painel de Investimentos e Reserva de Emergência',
-    '✓ Filtro de período dinâmico por mês e histórico',
-    '— Módulo de Negócios & PME (exclusivo do Business)',
-    '— Ficha técnica e calculadora de Markup (exclusivo)',
-  ];
-
-  let itemY = currentY + 56;
+  doc.setTextColor(5, 150, 105); // emerald-600
+  doc.text(`Anual: R$ ${lite.yearlyPrice.toFixed(2).replace('.', ',')}/ano`, 20, card1Y + 39.5);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  liteItems.forEach((text) => {
-    if (text.startsWith('✓')) {
-      doc.setTextColor(6, 95, 70); // emerald-800
-      doc.setFont('helvetica', 'bold');
-    } else {
-      doc.setTextColor(148, 163, 184); // slate-400
-      doc.setFont('helvetica', 'normal');
-    }
-    doc.text(text, liteX + 6, itemY, { maxWidth: planWidth - 12 });
-    itemY += 5;
-  });
+  doc.setFontSize(6.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('(Apenas R$ 6,20/mês • 2 meses grátis)', 20, card1Y + 43.5);
 
-  // --- CARD PLANO BUSINESS PME ---
-  const bizX = liteX + planWidth + 4;
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(99, 102, 241); // borda destacada indigo
-  doc.setLineWidth(0.6);
-  doc.roundedRect(bizX, currentY, planWidth, planHeight, 3, 3, 'FD');
-  doc.setLineWidth(0.2); // volta padrão
-
-  // Faixa topo Business
-  doc.setFillColor(30, 27, 75); // indigo-950
-  doc.roundedRect(bizX, currentY, planWidth, 18, 3, 3, 'F');
-  doc.rect(bizX, currentY + 14, planWidth, 4, 'F');
-
-  // Badge Business
-  doc.setFillColor(99, 102, 241); // indigo-500
-  doc.roundedRect(bizX + 6, currentY + 3.5, 36, 4.5, 1, 1, 'F');
+  // Pill de Ambientes Inclusos
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(167, 243, 208);
+  doc.roundedRect(20, card1Y + 47, 53, 6, 1, 1, 'FD');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(6.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text('MAIS COMPLETO (3 EM 1)', bizX + 24, currentY + 6.8, { align: 'center' });
+  doc.setTextColor(6, 95, 70);
+  doc.text('✓ 2 Ambientes (Obra + Pessoal)', 46.5, card1Y + 51.2, { align: 'center' });
 
-  // Nome do Plano Business
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(255, 255, 255);
-  doc.text('Plano Business PME', bizX + 6, currentY + 14);
-
-  // Preço Mensal / Anual Business
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`R$ ${business.monthlyPrice.toFixed(2).replace('.', ',')}`, bizX + 6, currentY + 28);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('/mês no plano mensal', bizX + 42, currentY + 27.5);
-
-  // Destaque de Economia no Anual
-  doc.setFillColor(224, 231, 255); // indigo-100
-  doc.roundedRect(bizX + 6, currentY + 31.5, planWidth - 12, 6, 1.5, 1.5, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(67, 56, 202); // indigo-700
-  doc.text(`PLANO ANUAL: R$ ${business.yearlyPrice.toFixed(2).replace('.', ',')} / ano (2 meses gratuitos)`, bizX + 9, currentY + 35.8);
-
-  // Diferencial Negócios
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(79, 70, 229); // indigo-600
-  doc.text('Acesso total a todos os 3 ambientes e ferramentas PME', bizX + 6, currentY + 42.5);
-
-  // Linha divisória
+  // Linha Divisória Vertical
   doc.setDrawColor(226, 232, 240);
-  doc.line(bizX + 6, currentY + 45.5, bizX + planWidth - 6, currentY + 45.5);
+  doc.setLineWidth(0.3);
+  doc.line(77, card1Y + 4, 77, card1Y + card1H - 4);
 
-  // Recursos do Plano Business
+  // --- COLUNA DA DIREITA: Recursos Estruturados em 2 Subcolunas (x: 81 a 192) ---
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
   doc.setTextColor(30, 41, 59);
-  doc.text('TODOS OS RECURSOS DO LITE + MÓDULO PME:', bizX + 6, currentY + 50.5);
+  doc.text('RECURSOS E COBERTURA INCLUSA NESTE PLANO:', 81, card1Y + 8);
 
-  const bizItems = [
-    '✓ 3 Ambientes: Obra + Pessoal + Negócios & PME',
-    '✓ Ficha técnica completa de produtos e insumos',
-    '✓ Calculadora de Precificação Inteligente & Markup',
-    '✓ Cálculo de Ponto de Equilíbrio (Break-Even Point)',
-    '✓ Custo de Mercadorias Vendidas (CMV) em tempo real',
-    '✓ Acompanhamento de margem líquida e operacional',
-    '✓ Controle de custos fixos, comissões e impostos',
-    '✓ Relatórios específicos de precificação e rentabilidade',
-    '✓ Gestão de múltiplos projetos em todos os ambientes',
-    '✓ Suporte prioritário e auditoria avançada de dados',
+  const p1Col1 = [
+    '✓ Gestão completa de Obras, Lotes e Reformas',
+    '✓ Custo real da obra por m² construído',
+    '✓ Controle de mão de obra e materiais da construção',
+    '✓ Total pago vs contas a pagar na obra',
   ];
 
-  itemY = currentY + 56;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  bizItems.forEach((text) => {
-    doc.setTextColor(49, 46, 129); // indigo-900
-    doc.setFont('helvetica', 'bold');
-    doc.text(text, bizX + 6, itemY, { maxWidth: planWidth - 12 });
-    itemY += 5;
+  const p1Col2 = [
+    '✓ Finanças Pessoais, salários e despesas fixas',
+    '✓ Painel de investimentos e reserva de emergência',
+    '✓ Upload de notas fiscais e comprovantes no Storage',
+    '✓ Extrato financeiro dinâmico e relatórios em PDF',
+  ];
+
+  let p1Y = card1Y + 14.5;
+  p1Col1.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(5, 150, 105); // check verde
+    doc.text('✓', 81, p1Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 85, p1Y);
+    p1Y += 5.5;
   });
+
+  p1Y = card1Y + 14.5;
+  p1Col2.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(5, 150, 105);
+    doc.text('✓', 137, p1Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 141, p1Y);
+    p1Y += 5.5;
+  });
+
+  // Faixa inferior interna explicativa de perfil
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(81, card1Y + 41, 111, 14, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Ideal para:', 84, card1Y + 46);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text(
+    'Pessoas físicas e famílias que querem manter as contas pessoais em dia e simultaneamente calcular e controlar os gastos reais de uma construção ou reforma sem surpresas.',
+    84,
+    card1Y + 50,
+    { maxWidth: 105 }
+  );
+
+
+  // =========================================================================
+  // CARD 2: PLANO GESTÃO DE OBRAS & NEGÓCIOS (y: 124 a 193 - Altura: 69mm)
+  // =========================================================================
+  const card2Y = 124;
+  const card2H = 69;
+
+  // Fundo e borda índigo
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(99, 102, 241); // indigo-500
+  doc.setLineWidth(0.4);
+  doc.roundedRect(14, card2Y, 182, card2H, 2.5, 2.5, 'FD');
+  doc.setLineWidth(0.3);
+
+  // Friso vertical índigo à esquerda
+  doc.setFillColor(79, 70, 229); // indigo-600
+  doc.rect(14, card2Y, 3, card2H, 'F');
+
+  // --- COLUNA DA ESQUERDA: Identidade e Preço (x: 20 a 74) ---
+  doc.setFillColor(79, 70, 229);
+  doc.roundedRect(20, card2Y + 4, 34, 4.5, 1, 1, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.setTextColor(255, 255, 255);
+  doc.text('MAIS POPULAR • PME', 37, card2Y + 7.2, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Obras & Negócios', 20, card2Y + 14);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Comércio, prestadores, PMEs e oficinas', 20, card2Y + 18);
+
+  // Preço Mensal com Destaque
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`R$ ${business.monthlyPrice.toFixed(2).replace('.', ',')}`, 20, card2Y + 26);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('/mês', 46, card2Y + 25.5);
+
+  // Preço original tachado
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text('R$ 29,90', 56, card2Y + 25.5);
+  doc.setDrawColor(148, 163, 184);
+  doc.setLineWidth(0.3);
+  doc.line(56, card2Y + 24.5, 68, card2Y + 24.5);
+
+  // Selo Promocional 50% OFF
+  doc.setFillColor(224, 231, 255); // indigo-100
+  doc.setDrawColor(199, 210, 254);
+  doc.roundedRect(20, card2Y + 29, 53, 5, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
+  doc.setTextColor(67, 56, 202); // indigo-700
+  doc.text('★ 50% OFF nos 2 primeiros meses', 46.5, card2Y + 32.7, { align: 'center' });
+
+  // Preço Anual
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(79, 70, 229); // indigo-600
+  doc.text(`Anual: R$ ${business.yearlyPrice.toFixed(2).replace('.', ',')}/ano`, 20, card2Y + 39.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('(Apenas R$ 12,45/mês • 2 meses grátis)', 20, card2Y + 43.5);
+
+  // Pill de Ambientes Inclusos
+  doc.setFillColor(238, 242, 255);
+  doc.setDrawColor(199, 210, 254);
+  doc.roundedRect(20, card2Y + 47, 53, 6, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(55, 48, 163);
+  doc.text('✓ 3 Ambientes (Obra + Pessoal + Negócio)', 46.5, card2Y + 51.2, { align: 'center' });
+
+  // Linha Divisória Vertical
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(77, card2Y + 4, 77, card2Y + card2H - 4);
+
+  // --- COLUNA DA DIREITA: Recursos PME Estruturados em 2 Subcolunas ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(49, 46, 129); // indigo-900
+  doc.text('TUDO DO PLANO PESSOAL MAIS GESTÃO PME & EMPRESARIAL:', 81, card2Y + 8);
+
+  const p2Col1 = [
+    '✓ Ficha técnica completa de produtos e insumos',
+    '✓ Calculadora inteligente de Markup Divisor e Preço',
+    '✓ Ponto de equilíbrio financeiro (Break-Even)',
+    '✓ Cálculo automatizado de CMV e margem operacional',
+  ];
+
+  const p2Col2 = [
+    '✓ Gestão de múltiplos projetos e obras simultâneas',
+    '✓ Controle de estoque comercial com alertas mínimos',
+    '✓ Separação de custos fixos, variáveis e tributos',
+    '✓ Relatórios gerenciais e demonstrativos de resultado',
+  ];
+
+  let p2Y = card2Y + 14.5;
+  p2Col1.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(79, 70, 229); // check indigo
+    doc.text('✓', 81, p2Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 85, p2Y);
+    p2Y += 5.5;
+  });
+
+  p2Y = card2Y + 14.5;
+  p2Col2.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(79, 70, 229);
+    doc.text('✓', 137, p2Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 141, p2Y);
+    p2Y += 5.5;
+  });
+
+  // Faixa inferior explicativa de perfil
+  doc.setFillColor(238, 242, 255);
+  doc.roundedRect(81, card2Y + 41, 111, 14, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(67, 56, 202);
+  doc.text('Ideal para:', 84, card2Y + 46);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text(
+    'Empreendedores, comércios, pequenas indústrias, prestadores e construtores que precisam calcular com exatidão sua margem de lucro, gerenciar insumos e administrar múltiplas obras.',
+    84,
+    card2Y + 50,
+    { maxWidth: 105 }
+  );
+
+
+  // =========================================================================
+  // CARD 3: PLANO CONTADOR + CARNÊ-LEÃO (y: 197 a 274 - Altura: 77mm)
+  // O NOVO PLANO FISCAL (SEM CUPOM PROMOCIONAL, PREÇO CHEIO R$ 49,90)
+  // =========================================================================
+  const card3Y = 197;
+  const card3H = 77;
+
+  // Fundo âmbar suave e borda dourada âmbar
+  doc.setFillColor(254, 252, 232); // amber-50
+  doc.setDrawColor(245, 158, 11); // amber-500
+  doc.setLineWidth(0.6);
+  doc.roundedRect(14, card3Y, 182, card3H, 2.5, 2.5, 'FD');
+  doc.setLineWidth(0.3);
+
+  // Friso vertical dourado âmbar à esquerda
+  doc.setFillColor(217, 119, 6); // amber-600
+  doc.rect(14, card3Y, 3, card3H, 'F');
+
+  // --- COLUNA DA ESQUERDA: Identidade e Preço (x: 20 a 74) ---
+  doc.setFillColor(245, 158, 11);
+  doc.roundedRect(20, card3Y + 4, 46, 4.5, 1, 1, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.setTextColor(15, 23, 42);
+  doc.text('★ O NOVO PLANO FISCAL & CONTADOR', 43, card3Y + 7.2, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(120, 53, 15); // amber-900
+  doc.text('Contador + Carnê-Leão', 20, card3Y + 14);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(146, 64, 14);
+  doc.text('Autônomos, médicos, advogados e contabilidade', 20, card3Y + 18);
+
+  // Preço Mensal (Sem cupom promocional!)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(180, 83, 9); // amber-700
+  doc.text(`R$ ${contador.monthlyPrice.toFixed(2).replace('.', ',')}`, 20, card3Y + 26);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(146, 64, 14);
+  doc.text('/mês', 46, card3Y + 25.5);
+
+  // Selo de Adesão Sem Taxas (Sem cupom)
+  doc.setFillColor(254, 240, 138); // amber-200
+  doc.setDrawColor(253, 230, 138);
+  doc.roundedRect(20, card3Y + 29, 53, 5, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.2);
+  doc.setTextColor(113, 63, 18);
+  doc.text('Sem fidelidade • Cancele quando quiser', 46.5, card3Y + 32.7, { align: 'center' });
+
+  // Preço Anual
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 83, 9);
+  doc.text(`Anual: R$ ${contador.yearlyPrice.toFixed(2).replace('.', ',')}/ano`, 20, card3Y + 39.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(146, 64, 14);
+  doc.text('(Apenas R$ 41,58/mês • 2 meses grátis)', 20, card3Y + 43.5);
+
+  // Pill de Ambientes Inclusos (Acesso Total)
+  doc.setFillColor(254, 243, 199);
+  doc.setDrawColor(253, 230, 138);
+  doc.roundedRect(20, card3Y + 47, 53, 6, 1, 1, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(146, 64, 14);
+  doc.text('✓ Acesso Total (Multi-Ambiente + Fiscal)', 46.5, card3Y + 51.2, { align: 'center' });
+
+  // Linha Divisória Vertical
+  doc.setDrawColor(253, 230, 138);
+  doc.setLineWidth(0.3);
+  doc.line(77, card3Y + 4, 77, card3Y + card3H - 4);
+
+  // --- COLUNA DA DIREITA: Recursos Fiscais e Contábeis (x: 81 a 192) ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(120, 53, 15); // amber-900
+  doc.text('SOLUÇÃO INTEGRAL: PESSOAL + PME + HUB FISCAL & CONTADOR:', 81, card3Y + 8);
+
+  const p3Col1 = [
+    '✓ Exportação Oficial Carnê-Leão Web e-CAC (CSV)',
+    '✓ Livro Caixa Digital com deduções legais da RFB',
+    '✓ Auditoria preventiva anti-malha fina com IA',
+    '✓ Memória de cálculo e apuração do DARF 0190',
+    '✓ Download em lote de comprovantes em ZIP',
+  ];
+
+  const p3Col2 = [
+    '✓ Workspace do Contador: Gestão Multi-Cliente CRC',
+    '✓ Vinculação por e-mail para outorga e auditoria',
+    '✓ Modelos para Saúde (CRM/CRO), Obras e Apps',
+    '✓ Demonstrativo DRE fiscal e conciliação mensal',
+    '✓ Suporte contábil prioritário no fechamento',
+  ];
+
+  let p3Y = card3Y + 14.5;
+  p3Col1.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(180, 83, 9); // check âmbar
+    doc.text('✓', 81, p3Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 85, p3Y);
+    p3Y += 5.5;
+  });
+
+  p3Y = card3Y + 14.5;
+  p3Col2.forEach((item) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(180, 83, 9);
+    doc.text('✓', 137, p3Y);
+    doc.setTextColor(30, 41, 59);
+    doc.text(item.replace('✓ ', ''), 141, p3Y);
+    p3Y += 5.5;
+  });
+
+  // Faixa inferior explicativa de perfil
+  doc.setFillColor(254, 243, 199);
+  doc.roundedRect(81, card3Y + 47, 111, 14, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(146, 64, 14);
+  doc.text('Ideal para:', 84, card3Y + 52);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(69, 26, 3);
+  doc.text(
+    'Médicos, dentistas, psicólogos, advogados, engenheiros, autônomos com alta movimentação tributária e escritórios de contabilidade que gerenciam a escrituração fiscal de múltiplos clientes.',
+    84,
+    card3Y + 56,
+    { maxWidth: 105 }
+  );
+
 
   // 5. Rodapé Corporativo da Página 1
   doc.setFillColor(15, 23, 42); // slate-900
   doc.rect(0, 282, 210, 15, 'F');
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.8);
   doc.setTextColor(203, 213, 225);
-  doc.text('GSR Finanças • Tecnologia de Ponta em Gestão Financeira', 14, 289);
-  doc.text('Segurança de Nível Bancário PostgreSQL RLS • Criptografia SSL 256-bit • LGPD', 14, 293);
-  doc.text('Página 1 de 2', 196, 291, { align: 'right' });
+  doc.text('GSR Finanças • Tecnologia de Ponta em Gestão Financeira & Escrituração Fiscal Homologada', 14, 288.5);
+  doc.text('Segurança de Nível Bancário PostgreSQL RLS • Criptografia SSL 256-bit • Compatível com e-CAC da Receita Federal', 14, 292.5);
+  doc.text('Página 1 de 2', 196, 290.5, { align: 'right' });
 
 
   // =========================================================================
-  // PÁGINA 2: MATRIZ DETALHADA DE COMPARAÇÃO DE RECURSOS & AUDITORIA
+  // PÁGINA 2: MATRIZ DETALHADA DE COMPARAÇÃO DE RECURSOS DOS 3 PLANOS
   // =========================================================================
   doc.addPage();
 
-  // 1. Cabeçalho de Continuidade Página 2
+  // 1. Cabeçalho de Continuidade Página 2 (24mm)
   doc.setFillColor(15, 23, 42);
   doc.rect(0, 0, 210, 24, 'F');
   doc.setFillColor(16, 185, 129);
@@ -468,30 +646,29 @@ export const exportCommercialPlansPDF = (): void => {
   drawGSRLogo(doc, 14, 5, 0.9);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setTextColor(255, 255, 255);
-  doc.text('GSR FINANÇAS • MATRIZ TÉCNICA COMPARATIVA DE RECURSOS', 32, 13);
+  doc.text('GSR FINANÇAS • MATRIZ TÉCNICA COMPARATIVA DOS 3 PLANOS', 32, 12.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(52, 211, 153);
-  doc.text('Detalhamento funcional e de engenharia por módulo do sistema', 32, 18);
+  doc.text('Controle Pessoal vs Gestão de Obras & Negócios vs Contador + Carnê-Leão', 32, 17.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
-  doc.text(`Documento Oficial • ${dataAtual}`, 196, 15, { align: 'right' });
+  doc.text(`Documento Oficial • ${dataAtual}`, 196, 14.5, { align: 'right' });
 
   // 2. Tabela de Comparação Estruturada por Categoria via AutoTable
   const tableBody: (string | number)[][] = [];
-
-  // Categorias únicas
   const categories = Array.from(new Set(PLAN_COMPARISON_FEATURES.map((f) => f.category)));
 
   categories.forEach((cat) => {
     // Linha de Cabeçalho da Categoria
     tableBody.push([
       `CATEGORIA: ${cat.toUpperCase()}`,
+      '',
       '',
       '',
     ]);
@@ -511,17 +688,25 @@ export const exportCommercialPlansPDF = (): void => {
         ? '✓ Incluso'
         : '— Não Incluso';
 
+      const contStr = typeof f.contador === 'string'
+        ? f.contador
+        : f.contador
+        ? '✓ Incluso'
+        : '— Não Incluso';
+
       tableBody.push([
         f.name,
         liteStr,
         bizStr,
+        contStr,
       ]);
     });
   });
 
-  // Linhas adicionais de diferenciais técnicos e infraestrutura
+  // Linhas adicionais de infraestrutura e conformidade
   tableBody.push([
     'CATEGORIA: INFRAESTRUTURA, SEGURANÇA E SUPORTE',
+    '',
     '',
     '',
   ]);
@@ -529,9 +714,11 @@ export const exportCommercialPlansPDF = (): void => {
     'Banco de Dados Isolado com Row Level Security (PostgreSQL)',
     '✓ Incluso (RLS Nativo)',
     '✓ Incluso (RLS Nativo)',
+    '✓ Incluso (RLS Nativo)',
   ]);
   tableBody.push([
     'Período Gratuito de Avaliação sem Cobrança Imediata',
+    '✓ 7 Dias Grátis',
     '✓ 7 Dias Grátis',
     '✓ 7 Dias Grátis',
   ]);
@@ -539,33 +726,37 @@ export const exportCommercialPlansPDF = (): void => {
     'Acesso Web Responsivo (Computador, Tablet e Smartphone)',
     '✓ Incluso (Multiplataforma)',
     '✓ Incluso (Multiplataforma)',
+    '✓ Incluso (Multiplataforma)',
   ]);
   tableBody.push([
     'Processamento Oficial de Pagamentos com Criptografia',
-    '✓ Stripe Certified PCI-DSS',
-    '✓ Stripe Certified PCI-DSS',
+    '✓ Stripe PCI-DSS',
+    '✓ Stripe PCI-DSS',
+    '✓ Stripe PCI-DSS',
   ]);
   tableBody.push([
-    'Cancelamento Fácil a Qualquer Momento sem Multas',
-    '✓ Sem Fidelidade Obrigatória',
-    '✓ Sem Fidelidade Obrigatória',
+    'Layout Oficial de Exportação para e-CAC Carnê-Leão Web',
+    '— Não Incluso',
+    '— Não Incluso',
+    '✓ 100% Homologado e-CAC',
   ]);
 
   autoTable(doc, {
-    startY: 30,
+    startY: 27,
     head: [
       [
         'RECURSO OU FUNCIONALIDADE',
-        `PLANO LITE (${formatCurrency(lite.monthlyPrice)}/mês)`,
-        `PLANO BUSINESS PME (${formatCurrency(business.monthlyPrice)}/mês)`,
+        `PESSOAL (${formatCurrency(lite.monthlyPrice)}/m)`,
+        `OBRAS & NEGÓCIOS (${formatCurrency(business.monthlyPrice)}/m)`,
+        `CONTADOR (${formatCurrency(contador.monthlyPrice)}/m)`,
       ],
     ],
     body: tableBody,
     theme: 'plain',
     styles: {
       font: 'helvetica',
-      fontSize: 7.5,
-      cellPadding: 2.2,
+      fontSize: 6.8,
+      cellPadding: 1.6,
       textColor: [30, 41, 59],
       lineColor: [226, 232, 240],
       lineWidth: 0.15,
@@ -574,42 +765,50 @@ export const exportCommercialPlansPDF = (): void => {
       fillColor: [15, 23, 42],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 8,
+      fontSize: 7.2,
       halign: 'left',
-      cellPadding: 3,
+      cellPadding: 2.2,
     },
     columnStyles: {
-      0: { cellWidth: 92, halign: 'left' },
-      1: { cellWidth: 45, halign: 'center' },
-      2: { cellWidth: 45, halign: 'center' },
+      0: { cellWidth: 72, halign: 'left' },
+      1: { cellWidth: 36, halign: 'center' },
+      2: { cellWidth: 38, halign: 'center' },
+      3: { cellWidth: 36, halign: 'center' },
     },
     didParseCell: (data) => {
-      // Se for a linha de cabeçalho de categoria
       const rawText = String(data.cell.raw || '');
       if (rawText.startsWith('CATEGORIA:')) {
         data.cell.styles.fillColor = [241, 245, 249]; // slate-100
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.textColor = [15, 23, 42];
-        data.cell.styles.fontSize = 7.5;
+        data.cell.styles.fontSize = 7;
         if (data.column.index === 0) {
-          data.cell.colSpan = 3;
+          data.cell.colSpan = 4;
         }
       }
 
-      // Estilo das colunas Lite e Business
       if (!rawText.startsWith('CATEGORIA:')) {
         if (data.column.index === 1) {
           if (rawText.includes('✓')) {
             data.cell.styles.textColor = [5, 150, 105]; // emerald-600
             data.cell.styles.fontStyle = 'bold';
           } else if (rawText.includes('—')) {
-            data.cell.styles.textColor = [148, 163, 184]; // slate-400
+            data.cell.styles.textColor = [148, 163, 184];
           }
         }
         if (data.column.index === 2) {
-          data.cell.styles.fillColor = [248, 250, 252]; // leve destaque na coluna business
+          data.cell.styles.fillColor = [248, 250, 252];
           if (rawText.includes('✓')) {
             data.cell.styles.textColor = [79, 70, 229]; // indigo-600
+            data.cell.styles.fontStyle = 'bold';
+          } else if (rawText.includes('—')) {
+            data.cell.styles.textColor = [148, 163, 184];
+          }
+        }
+        if (data.column.index === 3) {
+          data.cell.styles.fillColor = [254, 252, 232]; // leve destaque âmbar no plano contador
+          if (rawText.includes('✓')) {
+            data.cell.styles.textColor = [180, 83, 9]; // amber-700
             data.cell.styles.fontStyle = 'bold';
           } else if (rawText.includes('—')) {
             data.cell.styles.textColor = [148, 163, 184];
@@ -620,45 +819,48 @@ export const exportCommercialPlansPDF = (): void => {
   });
 
   // 3. Card de Resumo de Engenharia e Garantia Comercial
-  const finalTableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  const finalTableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 3;
+  const boxHeight = Math.min(30, 278 - finalTableY);
 
-  doc.setFillColor(248, 250, 252); // slate-50
-  doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(14, finalTableY, 182, 38, 2.5, 2.5, 'FD');
-  doc.setFillColor(16, 185, 129);
-  doc.rect(14, finalTableY, 3, 38, 'F');
+  if (finalTableY < 274) {
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(14, finalTableY, 182, boxHeight, 2, 2, 'FD');
+    doc.setFillColor(16, 185, 129);
+    doc.rect(14, finalTableY, 3, boxHeight, 'F');
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text('DIFERENCIAIS TÉCNICOS & COMO CONTRATAR:', 21, finalTableY + 6);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text('DIFERENCIAIS TÉCNICOS & GARANTIAS COMERCIAIS:', 21, finalTableY + 5);
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(51, 65, 85);
 
-  const garantiaItems = [
-    '• 7 Dias Grátis: Ao criar sua conta, você tem acesso irrestrito para testar a ferramenta sem necessidade de suporte prévio.',
-    '• Cancelamento sem burocracia: Você tem total autonomia para gerenciar ou cancelar sua assinatura a qualquer momento.',
-    '• Isolamento e Privacidade (LGPD): Cada usuário possui chaves criptográficas próprias e isolamento absoluto de banco de dados.',
-    '• Suporte e Atendimento: Suporte via e-mail e canais oficiais para dúvidas de implantação, importação de dados e precificação.',
-  ];
+    const garantiaItems = [
+      '• 7 Dias Grátis: Acesso irrestrito para testar a ferramenta sem taxa de adesão ou compromisso.',
+      '• Cancelamento com 1 clique: Autonomia total para gerenciar ou cancelar sua assinatura a qualquer momento.',
+      '• Isolamento e Privacidade (LGPD): Cada usuário possui isolamento absoluto de banco de dados via PostgreSQL RLS.',
+      '• Homologação Carnê-Leão Web: Estrutura em conformidade estrita com o manual oficial da Receita Federal (e-CAC).',
+    ];
 
-  let gY = finalTableY + 12;
-  garantiaItems.forEach((item) => {
-    doc.text(item, 21, gY, { maxWidth: 172 });
-    gY += 5.5;
-  });
+    let gY = finalTableY + 9.5;
+    garantiaItems.forEach((item) => {
+      doc.text(item, 21, gY, { maxWidth: 172 });
+      gY += 4.5;
+    });
+  }
 
   // 4. Rodapé Página 2
   doc.setFillColor(15, 23, 42);
   doc.rect(0, 282, 210, 15, 'F');
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.8);
   doc.setTextColor(203, 213, 225);
-  doc.text('GSR Finanças SaaS • Proposta Comercial Oficial • Válida para Novos Usuários e Upgrades', 14, 289);
-  doc.text('Acesse o aplicativo diretamente em qualquer navegador: app.gsrfinancas.com.br', 14, 293);
-  doc.text('Página 2 de 2', 196, 291, { align: 'right' });
+  doc.text('GSR Finanças SaaS • Proposta Comercial Oficial • Válida para Novos Usuários e Upgrades', 14, 288.5);
+  doc.text('Acesse o aplicativo diretamente em qualquer navegador: app.gsrfinancas.com.br', 14, 292.5);
+  doc.text('Página 2 de 2', 196, 290.5, { align: 'right' });
 
   // Nome do arquivo PDF gerado
   const sanitizedDate = now.toISOString().slice(0, 10);

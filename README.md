@@ -1,220 +1,226 @@
-# 🏗️ Gestão Financeira Inteligente — Obras & Finanças Pessoais
+# 🏗️ GSR Finanças — Gestão Financeira Inteligente (Obras, Finanças Pessoais & Negócios PME)
 
-> **A plataforma definitiva para quem constrói, reforma e gerencia seu patrimônio.**  
-> *Do canteiro de obras ao orçamento diário: previsibilidade, controle de notas e economia real na palma da sua mão.*
+> **A plataforma definitiva para quem constrói, reforma, gerencia empresas e consolida seu patrimônio.**  
+> *Do canteiro de obras ao fluxo de caixa diário: previsibilidade, controle de notas, precificação inteligente e economia real na palma da sua mão.*
 
 ---
 
 ## 📑 Sumário
 
 - [Visão Geral & Proposta de Valor](#-visão-geral--proposta-de-valor)
-- [Público-Alvo & Personas Comerciais](#-público-alvo--personas-comerciais-base-para-ia--marketing)
-- [Roteiros Prontos para Vídeos de Divulgação com IA](#-roteiros-prontos-para-vídeos-de-divulgação-com-ia)
+- [Público-Alvo & Personas Comerciais](#-público-alvo--personas-comerciais)
 - [Funcionalidades & Módulos do Sistema](#-funcionalidades--módulos-do-sistema)
+  - [1. Módulo de Obras & Construção Civil](#1-️-módulo-de-obras--construção-civil)
+  - [2. Módulo de Finanças Pessoais & Investimentos](#2--módulo-de-finanças-pessoais--investimentos)
+  - [3. Módulo de Negócios & PME (Submódulo Estratégico)](#3--módulo-de-negócios--pme-submódulo-estratégico)
+  - [4. Central de Comprovantes & Notas em Nuvem](#4--central-de-comprovantes--notas-em-nuvem)
+  - [5. Central de Relatórios Executivos & Auditoria (PDF & Excel)](#5--central-de-relatórios-executivos--auditoria-pdf--excel)
+  - [6. Dashboard Executivo & Inteligência em Tempo Real](#6--dashboard-executivo--inteligência-em-tempo-real)
+  - [7. Gestão Multi-Ambiente & Multi-Projetos (Workspaces)](#7-️-gestão-multi-ambiente--multi-projetos-workspaces)
+  - [8. Experiência Mobile-First, Multi-Temas & Identidade](#8--experiência-mobile-first-multi-temas--identidade)
+  - [9. Perfil de Usuário & Segurança da Conta](#9--perfil-de-usuário--segurança-da-conta)
 - [Diferenciais Competitivos vs Alternativas](#-diferenciais-competitivos-vs-alternativas)
 - [Planos Comerciais & Monetização SaaS](#-planos-comerciais--monetização-saas)
 - [Arquitetura & Engenharia de Software](#-arquitetura--engenharia-de-software)
 - [Guia de Instalação & Execução Local](#-guia-de-instalação--execução-local)
 - [Deploy em Produção (Vercel & Supabase)](#-deploy-em-produção-vercel--supabase)
+- [Licença & Direitos](#-licença--direitos)
 
 ---
 
 ## 💎 Visão Geral & Proposta de Valor
 
-Construir ou reformar é um dos maiores investimentos da vida de uma pessoa ou família, mas estatísticas do setor indicam que **mais de 75% das obras ultrapassam o orçamento inicial em 30% a 50%**. Os motivos são sempre os mesmos:
-- Recibos e notas fiscais perdidos em gavetas, papéis amassados ou conversas soltas de WhatsApp;
-- Falta de cálculo do custo real por metro quadrado (R$/m²);
-- Mistura desordenada entre o dinheiro da obra e o orçamento doméstico/pessoal;
-- Planilhas complexas de Excel que ninguém consegue preencher no meio da poeira do canteiro de obras.
+Construir, gerenciar o orçamento familiar ou administrar uma micro/pequena empresa são desafios onde o descontrole de pequenos custos corrói o patrimônio. No setor da construção civil, por exemplo, **mais de 75% das obras estouram o orçamento inicial em 30% a 50%**, e a maioria dos empreendedores falha por não saber precificar produtos nem controlar CMV e estoque.
 
-O **Gestão Financeira** foi arquitetado para resolver exatamente essa dor. Com uma experiência **Mobile-First ultrarrápida**, o usuário fotografa a nota no momento da compra no depósito, categoriza a despesa em 5 segundos, vincula à etapa construtiva e tem, em tempo real, o custo total, o que já foi pago e as contas a vencer.
+Os gargalos mais frequentes no mercado são:
+- **Notas e recibos extraviados:** Comprovantes térmicos apagados na carteira, notas fiscais perdidas e fotos espalhadas em conversas de WhatsApp;
+- **Ausência de métricas unitárias:** Desconhecimento do custo real por metro quadrado construído (R$/m²) e do custo das mercadorias vendidas (CMV);
+- **Confusão patrimonial prejudicial:** Mistura contábil entre o orçamento pessoal da família, o caixa da obra e o capital de giro do negócio;
+- **Planilhas estáticas e lentas:** Arquivos de Excel difíceis de consultar no celular, suscetíveis a corrupção e sem sincronização com canteiros ou pontos de venda.
 
-Além disso, com **apenas um clique no menu**, o sistema se transforma em um completo **Gerenciador de Finanças Pessoais e Investimentos**, permitindo gerir receitas, despesas domésticas, cartões e patrimônio sem misturar um único centavo.
-
----
-
-## 🎯 Público-Alvo & Personas Comerciais (Base para IA & Marketing)
-
-Utilize estas definições de personas para criar criativos, posts de blog, anúncios e vídeos personalizados com Inteligência Artificial:
-
-### 👷‍♂️ Persona 1: O Proprietário Construtor (Dono da Obra / Chácara / Lote)
-- **Perfil:** Comprou um terreno, chácara ou lote em condomínio e está construindo ou reformando.
-- **Dor Principal:** Sensação de descontrole financeiro, medo de o dinheiro acabar antes da fase de acabamento, perda de notas de materiais e pagamentos soltos para empreiteiros.
-- **Desejo:** Saber exatamente quanto já gastou, quanto falta pagar, qual o custo do m² e guardar todos os recibos organizados digitalmente.
-- **Mensagem-chave:** *"Construa sua casa dos sonhos sem surpresas no bolso. Tenha cada parafuso e cada diária do pedreiro sob total controle."*
-
-### 📐 Persona 2: O Engenheiro / Arquiteto / Empreiteiro Autônomo
-- **Perfil:** Profissional autônomo ou pequena construtora que gerencia de 1 a 5 obras simultâneas.
-- **Dor Principal:** Dificuldade em prestar contas claras para os clientes, perda de tempo montando relatórios no Excel ao final do mês, desgaste na relação com clientes por desconfiança de custos.
-- **Desejo:** Criar workspaces isolados para cada projeto, anexar comprovantes fiscais e apresentar painéis executivos elegantes com relatórios em tempo real.
-- **Mensagem-chave:** *"Eleve seu nível profissional. Apresente relatórios e notas fiscais em tempo real para seus clientes com transparência absoluta."*
-
-### 🏢 Persona 3: O Investidor Imobiliário (Flipping & Renda)
-- **Perfil:** Investe na compra, reforma e revenda rápida de imóveis (Flipping) ou constrói para alugar.
-- **Dor Principal:** Margem de lucro esmagada por custos ocultos de reforma e incapacidade de calcular o ROI preciso do imóvel.
-- **Desejo:** Métrica rigorosa de Custo Fixo de Aquisição vs Custo Variável de Reforma para garantir lucro na revenda.
-- **Mensagem-chave:** *"Garanta a rentabilidade do seu investimento imobiliário controlando cada centavo da reforma em tempo real."*
-
-### 💼 Persona 4: O Gestor Familiar / Profissional Independente
-- **Perfil:** Pessoa que busca controle financeiro pessoal moderno, sem planilhas arcaicas.
-- **Dor Principal:** Apps financeiros genéricos que cobram caro, são lentos e não permitem personalização de categorias nem múltiplos ambientes.
-- **Desejo:** Separar contas fixas, lazer, salários e investimentos em um app rápido, escuro e seguro.
-- **Mensagem-chave:** *"Suas finanças pessoais organizadas com a mesma disciplina de uma grande obra."*
+O **GSR Finanças** foi construído como um ecossistema **SaaS All-in-One Mobile-First**, unindo três frentes de gestão em uma única aplicação segura:
+1. **Obras & Construção:** Controle de terrenos, canteiro de obras, compras de materiais, mão de obra por etapas e cálculo automático do custo por m².
+2. **Finanças Pessoais:** Gestão de receitas, despesas domésticas, contas fixas, saldo líquido em tempo real e consolidação de carteira de investimentos (CDB, Tesouro, Ações, FIIs, Cripto).
+3. **Negócios & PME:** Ficha técnica de produtos, calculadora de precificação com markup e ponto de equilíbrio, gestão de estoque com alertas de nível crítico e controle de margem líquida da empresa.
 
 ---
 
-## 🎬 Roteiros Prontos para Vídeos de Divulgação com IA
+## 🎯 Público-Alvo & Personas Comerciais
 
-*Copie e cole estes roteiros diretamente em ferramentas de voz e vídeo com IA (como HeyGen, Synthesia, ElevenLabs, Runway, InVideo, D-ID ou CapCut).*
+### 👷‍♂️ Persona 1: O Dono da Obra / Proprietário Construtor
+- **Perfil:** Comprou um lote, chácara ou imóvel urbano e está conduzindo construção ou reforma.
+- **Dor Principal:** Medo do dinheiro acabar antes da fase de acabamento, perda de notas de materiais e pagamentos soltos a empreiteiros.
+- **Desejo:** Previsibilidade financeira, saber o custo do m² construído e armazenar fotos de todos os comprovantes para prestação de contas.
+- **Proposta de Valor:** *"Construa ou reforme sem surpresas. Controle cada saco de cimento e cada diária com recibos na nuvem."*
 
-### ⚡ Roteiro 1: Anúncio Rápido para Reels / TikTok / Shorts (30 a 45 segundos)
-> **[CENA 1 - GANCHO VISUAL]:** *Pessoa segurando uma pilha de notas fiscais amassadas ou olhando para uma planilha cheia de números vermelhos.*  
-> **[VOZ / LOCUÇÃO]:** "Você já começou uma obra achando que gastaria 80 mil reais e quando viu já estava passando dos 130 mil sem saber para onde o dinheiro foi?"  
->  
-> **[CENA 2 - A DOR]:** *Foto de canteiro de obras, sacos de cimento e recibos de papel.*  
-> **[VOZ / LOCUÇÃO]:** "Esse é o pesadelo de 8 em cada 10 pessoas que constroem ou reformam. Notas que somem, pedreiro pedindo adiantamento e planilhas que ninguém consegue atualizar no meio do pó."  
->  
-> **[CENA 3 - A SOLUÇÃO]:** *Gravação de tela do app no celular: abrindo o Dashboard escuro neon, mostrando o custo do terreno, despesas por categoria e o botão central (+) adicionando uma despesa com foto.*  
-> **[VOZ / LOCUÇÃO]:** "Conheça o Gestão Financeira. O primeiro aplicativo criado para quem constrói e investe. Você tira foto do comprovante direto no balcão da loja, e ele calcula o custo real da sua obra por metro quadrado em tempo real!"  
->  
-> **[CENA 4 - CTA FINAL]:** *Tela com o botão 'Experimente 7 Dias Grátis'.*  
-> **[VOZ / LOCUÇÃO]:** "E o melhor: com um clique você ainda gerencia suas finanças pessoais no mesmo app. Clique no link agora e teste grátis por 7 dias!"
+### 📐 Persona 2: O Engenheiro / Arquiteto / Empreiteiro
+- **Perfil:** Profissional autônomo ou responsável técnico que gerencia de 1 a 5 obras simultâneas.
+- **Dor Principal:** Dificuldade em apresentar relatórios de prestação de contas transparentes aos clientes e perda de tempo consolidando planilhas manuais.
+- **Desejo:** Workspaces dedicados por cliente/projeto, relatórios executivos em PDF e Excel gerados com 1 clique e auditoria de notas fiscais.
+- **Proposta de Valor:** *"Apresente relatórios de prestação de contas e comprovantes digitais auditáveis com total transparência."*
 
----
+### 🏢 Persona 3: O Investidor Imobiliário (Flipping & Locação)
+- **Perfil:** Investe na compra, retrofit/reforma e revenda rápida de imóveis (Flipping) ou aquisição de patrimônio para renda passiva.
+- **Dor Principal:** Custos ocultos da reforma que diminuem a margem líquida de lucro na revenda.
+- **Desejo:** Visão estrita do Custo Fixo de Aquisição vs Custo Variável de Reforma para garantir o ROI projetado.
+- **Proposta de Valor:** *"Maximize o retorno sobre o investimento imobiliário monitorando cada etapa da reforma em tempo real."*
 
-### 🎙️ Roteiro 2: Vídeo Comercial de Apresentação / Pitch Executivo (60 a 90 segundos)
-> **[VOZ]:** "Qualquer engenheiro ou construtor experiente vai te dizer a mesma coisa: uma obra não falha na estrutura, ela falha no orçamento.  
->  
-> Quando você está no canteiro de obras, você não tem tempo para abrir o computador e preencher planilhas complexas. Você precisa de agilidade.  
->  
-> O aplicativo **Gestão Financeira** foi desenvolvido com tecnologia de ponta Mobile-First para ser o seu centro de comando.  
->  
-> **No Ambiente de Obra**, você cadastra o custo de aquisição do terreno, define suas metas e divide cada gasto por etapas: fundação, alvenaria, mão de obra, acabamento e documentação. Cada comprovante ou nota fiscal é enviado para a nuvem segura com foto ou PDF, auditável a qualquer momento.  
->  
-> **No Ambiente Pessoal**, você tem um espaço totalmente isolado para cuidar dos seus ganhos, contas do mês e investimentos em renda fixa ou variável, sem misturar o caixa da sua casa com o da sua construção.  
->  
-> Seus dados são protegidos por criptografia de nível bancário com isolamento PostgreSQL Row Level Security.  
->  
-> Pare de perder dinheiro com obras fora de controle. Acesse o sistema agora, experimente 7 dias grátis e tenha o controle total do seu patrimônio."
+### 🏪 Persona 4: O Microempreendedor / Produtor Artesanal (PME)
+- **Perfil:** Dono de comércio, pequeno produtor (gastronomia, marcenaria, confecção) ou prestador de serviços.
+- **Dor Principal:** Precificação errônea, venda no prejuízo por não contabilizar custos invisíveis e perda de controle sobre estoque e CMV.
+- **Desejo:** Simular preços com base em insumos, mão de obra e markup divisor, além de monitorar o estoque com alertas de reposição.
+- **Proposta de Valor:** *"Precifique seus produtos com rigor técnico e gerencie seu estoque para garantir lucro em cada venda."*
 
----
-
-### 💡 Sugestões de Prompts para Imagens e Thumbnails com IA
-- **Midjourney / DALL-E / Flux:**
-  > `High-end modern smartphone displaying a sleek dark UI financial dashboard app with neon emerald and cyan charts, sitting on a wooden desk next to construction blueprints, a digital caliper and a cup of coffee, cinematic lighting, 8k resolution, professional architectural photography --ar 16:9`
-  > `Split screen concept: on the left side a modern luxury house under construction with clean concrete and glass, on the right side a glowing futuristic financial graph showing cost efficiency and profit, hyperrealistic, octane render --ar 16:9`
+### 💼 Persona 5: O Gestor Familiar / Profissional Autônomo
+- **Perfil:** Pessoa física que busca controle financeiro pessoal moderno, ágil e independente de planilhas pesadas.
+- **Dor Principal:** Aplicativos genéricos engessados, repletos de anúncios, que misturam despesas pessoais com outros projetos.
+- **Desejo:** Separar contas fixas, cartões, lazer e aportes de investimento em uma interface moderna, rápida e escura.
+- **Proposta de Valor:** *"Suas finanças pessoais organizadas com a mesma disciplina executiva de uma grande empresa."*
 
 ---
 
 ## 🚀 Funcionalidades & Módulos do Sistema
 
 ### 1. 🏗️ Módulo de Obras & Construção Civil
-- **Custo Fixo de Aquisição:** Registro do valor de compra do terreno/lote com data e quitação para compor o Custo Total Real do empreendimento.
-- **Etapas Construtivas Pré-Configuradas:**
+- **Custo Fixo de Aquisição:** Registro do valor de compra do terreno/lote/imóvel, com data, localização e dimensões para compor o investimento total real.
+- **Cálculo do Custo por Metro Quadrado (R$/m²):** Acompanhamento contínuo do custo unitário construído conforme a metragem informada.
+- **Etapas Construtivas Pré-Configuradas e Customizáveis:**
   - *Aquisição do Terreno / Imóvel*
-  - *Documentação, Escrituras & Plantas Técnicas*
+  - *Documentação, Escrituras, Topografia & Plantas*
   - *Fundação, Terraplanagem & Estrutura*
-  - *Alvenaria, Cimento & Aço*
+  - *Alvenaria, Cimento, Ferragens & Aço*
   - *Mão de Obra, Empreiteiro & Diárias*
   - *Instalações Elétricas & Hidráulicas*
-  - *Acabamentos, Pisos, Tintas & Louças*
-  - *Aluguel de Máquinas, Caçambas & Andaimes*
-  - *Limpeza, Paisagismo & Segurança*
-- **Custo por Metro Quadrado (R$/m²):** Cálculo instantâneo do custo unitário construído conforme o tamanho do terreno/área útil informada.
-- **Controle Quitado vs Pendente:** Separação visual imediata entre valores já pagos e compromissos futuros a pagar.
+  - *Acabamentos, Pisos, Porcelanatos, Tintas & Louças*
+  - *Locação de Equipamentos, Caçambas & Andaimes*
+  - *Limpeza, Paisagismo, Jardinagem & Segurança*
+- **Controle Quitado vs Pendente:** Separação imediata entre pagamentos liquidados e despesas compromissadas em aberto.
 
 ### 2. 💼 Módulo de Finanças Pessoais & Investimentos
-- **Segregação Total de Contas:** Nenhum gasto pessoal se mistura com as despesas da obra.
-- **Entradas e Saídas:** Suporte a lançamentos de **Despesas** e **Receitas** (salário, pró-labore, rendimentos).
-- **Categorias Personalizáveis Criadas na Hora:** Crie novas categorias com cores e ícones customizados a qualquer momento sem sair da tela.
-- **Painel de Investimentos:** Acompanhamento de patrimônio alocado em CDB, Poupança, Tesouro Direto, LCI/LCA, Ações, FIIs e Criptomoedas.
-- **Lançamentos Recorrentes:** Automação para despesas que se repetem mês a mês (contas de consumo, aluguel, parcelas, salários).
+- **Segregação Patrimonial Total:** Isolamento estrito entre despesas pessoais e projetos de obra ou empresa.
+- **Entradas e Saídas:** Suporte a lançamentos de **Receitas** (salário, pró-labore, rendimentos, vendas de ativos) e **Despesas** (moradia, alimentação, saúde, educação).
+- **Saldo Líquido em Tempo Real:** Indicador com status automático de *Superávit* ou *Déficit* no período selecionado.
+- **Painel de Investimentos & Reserva de Emergência:** Acompanhamento consolidado de ativos em CDB, Poupança, Tesouro Direto, LCI/LCA, Ações, Fundos Imobiliários (FIIs) e Criptoativos.
+- **Lançamentos Recorrentes:** Criação programada de despesas e receitas que se repetem mês a mês (contas fixas, aluguel, prestações, assinaturas).
 
-### 3. 🧾 Central de Comprovantes & Notas em Nuvem
-- **Upload Imediato:** Envie fotos tiradas pela câmera do celular ou arquivos PDF de até 5MB.
-- **Armazenamento Seguro:** Arquivos salvos no Supabase Storage com URLs assinadas e proteção de acesso.
-- **Visualizador Modal Interativo:** Amplie, inspecione e baixe recibos para prestar contas a sócios, cônjuges ou clientes.
+### 3. 🏪 Módulo de Negócios & PME (Submódulo Estratégico)
+- **Ficha Técnica & Custos de Produção:**
+  - Composição detalhada de insumos, matérias-primas e ingredientes com unidades homologadas (`kg`, `g`, `m`, `cm`, `un`, `l`, `ml`, `hora`).
+  - Rateio de mão de obra (horas gastas × valor da hora) e custos fixos proporcionais (energia, embalagem, gás, frete).
+  - Cálculo automático do Custo Total de Produção (CMV + Mão de Obra + Fixos).
+- **Calculadora Inteligente de Precificação & Markup:**
+  - Definição da margem de lucro desejada (%) e geração do Preço de Venda Sugerido.
+  - Exibição do Multiplicador de Markup Divisor e Lucro Bruto Unitário.
+  - Cálculo de Ponto de Equilíbrio (*Break-Even Point*) em unidades para cobrir os custos fixos mensais.
+  - Salvamento de simulações com opção de exportação em PDF e Excel.
+- **Controle de Estoque & Mercadorias:**
+  - Adaptação dinâmica para **Comércio/Varejo** (revenda), **Prestação de Serviços** (peças/ferramentas) e **Produção/Manufatura** (insumos e matéria-prima).
+  - Cards analíticos de Capital Imobilizado, Itens com Estoque Baixo/Crítico, Potencial de Venda e Lucro Estimado.
+  - Ajuste rápido de quantidade (`+` / `-`), controle de estoque mínimo e filtros de itens zerados ou críticos.
+- **Margem Líquida Operacional da Empresa:**
+  - Monitoramento no Dashboard da rentabilidade do negócio com base em receitas brutas menos saídas operacionais.
 
-### 4. 📊 Dashboard Executivo & Inteligência em Tempo Real
-- **Cálculo por Views SQL Agregadas:** Performance instantânea mesmo com milhares de registros (`vw_dashboard_totais`).
-- **Gráficos de Proporção:** Barras de progresso e distribuição percentual de custos por categoria.
-- **Extrato Financeiro com Filtros Avançados:**
-  - Busca instantânea por texto;
-  - Filtro por categoria (Chips de seleção rápida);
-  - Filtro por status (Pago / Pendente);
-  - Filtro por tipo (Despesa / Receita);
-  - Ordenação por data ou valor.
+### 4. 🧾 Central de Comprovantes & Notas em Nuvem
+- **Upload Imediato Multi-Formato:** Envio de fotos tiradas diretamente pela câmera do celular ou arquivos digitais em PDF (até 5MB).
+- **Armazenamento Seguro:** Arquivos protegidos no Supabase Storage sob políticas de Row Level Security (RLS).
+- **Visualizador Modal Interativo:** Modal com zoom de alta resolução, inspeção e download direto para prestação de contas.
 
-### 5. 🗂️ Gestão Multi-Ambiente & Multi-Projetos (Workspaces)
-- **Menu Lateral Retrátil (Sidebar Drawer):** Navegação fluida para alternar instantaneamente entre projetos (ex.: *Chácara*, *Reforma do Apartamento*, *Finanças Pessoais*).
-- **Criação Ilimitada de Workspaces:** Gerencie múltiplas obras e propriedades em uma única conta.
+### 5. 📑 Central de Relatórios Executivos & Auditoria (PDF & Excel)
+- **Exportação para Planilha Excel (.xlsx):**
+  - Layout corporativo institucional com cabeçalho "GSR Finanças".
+  - Metadados do projeto, período em destaque e status de auditoria.
+  - Totais consolidados de lançamentos, valor quitado e pendente.
+  - Tabela com auto-filtro nativo do Excel, formatação contábil de moeda (`R$ #,##0.00`) e coluna de comprovantes.
+- **Exportação para Relatório PDF Executivo (A4):**
+  - Apresentação em alta definição pronta para impressão e envio a clientes, sócios ou bancos.
+  - Cabeçalho padronizado, indicadores sintéticos e tabela detalhada paginada com `jspdf-autotable`.
+- **Exportação Dedicada de Precificação & Ficha Técnica:**
+  - Relatórios sintéticos e analíticos de precificação para registro de catálogo de produtos.
 
-### 6. 📱 Experiência Mobile-First com Barra de 5 Posições
-- Barra inferior fixa (`BottomNav`) otimizada para o polegar com distribuição perfeitamente balanceada:
-  1. **Menu:** Abre o drawer lateral com troca de ambiente e projetos.
-  2. **Visão Geral:** Dashboard e indicadores em tempo real.
-  3. **(+):** Botão central flutuante destacado para lançamento expresso.
-  4. **Extrato:** Lista completa com filtros e recibos.
-  5. **Ajustes:** Gestão de perfil, credenciais, temas e planos.
+### 6. 📊 Dashboard Executivo & Inteligência em Tempo Real
+- **Filtro de Período Dinâmico:** Análise por ano e mês ou consolidação de todo o histórico acumulado.
+- **Métricas Contextuais por Ambiente:**
+  - *Em Obras:* Investimento Total Geral, Total Quitado, A Pagar / Pendente e Custo de Aquisição.
+  - *Em Finanças Pessoais:* Saldo Líquido, Total de Receitas, Total de Despesas e Total em Investimentos.
+  - *Em Negócios:* Saldo Líquido Operacional, Total de Receitas, Despesas Operacionais e Margem Líquida (%).
+- **Distribuição Visual por Categorias:** Barras de progresso com distribuição percentual ordenada por volume financeiro.
+- **Feed de Últimos Lançamentos:** Acesso rápido às transações mais recentes com badges de status e tipo.
 
-### 7. 🎨 Personalização & Multi-Temas
-- **Seletor de Temas Dinâmicos:**
-  - *Escuro Profundo (Neon Emerald / Blueprint Grid)*: Ideal para baixa luminosidade e estilo futurista.
-  - *Cyber Blue*: Estilo executivo com foco em produtividade.
-  - *Claro / Leitura*: Alto contraste para ambientes externos com incidência solar direta no canteiro de obras.
+### 7. 🗂️ Gestão Multi-Ambiente & Multi-Projetos (Workspaces)
+- **Menu Lateral Retrátil (Sidebar Drawer):** Navegação fluida para alternar instantaneamente entre projetos (*Chácara*, *Reforma Apartamento*, *Finanças Pessoais*, *Meu Negócio PME*).
+- **Criação Ilimitada de Workspaces:** Gerencie múltiplos empreendimentos e imóveis em uma única assinatura.
+- **Categorias Customizadas com Gestão Completa:** Crie, edite e exclua categorias com paleta de cores personalizada e classificação por tipo de movimentação.
 
-### 8. 🔐 Perfil de Usuário & Segurança da Conta
-- Edição direta de **Nome Completo**, **E-mail** e **Senha** na tela de Ajustes.
-- Feedback de status em tempo real sem necessidade de deslogar.
+### 8. 📱 Experiência Mobile-First, Multi-Temas & Identidade
+- **Barra de Navegação Inferior (BottomNav):** 5 posições ergonômicas para uso com o polegar no canteiro de obras:
+  1. *Menu Drawer:* Acesso à troca de ambientes e ferramentas PME;
+  2. *Dashboard:* Painel de indicadores e métricas;
+  3. *(+) Central Flutuante:* Lançamento rápido de despesas/receitas com upload de recibo;
+  4. *Extrato:* Histórico com busca e filtros avançados;
+  5. *Ajustes:* Configurações de perfil, segurança, temas e planos.
+- **Sistema Multi-Temas Dinâmico em Runtime:**
+  - *Escuro Profundo (Neon Emerald / Blueprint):* Visual contemporâneo para ambientes internos e economia de bateria.
+  - *Cyber Blue:* Estilo corporativo com foco em dados e produtividade.
+  - *Claro / Leitura:* Alto contraste para uso sob luz solar direta em canteiros de obras.
+- **Identidade da Marca Vetorial:** Logotipo responsivo vetorial com showcase animado via Remotion Engine.
+
+### 9. 🔐 Perfil de Usuário & Segurança da Conta
+- **Gestão Cadastral Completa:** Edição direta de nome de exibição e e-mail de acesso.
+- **Redefinição de Senha:** Alteração protegida dentro do app e fluxo de recuperação com link enviado por e-mail.
 
 ---
 
 ## 🏆 Diferenciais Competitivos vs Alternativas
 
-| Recurso / Benefício | Gestão Financeira | Planilha Excel / Sheets | Caderno / Bloco de Notas | Apps Genéricos (Mobills/Organizze) |
+| Funcionalidade / Benefício | GSR Finanças | Planilhas (Excel/Sheets) | Caderno / Anotação Física | Apps Tradicionais (Mobills/Organizze) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Ambiente Nativo de Obras & m²** | ✅ **Sim** | ❌ Exige fórmulas manuais | ❌ Não | ❌ Não existe |
-| **Segregação Obra vs Finanças Pessoais** | ✅ **Sim (1 clique)** | ⚠️ Complexo e propenso a erros | ❌ Não | ❌ Mistura tudo |
-| **Foto do Comprovante na Nuvem** | ✅ **Sim (Instantâneo)** | ❌ Links quebrados no Drive | ❌ Grampos e papel | ⚠️ Limitado a planos caros |
-| **Mobile-First para o Canteiro de Obras** | ✅ **Sim (Touch 100%)** | ❌ Terrível no celular | ⚠️ Amassa, molha e rasga | ⚠️ Focado só em cartões |
-| **Segurança PostgreSQL RLS** | ✅ **Nível Bancário** | ❌ Qualquer um com o link vê | ❌ Perda física | ⚠️ Dependente de terceiros |
-| **Multi-Projetos Ilimitados** | ✅ **Sim** | ⚠️ Arquivos pesados separados | ❌ Não | ❌ Cobra por conta extra |
+| **Ambiente Nativo de Obras & R$/m²** | ✅ **Nativo e Instantâneo** | ⚠️ Fórmulas manuais complexas | ❌ Inexistente | ❌ Não oferece |
+| **Segregação Obra vs Pessoal vs PME** | ✅ **3 Ambientes em 1 clique** | ❌ Arquivos soltos e confusos | ❌ Mistura anotações | ❌ Focado apenas em contas pessoais |
+| **Submódulo PME: Precificação & CMV** | ✅ **Integrado (Markup + Break-Even)** | ⚠️ Exige planilhas avançadas | ❌ Impossível | ❌ Não possui |
+| **Controle de Estoque Setorial** | ✅ **Comércio, Serviço e Produção** | ⚠️ Controle manual frágil | ❌ Descontrole de perdas | ❌ Não possui |
+| **Upload de Fotos e PDFs na Nuvem** | ✅ **Nativo (Storage Seguro)** | ❌ Links locais ou Drive quebrado | ❌ Papéis amassados e manchados | ⚠️ Limitado a planos caros |
+| **Relatórios Executivos PDF e Excel** | ✅ **1 Clique com Formatação** | ⚠️ Requer formatação manual | ❌ Inviável | ⚠️ CSV simples sem formatação |
+| **Interface Mobile-First para Campo** | ✅ **100% Otimizada para Celular** | ❌ Difícil preenchimento no touch | ⚠️ Molha, rasga e se perde | ⚠️ Desenhado para uso urbano |
+| **Segurança PostgreSQL RLS** | ✅ **Nível Bancário Isolado** | ❌ Compartilhamento inseguro de link | ❌ Zero segurança física | ⚠️ Dependente de terceiros |
 
 ---
 
 ## 💰 Planos Comerciais & Monetização SaaS
 
-A plataforma possui integração nativa com o **Stripe**, oferecendo fluxo completo de checkout seguro, cupons promocionais e liberação instantânea via `SubscriptionGate`:
+A plataforma conta com integração nativa com o **Stripe Billing**, oferecendo checkout transparente, cupons automáticos, gestão de renovação, cancelamento agendado e liberação via `SubscriptionGate`:
 
-| Plano | Preço Regular | Condição Especial / Promoção | Principais Benefícios |
+| Plano | Preço Regular | Condição Promocional | Principais Recursos Inclusos |
 | :--- | :---: | :---: | :--- |
-| **7 Dias Grátis** | **R$ 0,00** | Acesso total sem compromisso | Teste todas as funções em canteiro real de obras |
-| **Plano Mensal Pro** | **R$ 14,90 / mês** | **50% OFF nos 2 primeiros meses** (R$ 7,45/mês) | Obras ilimitadas, anexos em nuvem, multi-ambientes |
-| **Plano Anual Pro** | **R$ 149,00 / ano** | **Economia equivalente a 2 meses grátis** | Melhor custo-benefício para obras de médio e longo prazo |
+| **7 Dias Grátis** | **R$ 0,00** | Acesso irrestrito sem compromisso | Teste completo dos 3 ambientes (Obra, Pessoal e Negócio) |
+| **Plano Lite (Obras & Pessoal)** | **R$ 14,90 / mês** | **50% OFF nos 2 primeiros meses** (R$ 7,45/mês) ou **R$ 149,00/ano** | **2 Ambientes:** Obras & Construções + Finanças Pessoais. Projetos ilimitados, fotos de recibos, relatórios PDF/Excel e investimentos |
+| **Plano Business PME (Completo)** | **R$ 29,90 / mês** | **50% OFF nos 2 primeiros meses** (R$ 14,95/mês) ou **R$ 299,00/ano** | **3 Ambientes:** Tudo do Plano Lite + Módulo de Negócios & PME, Ficha Técnica de Insumos, Calculadora de Precificação, Estoque e Margem Líquida |
 
 ---
 
 ## 🛠️ Arquitetura & Engenharia de Software
 
 ### Stack Tecnológica
-- **Linguagem & Tipagem:** TypeScript 5+ (Modo Estrito, **zero `any`**).
+- **Linguagem & Tipagem:** TypeScript 5+ com checagem estrita (**zero `any`**).
 - **Frontend SPA:** React 18 com hooks modernos (`useCallback`, `useMemo`, `useContext`).
-- **Bundler & Build Tool:** Vite (compilação ultrarrápida e chunking otimizado).
-- **Estilização & Design System:** Tailwind CSS com variáveis CSS para suporte multi-tema em runtime.
-- **Ícones:** Lucide React.
-- **Motor de Vídeo e Animação:** Remotion Engine integrado para apresentação da marca.
-- **Backend Serverless & Banco de Dados:** Supabase:
+- **Build Tooling & Bundler:** Vite 6 (HMR instantâneo e otimização de chunks).
+- **Estilização & Design System:** Tailwind CSS com variáveis CSS nativas para chaveamento de temas em tempo de execução.
+- **Biblioteca de Ícones:** Lucide React.
+- **Motor de Vídeo e Animação:** Remotion Engine integrado para apresentação vetorial da marca.
+- **Geradores de Relatórios:**
+  - `xlsx` (SheetJS) para relatórios em planilha Excel com auto-filtro e metadados.
+  - `jspdf` e `jspdf-autotable` para relatórios executivos em PDF com paginação e design corporativo.
+- **Backend Serverless & Banco de Dados (Supabase):**
   - PostgreSQL 15+ com triggers de auditoria;
-  - **Row Level Security (RLS)** em todas as tabelas (`despesas`, `workspaces`, `categorias`, `perfis`);
-  - Views SQL agregadas para alta performance (`vw_dashboard_totais`);
-  - Supabase Storage para fotos de recibos e PDFs;
+  - **Row Level Security (RLS)** ativo em todas as tabelas (`despesas`, `workspaces`, `categorias`, `perfis`, `itens_estoque`);
+  - Views SQL agregadas para relatórios e indicadores instantâneos (`vw_dashboard_totais`);
+  - Supabase Storage para armazenamento de fotos de notas e PDFs com URLs seguras;
   - Supabase Auth com persistência de sessão e JWT.
-- **Pagamentos & Assinaturas:** Stripe Billing (Checkout Sessions, Portais do Cliente e Webhooks).
+- **Pagamentos & Assinaturas:** Stripe Billing via Edge Functions (`create-checkout-session`, `stripe-webhook`).
 
-### Segurança e LGPD
-- **Isolamento de Dados:** Cada consulta ao PostgreSQL utiliza a função `auth.uid()`, garantindo que nenhum usuário visualize dados de outro tenant.
-- **Zero Secrets Expostos:** As chaves de serviço (`service_role`) nunca são utilizadas no cliente frontend. Apenas a chave pública anônima (`anon_key`) é usada sob as rédeas do RLS.
-- **Higienização de Entradas:** Todas as inputs numéricas e textuais passam por validação e sanitização estrita antes da gravação no banco.
+### Segurança, Privacidade e LGPD
+- **Isolamento de Tenants via RLS:** Todas as consultas no banco de dados aplicam a função `auth.uid()`, impedindo qualquer vazamento entre usuários.
+- **Zero Secrets no Frontend:** Nenhuma chave de serviço (`service_role`) trafega no cliente; apenas a chave pública anônima sob as regras estritas do RLS.
+- **Higienização e Parsing:** Sanitização de entradas monetárias em padrão brasileiro (ex.: `1.250,50`) e validação de payloads.
 
 ---
 
@@ -222,16 +228,17 @@ A plataforma possui integração nativa com o **Stripe**, oferecendo fluxo compl
 
 ### Pré-requisitos
 - Node.js 18+ ou 20+ instalado;
-- Conta ativa no Supabase (ou instância local do Supabase via CLI).
+- Gerenciador de pacotes `npm`;
+- Instância ou projeto ativo no Supabase.
 
 ### Passo a Passo
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/SEU_USUARIO/custo_terreno.git
+git clone https://github.com/SEU_USUARIO/gsr_financas.git
 
-# 2. Acesse o diretório do projeto
-cd custo_terreno
+# 2. Acesse a pasta do projeto
+cd gsr_financas
 
 # 3. Instale as dependências
 npm install
@@ -240,7 +247,7 @@ npm install
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` com suas credenciais:
+Edite o arquivo `.env` com suas credenciais do Supabase:
 ```env
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
@@ -250,7 +257,7 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
 # 5. Inicie o servidor de desenvolvimento
 npm run dev
 
-# 6. Para validar tipos TypeScript e gerar o build de produção:
+# 6. Para validar tipagem TypeScript e compilar o build de produção:
 npm run build
 ```
 
@@ -258,17 +265,17 @@ npm run build
 
 ## 🌐 Deploy em Produção (Vercel & Supabase)
 
-O projeto já contém o arquivo [`vercel.json`](file:///home/gabriel/Área de trabalho/PROJETOS/custo_terreno/vercel.json) configurado para roteamento Single Page Application (SPA).
+O projeto contém o arquivo de configuração para roteamento SPA:
 
-1. Conecte seu repositório GitHub na **Vercel** (`New Project`).
+1. Conecte seu repositório no dashboard da **Vercel** (`New Project`).
 2. Defina o Framework Preset como **Vite**.
 3. Em **Environment Variables**, cadastre:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-4. Clique em **Deploy**. A cada novo push na branch `main`, a Vercel executará o pipeline automatizado de testes e deploy contínuo (CI/CD).
+4. Execute o **Deploy**. A cada novo push na branch `main`, o pipeline de CI/CD da Vercel compila e publica a aplicação automaticamente.
 
 ---
 
 ## 📄 Licença & Direitos
 
-Projeto proprietário desenvolvido para gestão inteligente de obras e finanças patrimoniais. Todos os direitos reservados.
+Projeto proprietário desenvolvido para gestão inteligente de obras, finanças patrimoniais e negócios. Todos os direitos reservados.
